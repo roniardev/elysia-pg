@@ -1,0 +1,1 @@
+ALTER TABLE "sessions" ADD COLUMN "ip" varchar(255) NOT NULL;
