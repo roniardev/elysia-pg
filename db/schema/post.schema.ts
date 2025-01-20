@@ -6,7 +6,9 @@ export const posts = pgTable(
 	"posts",
 	{
 		id: varchar("id", { length: 21 }).primaryKey(),
-		userId: varchar("user_id", { length: 255 }).notNull(),
+		userId: varchar("user_id", { length: 255 })
+			.notNull()
+			.references(() => users.id),
 		title: varchar("title", { length: 255 }).notNull(),
 		excerpt: varchar("excerpt", { length: 255 }).notNull(),
 		content: text("content").notNull(),
