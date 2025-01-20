@@ -5,7 +5,7 @@ import { users } from "./user.schema";
 export const posts = pgTable(
 	"posts",
 	{
-		id: varchar("id", { length: 15 }).primaryKey(),
+		id: varchar("id", { length: 21 }).primaryKey(),
 		userId: varchar("user_id", { length: 255 }).notNull(),
 		title: varchar("title", { length: 255 }).notNull(),
 		excerpt: varchar("excerpt", { length: 255 }).notNull(),
