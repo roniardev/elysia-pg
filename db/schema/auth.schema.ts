@@ -7,13 +7,13 @@ import {
 	pgTable,
 } from "drizzle-orm/pg-core";
 import { users } from "./user.schema";
+import { relations } from "drizzle-orm";
 
 export const refreshToken = pgTable(
 	"refresh_token",
 	{
 		id: varchar("id", { length: 21 }).primaryKey(),
 		hashedToken: varchar("hashed_token", { length: 255 }).unique().notNull(),
-		userId: varchar("user_id", { length: 21 }).notNull(),
 		sessionId: varchar("session_id", { length: 21 })
 			.notNull()
 			.references(() => sessions.id),
@@ -21,7 +21,6 @@ export const refreshToken = pgTable(
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 	},
 	(t) => ({
-		userIdx: index("refresh_token_user_idx").on(t.userId),
 		sessionIdx: index("refresh_token_session_idx").on(t.sessionId),
 	}),
 );
@@ -79,5 +78,39 @@ export const passwordResetTokens = pgTable(
 	},
 	(t) => ({
 		userIdx: index("password_token_user_idx").on(t.userId),
+	}),
+);
+
+export const refreshTokenRelations = relations(refreshToken, ({ one }) => ({
+	session: one(sessions, {
+		fields: [refreshToken.sessionId],
+		references: [sessions.id],
+	}),
+}));
+
+export const sessionRelations = relations(sessions, ({ one }) => ({
+	user: one(users, {
+		fields: [sessions.userId],
+		references: [users.id],
+	}),
+}));
+
+export const emailVerificationCodeRelations = relations(
+	emailVerificationCodes,
+	({ one }) => ({
+		user: one(users, {
+			fields: [emailVerificationCodes.userId],
+			references: [users.id],
+		}),
+	}),
+);
+
+export const passwordResetTokenRelations = relations(
+	passwordResetTokens,
+	({ one }) => ({
+		user: one(users, {
+			fields: [passwordResetTokens.userId],
+			references: [users.id],
+		}),
 	}),
 );

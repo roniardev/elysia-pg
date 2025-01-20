@@ -22,7 +22,6 @@ export async function runUsersSeed() {
 			id: "m7xa8kd9xx40kn3qrtrgo",
 			email: "roon.ardiyanto@gmail.com",
 			emailVerified: true,
-			googleId: "103200627280079479126",
 			hashedPassword,
 		});
 	}
