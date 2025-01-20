@@ -16,11 +16,9 @@ export const login = new Elysia()
 			set,
 			jwtAccess,
 			jwtRefresh,
-			headers,
 			server,
 			request,
 		}) {
-			console.log(headers);
 			// CHECK EXISTING USER
 			const existingUser = await db.query.users.findFirst({
 				where: (table, { eq: eqFn }) => {
@@ -42,7 +40,10 @@ export const login = new Elysia()
 				},
 			});
 
-			if (existingSession) {
+			const isExpiredSession =
+				(existingSession?.expiresAt || new Date(0)) < new Date();
+
+			if (existingSession && !isExpiredSession) {
 				set.status = 403;
 				return {
 					message: "Session already exists.",
@@ -61,6 +62,15 @@ export const login = new Elysia()
 				};
 			}
 
+			// GENERATE SESSION
+			const sessionId = generateId(21);
+			await db.insert(sessions).values({
+				expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 31),
+				id: sessionId,
+				userId: existingUser.id,
+				ip: server?.requestIP(request)?.address || "",
+			});
+
 			// GENERATE REFRESH TOKEN & ACCESS TOKEN
 			const refreshId = generateId(21);
 			const refreshTokenGenerate = await jwtRefresh.sign({
@@ -74,19 +84,11 @@ export const login = new Elysia()
 				hashedToken,
 				id: refreshId,
 				userId: existingUser.id,
+				sessionId: sessionId,
 			});
 
 			const accessToken = await jwtAccess.sign({
 				id: String(existingUser.id),
-			});
-
-			// GENERATE SESSION
-
-			await db.insert(sessions).values({
-				expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 31),
-				id: generateId(21),
-				userId: existingUser.id,
-				ip: server?.requestIP(request)?.address || "",
 			});
 
 			return {
