@@ -6,6 +6,7 @@ import {
 	varchar,
 	pgTable,
 } from "drizzle-orm/pg-core";
+import { users } from "./user.schema";
 
 export const refreshToken = pgTable(
 	"refresh_token",
@@ -13,7 +14,9 @@ export const refreshToken = pgTable(
 		id: varchar("id", { length: 21 }).primaryKey(),
 		hashedToken: varchar("hashed_token", { length: 255 }).unique().notNull(),
 		userId: varchar("user_id", { length: 21 }).notNull(),
-		sessionId: varchar("session_id", { length: 21 }).notNull(),
+		sessionId: varchar("session_id", { length: 21 })
+			.notNull()
+			.references(() => sessions.id),
 		revoked: boolean("revoked").default(false).notNull(),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 	},
@@ -27,7 +30,9 @@ export const sessions = pgTable(
 	"sessions",
 	{
 		id: varchar("id", { length: 255 }).primaryKey(),
-		userId: varchar("user_id", { length: 21 }).notNull(),
+		userId: varchar("user_id", { length: 21 })
+			.notNull()
+			.references(() => users.id),
 		expiresAt: timestamp("expires_at", {
 			withTimezone: true,
 			mode: "date",
@@ -43,7 +48,10 @@ export const emailVerificationCodes = pgTable(
 	"email_verification_codes",
 	{
 		id: serial("id").primaryKey(),
-		userId: varchar("user_id", { length: 21 }).unique().notNull(),
+		userId: varchar("user_id", { length: 21 })
+			.unique()
+			.notNull()
+			.references(() => users.id),
 		email: varchar("email", { length: 255 }).notNull(),
 		code: varchar("code", { length: 8 }).notNull(),
 		expiresAt: timestamp("expires_at", {
@@ -61,7 +69,9 @@ export const passwordResetTokens = pgTable(
 	"password_reset_tokens",
 	{
 		id: varchar("id", { length: 40 }).primaryKey(),
-		userId: varchar("user_id", { length: 21 }).notNull(),
+		userId: varchar("user_id", { length: 21 })
+			.notNull()
+			.references(() => users.id),
 		expiresAt: timestamp("expires_at", {
 			withTimezone: true,
 			mode: "date",
