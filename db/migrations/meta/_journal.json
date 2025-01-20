@@ -15,6 +15,13 @@
       "when": 1736926015148,
       "tag": "0001_milky_stark_industries",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1737015654938,
+      "tag": "0002_swift_prism",
+      "breakpoints": true
     }
   ]
 }
