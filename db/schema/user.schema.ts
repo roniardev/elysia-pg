@@ -6,7 +6,7 @@ import {
 	varchar,
 	pgTable,
 } from "drizzle-orm/pg-core";
-import { refreshToken } from "./auth.schema";
+import { sessions } from "./auth.schema";
 
 export const users = pgTable(
 	"users",
@@ -20,13 +20,11 @@ export const users = pgTable(
 		updatedAt: timestamp("updated_at", { mode: "date" }).$onUpdate(
 			() => new Date(),
 		),
-		googleId: varchar("google_id", { length: 255 }).unique(),
-		refreshTokenId: varchar("refresh_token_id", { length: 21 }).unique(),
+		sessionId: varchar("session_id", { length: 21 }).unique(),
 	},
 	(t) => ({
 		emailIdx: index("user_email_idx").on(t.email),
-		googleIdx: index("user_google_idx").on(t.googleId),
-		refreshTokenIdx: index("user_refresh_token_idx").on(t.refreshTokenId),
+		sessionIdx: index("users_session_idx").on(t.sessionId),
 	}),
 );
 
@@ -34,8 +32,8 @@ export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 
 export const userRelations = relations(users, ({ one }) => ({
-	refreshToken: one(refreshToken, {
-		fields: [users.refreshTokenId],
-		references: [refreshToken.id],
+	session: one(sessions, {
+		fields: [users.sessionId],
+		references: [sessions.id],
 	}),
 }));
