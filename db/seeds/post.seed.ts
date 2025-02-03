@@ -23,6 +23,7 @@ export async function runPostsSeed() {
 			id: generateId(21),
 			status: faker.helpers.arrayElement(["draft", "published"]),
 			tags: "random",
+			visibility: faker.helpers.arrayElement(["public", "private"]),
 			excerpt: faker.lorem.sentence(10),
 			content: faker.lorem.paragraph(10),
 		});

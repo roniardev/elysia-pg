@@ -15,6 +15,12 @@ export const posts = pgTable(
 		status: varchar("status", { length: 10, enum: ["draft", "published"] })
 			.default("draft")
 			.notNull(),
+		visibility: varchar("visibility", {
+			length: 10,
+			enum: ["public", "private"],
+		})
+			.default("private")
+			.notNull(),
 		tags: varchar("tags", { length: 255 }),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at", { mode: "date" }).$onUpdate(
