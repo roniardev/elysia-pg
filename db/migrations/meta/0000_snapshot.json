@@ -1,9 +1,62 @@
 {
-  "id": "6ce6f814-cc2c-42d7-a46c-246c29ff76ec",
+  "id": "6e80656e-1ed7-4af5-b3a4-829287bbcc41",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.api_key": {
+      "name": "api_key",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(21)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "hashed_key": {
+          "name": "hashed_key",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "revoked": {
+          "name": "revoked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "expired_at": {
+          "name": "expired_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "api_key_hashed_key_unique": {
+          "name": "api_key_hashed_key_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "hashed_key"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.email_verification_codes": {
       "name": "email_verification_codes",
       "schema": "",
@@ -71,7 +124,21 @@
           "with": {}
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "email_verification_codes_user_id_users_id_fk": {
+          "name": "email_verification_codes_user_id_users_id_fk",
+          "tableFrom": "email_verification_codes",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "email_verification_codes_user_id_unique": {
@@ -126,7 +193,21 @@
           "with": {}
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "password_reset_tokens_user_id_users_id_fk": {
+          "name": "password_reset_tokens_user_id_users_id_fk",
+          "tableFrom": "password_reset_tokens",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -149,8 +230,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "user_id": {
-          "name": "user_id",
+        "session_id": {
+          "name": "session_id",
           "type": "varchar(21)",
           "primaryKey": false,
           "notNull": true
@@ -171,11 +252,11 @@
         }
       },
       "indexes": {
-        "refresh_token_user_idx": {
-          "name": "refresh_token_user_idx",
+        "refresh_token_session_idx": {
+          "name": "refresh_token_session_idx",
           "columns": [
             {
-              "expression": "user_id",
+              "expression": "session_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -187,7 +268,21 @@
           "with": {}
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "refresh_token_session_id_sessions_id_fk": {
+          "name": "refresh_token_session_id_sessions_id_fk",
+          "tableFrom": "refresh_token",
+          "tableTo": "sessions",
+          "columnsFrom": [
+            "session_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "refresh_token_hashed_token_unique": {
@@ -223,6 +318,12 @@
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true
+        },
+        "ip": {
+          "name": "ip",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {
@@ -242,7 +343,21 @@
           "with": {}
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "sessions_user_id_users_id_fk": {
+          "name": "sessions_user_id_users_id_fk",
+          "tableFrom": "sessions",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -255,7 +370,7 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "varchar(15)",
+          "type": "varchar(21)",
           "primaryKey": true,
           "notNull": true
         },
@@ -289,6 +404,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'draft'"
+        },
+        "visibility": {
+          "name": "visibility",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'private'"
         },
         "tags": {
           "name": "tags",
@@ -342,7 +464,21 @@
           "with": {}
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "posts_user_id_users_id_fk": {
+          "name": "posts_user_id_users_id_fk",
+          "tableFrom": "posts",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -397,14 +533,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "google_id": {
-          "name": "google_id",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "refresh_token_id": {
-          "name": "refresh_token_id",
+        "session_id": {
+          "name": "session_id",
           "type": "varchar(21)",
           "primaryKey": false,
           "notNull": false
@@ -426,26 +556,11 @@
           "method": "btree",
           "with": {}
         },
-        "user_google_idx": {
-          "name": "user_google_idx",
+        "users_session_idx": {
+          "name": "users_session_idx",
           "columns": [
             {
-              "expression": "google_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "user_refresh_token_idx": {
-          "name": "user_refresh_token_idx",
-          "columns": [
-            {
-              "expression": "refresh_token_id",
+              "expression": "session_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -467,18 +582,11 @@
             "email"
           ]
         },
-        "users_google_id_unique": {
-          "name": "users_google_id_unique",
+        "users_session_id_unique": {
+          "name": "users_session_id_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "google_id"
-          ]
-        },
-        "users_refresh_token_id_unique": {
-          "name": "users_refresh_token_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "refresh_token_id"
+            "session_id"
           ]
         }
       },

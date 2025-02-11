@@ -1,1 +1,0 @@
-ALTER TABLE "posts" ALTER COLUMN "id" SET DATA TYPE varchar(21);
