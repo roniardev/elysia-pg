@@ -19,4 +19,5 @@ export const config = {
 		.asEnum(["memory", "redis"]),
 	JWT_ACCESS_SECRET: env.get("JWT_ACCESS_SECRET").required().asString(),
 	JWT_REFRESH_SECRET: env.get("JWT_REFRESH_SECRET").required().asString(),
+	SECRET_KEY: env.get("SECRET_KEY").required().asString(),
 };
