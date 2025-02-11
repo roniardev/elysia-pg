@@ -83,7 +83,6 @@ export const login = new Elysia()
 			await db.insert(refreshToken).values({
 				hashedToken,
 				id: refreshId,
-				userId: existingUser.id,
 				sessionId: sessionId,
 			});
 
@@ -97,9 +96,6 @@ export const login = new Elysia()
 			};
 		},
 		{
-			body: t.Object({
-				email: t.String(),
-				password: t.String(),
-			}),
+			body: "basicAuthModel",
 		},
 	);
