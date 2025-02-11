@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 import { drizzle } from "drizzle-orm/postgres-js";
-import { Scrypt } from "lucia";
 import postgres from "postgres";
 
 import * as schema from "@/db/schema";
