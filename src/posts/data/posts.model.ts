@@ -10,3 +10,10 @@ export const createPostModel = new Elysia().model({
 		tags: t.Optional(t.String()),
 	}),
 });
+
+export const readPostModel = new Elysia().model({
+	readPostModel: t.Object({
+		page: t.Number(),
+		limit: t.Number(),
+	}),
+});
