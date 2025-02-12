@@ -17,3 +17,14 @@ export const readPostModel = new Elysia().model({
 		limit: t.Number(),
 	}),
 });
+
+export const updatePostModel = new Elysia().model({
+	updatePostModel: t.Object({
+		title: t.Optional(t.String()),
+		excerpt: t.Optional(t.String()),
+		content: t.Optional(t.String()),
+		status: t.Optional(t.String()),
+		visibility: t.Optional(t.String()),
+		tags: t.Optional(t.String()),
+	}),
+});

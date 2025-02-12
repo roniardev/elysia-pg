@@ -5,6 +5,7 @@ import { createPost } from "./usecase/create.usecase";
 import { encryptResponse } from "@/utils/encrypt-response";
 import type { GeneralResponse } from "@/common/model/general-response";
 import { readPost } from "./usecase/read-all.usecase";
+import { updatePost } from "./usecase/update.usecase";
 
 export const posts = new Elysia()
 	.onAfterHandle(
@@ -20,4 +21,5 @@ export const posts = new Elysia()
 	.use(jwtRefreshSetup)
 	.use(verifyJWT)
 	.use(createPost)
-	.use(readPost);
+	.use(readPost)
+	.use(updatePost);
