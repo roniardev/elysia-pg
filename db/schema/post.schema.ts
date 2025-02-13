@@ -26,6 +26,7 @@ export const posts = pgTable(
 		updatedAt: timestamp("updated_at", { mode: "date" }).$onUpdate(
 			() => new Date(),
 		),
+		deletedAt: timestamp("deleted_at", { mode: "date" }),
 	},
 	(t) => ({
 		userIdx: index("post_user_idx").on(t.userId),

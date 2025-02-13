@@ -1,18 +1,18 @@
 import { Elysia } from "elysia";
-import { updatePostModel } from "../data/posts.model";
+import { readPostModel } from "../data/posts.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth.setup";
 import bearer from "@elysiajs/bearer";
 import { db } from "@/db";
 import { posts } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-export const updatePost = new Elysia()
-	.use(updatePostModel)
+export const readPost = new Elysia()
+	.use(readPostModel)
 	.use(jwtAccessSetup)
 	.use(bearer())
 	.put(
 		"/post/:id",
-		async ({ body, params, bearer, set, jwtAccess }) => {
+		async ({ params, bearer, set, jwtAccess }) => {
 			const validToken = await jwtAccess.verify(bearer);
 
 			if (!validToken) {
@@ -28,9 +28,9 @@ export const updatePost = new Elysia()
 				},
 			});
 
-			const updatePermission = await db.query.permissions.findFirst({
+			const readPermission = await db.query.permissions.findFirst({
 				where: (table, { eq: eqFn }) => {
-					return eqFn(table.name, "update:post");
+					return eqFn(table.name, "read:post");
 				},
 			});
 
@@ -38,7 +38,7 @@ export const updatePost = new Elysia()
 				where: (table, { eq: eqFn }) => {
 					return (
 						eqFn(table.userId, validToken.id) &&
-						eqFn(table.permissionId, updatePermission?.id as string)
+						eqFn(table.permissionId, readPermission?.id as string)
 					);
 				},
 			});
@@ -77,35 +77,26 @@ export const updatePost = new Elysia()
 				};
 			}
 
-			const updatePost = await db
-				.update(posts)
-				.set({
-					title: body.title || post.title,
-					excerpt: body.excerpt || post.excerpt,
-					content: body.content || post.content,
-					status:
-						(body.status as "draft" | "published") ||
-						(post.status as "draft" | "published"),
-					visibility:
-						(body.visibility as "public" | "private") ||
-						(post.visibility as "public" | "private"),
-					tags: body.tags || post.tags,
-					updatedAt: new Date(),
-				})
-				.where(eq(posts.id, params.id));
+			const readPost = await db.query.posts.findFirst({
+				where: (table, { eq: eqFn }) => {
+					return eqFn(table.id, params.id);
+				},
+			});
 
-			if (!updatePost) {
+			if (!readPost) {
 				set.status = 400;
 				return {
-					message: "Failed to update post",
+					message: "Failed to read post",
 				};
 			}
 
 			return {
-				message: "Post updated successfully",
+				status: true,
+				message: "Post read successfully",
+				data: readPost,
 			};
 		},
 		{
-			body: "updatePostModel",
+			params: "readPostModel",
 		},
 	);

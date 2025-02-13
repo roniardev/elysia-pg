@@ -7,6 +7,7 @@ import {
 	pgTable,
 } from "drizzle-orm/pg-core";
 import { sessions } from "./auth.schema";
+import { userPermissions } from "./user-permissions.schema";
 
 export const users = pgTable(
 	"users",
@@ -21,6 +22,7 @@ export const users = pgTable(
 			() => new Date(),
 		),
 		sessionId: varchar("session_id", { length: 21 }).unique(),
+		deletedAt: timestamp("deleted_at", { mode: "date" }),
 	},
 	(t) => ({
 		emailIdx: index("user_email_idx").on(t.email),
@@ -31,9 +33,10 @@ export const users = pgTable(
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 
-export const userRelations = relations(users, ({ one }) => ({
+export const userRelations = relations(users, ({ one, many }) => ({
 	session: one(sessions, {
 		fields: [users.sessionId],
 		references: [sessions.id],
 	}),
+	permissions: many(userPermissions),
 }));

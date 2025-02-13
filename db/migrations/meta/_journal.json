@@ -15,6 +15,20 @@
       "when": 1738552837509,
       "tag": "0001_shallow_sabretooth",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1739408831282,
+      "tag": "0002_clever_bucky",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1739412198997,
+      "tag": "0003_elite_kingpin",
+      "breakpoints": true
     }
   ]
 }
