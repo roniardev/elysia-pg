@@ -35,6 +35,28 @@ export const createPost = new Elysia()
 				};
 			}
 
+			const createPermission = await db.query.permissions.findFirst({
+				where: (table, { eq: eqFn }) => {
+					return eqFn(table.name, "create:post");
+				},
+			});
+
+			const userPermission = await db.query.userPermissions.findFirst({
+				where: (table, { eq: eqFn }) => {
+					return (
+						eqFn(table.userId, existingUser.id) &&
+						eqFn(table.permissionId, createPermission?.id as string)
+					);
+				},
+			});
+
+			if (!userPermission) {
+				set.status = 403;
+				return {
+					message: "Unauthorized Permission",
+				};
+			}
+
 			const postId = generateId(21);
 
 			try {

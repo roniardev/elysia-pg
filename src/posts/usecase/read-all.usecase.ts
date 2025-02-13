@@ -1,12 +1,12 @@
 import { Elysia } from "elysia";
-import { readPostModel } from "../data/posts.model";
+import { readAllPostModel } from "../data/posts.model";
 import { db } from "@/db";
 import bearer from "@elysiajs/bearer";
 import { posts } from "@/db/schema";
 import { jwtAccessSetup } from "@/src/auth/setup/auth.setup";
 
 export const readPost = new Elysia()
-	.use(readPostModel)
+	.use(readAllPostModel)
 	.use(jwtAccessSetup)
 	.use(bearer())
 	.get(
@@ -19,6 +19,28 @@ export const readPost = new Elysia()
 				set.status = 403;
 				return {
 					message: "Unauthorized",
+				};
+			}
+
+			const readAllPermission = await db.query.permissions.findFirst({
+				where: (table, { eq: eqFn }) => {
+					return eqFn(table.name, "read-all:post");
+				},
+			});
+
+			const userPermission = await db.query.userPermissions.findFirst({
+				where: (table, { eq: eqFn }) => {
+					return (
+						eqFn(table.userId, validToken.id) &&
+						eqFn(table.permissionId, readAllPermission?.id as string)
+					);
+				},
+			});
+
+			if (!userPermission) {
+				set.status = 403;
+				return {
+					message: "Unauthorized Permission",
 				};
 			}
 

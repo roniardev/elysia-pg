@@ -11,7 +11,7 @@ export const createPostModel = new Elysia().model({
 	}),
 });
 
-export const readPostModel = new Elysia().model({
+export const readAllPostModel = new Elysia().model({
 	readPostModel: t.Object({
 		page: t.Number(),
 		limit: t.Number(),
@@ -26,5 +26,17 @@ export const updatePostModel = new Elysia().model({
 		status: t.Optional(t.String()),
 		visibility: t.Optional(t.String()),
 		tags: t.Optional(t.String()),
+	}),
+});
+
+export const deletePostModel = new Elysia().model({
+	deletePostModel: t.Object({
+		id: t.String(),
+	}),
+});
+
+export const readPostModel = new Elysia().model({
+	readPostModel: t.Object({
+		id: t.String(),
 	}),
 });
