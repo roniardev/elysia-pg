@@ -7,7 +7,9 @@ import { Logestic } from "logestic";
 import { rateLimit } from "elysia-rate-limit";
 import { posts } from "@/src/posts";
 import { auth } from "@/src/auth";
+import { initializeRedisClient } from "@/utils/redis-client";
 
+initializeRedisClient();
 export const app = new Elysia()
 	.use(Logestic.preset("fancy"))
 	.use(

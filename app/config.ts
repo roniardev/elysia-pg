@@ -23,4 +23,5 @@ export const config = {
 	FRONTEND_URL: env.get("FRONTEND_URL").required().asString(),
 	RESEND_API_KEY: env.get("RESEND_API_KEY").required().asString(),
 	RESEND_FROM_EMAIL: env.get("RESEND_FROM_EMAIL").required().asString(),
+	REDIS_URL: env.get("REDIS_URL").required().asString(),
 };
