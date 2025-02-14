@@ -20,3 +20,17 @@ export const verifyEmailModel = new Elysia().model({
 		token: t.String(),
 	}),
 });
+
+export const forgotPasswordModel = new Elysia().model({
+	forgotPasswordModel: t.Object({
+		email: t.String(),
+	}),
+});
+
+export const resetPasswordModel = new Elysia().model({
+	resetPasswordModel: t.Object({
+		token: t.String(),
+		password: t.String(),
+		confirmPassword: t.String(),
+	}),
+});

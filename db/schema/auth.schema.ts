@@ -73,10 +73,13 @@ export const emailVerificationTokens = pgTable(
 export const passwordResetTokens = pgTable(
 	"password_reset_tokens",
 	{
-		id: varchar("id", { length: 40 }).primaryKey(),
+		id: varchar("id", { length: 21 }).primaryKey(),
 		userId: varchar("user_id", { length: 21 })
 			.notNull()
 			.references(() => users.id),
+		hashedToken: varchar("hashed_token", { length: 255 }).unique().notNull(),
+		revoked: boolean("revoked").default(false).notNull(),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
 		expiresAt: timestamp("expires_at", {
 			withTimezone: true,
 			mode: "date",
