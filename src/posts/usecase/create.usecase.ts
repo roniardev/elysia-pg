@@ -45,7 +45,8 @@ export const createPost = new Elysia()
 				where: (table, { eq: eqFn }) => {
 					return (
 						eqFn(table.userId, existingUser.id) &&
-						eqFn(table.permissionId, createPermission?.id as string)
+						eqFn(table.permissionId, createPermission?.id as string) &&
+						eqFn(table.revoked, false)
 					);
 				},
 			});

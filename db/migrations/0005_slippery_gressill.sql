@@ -1,0 +1,1 @@
+ALTER TABLE "email_verification_tokens" ADD COLUMN "revoked" boolean DEFAULT false NOT NULL;

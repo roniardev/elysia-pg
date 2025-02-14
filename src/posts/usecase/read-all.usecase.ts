@@ -32,7 +32,8 @@ export const readPost = new Elysia()
 				where: (table, { eq: eqFn }) => {
 					return (
 						eqFn(table.userId, validToken.id) &&
-						eqFn(table.permissionId, readAllPermission?.id as string)
+						eqFn(table.permissionId, readAllPermission?.id as string) &&
+						eqFn(table.revoked, false)
 					);
 				},
 			});

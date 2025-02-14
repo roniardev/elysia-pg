@@ -1,4 +1,10 @@
-import { pgTable, varchar, primaryKey } from "drizzle-orm/pg-core";
+import {
+	pgTable,
+	varchar,
+	primaryKey,
+	timestamp,
+	boolean,
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { users } from "./user.schema";
 import { permissions } from "./permission.schema";
@@ -12,6 +18,11 @@ export const userPermissions = pgTable(
 		permissionId: varchar("permission_id", { length: 21 })
 			.notNull()
 			.references(() => permissions.id),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+		updatedAt: timestamp("updated_at", { mode: "date" }).$onUpdate(
+			() => new Date(),
+		),
+		revoked: boolean("revoked").default(false).notNull(),
 	},
 	(table) => {
 		return {

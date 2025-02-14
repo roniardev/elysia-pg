@@ -38,7 +38,8 @@ export const updatePost = new Elysia()
 				where: (table, { eq: eqFn }) => {
 					return (
 						eqFn(table.userId, validToken.id) &&
-						eqFn(table.permissionId, updatePermission?.id as string)
+						eqFn(table.permissionId, updatePermission?.id as string) &&
+						eqFn(table.revoked, false)
 					);
 				},
 			});

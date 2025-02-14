@@ -20,4 +20,7 @@ export const config = {
 	JWT_ACCESS_SECRET: env.get("JWT_ACCESS_SECRET").required().asString(),
 	JWT_REFRESH_SECRET: env.get("JWT_REFRESH_SECRET").required().asString(),
 	SECRET_KEY: env.get("SECRET_KEY").required().asString(),
+	FRONTEND_URL: env.get("FRONTEND_URL").required().asString(),
+	RESEND_API_KEY: env.get("RESEND_API_KEY").required().asString(),
+	RESEND_FROM_EMAIL: env.get("RESEND_FROM_EMAIL").required().asString(),
 };

@@ -43,20 +43,26 @@ export const sessions = pgTable(
 	}),
 );
 
-export const emailVerificationCodes = pgTable(
-	"email_verification_codes",
+export const emailVerificationTokens = pgTable(
+	"email_verification_tokens",
 	{
-		id: serial("id").primaryKey(),
+		id: varchar("id", { length: 21 }).primaryKey(),
 		userId: varchar("user_id", { length: 21 })
 			.unique()
 			.notNull()
 			.references(() => users.id),
 		email: varchar("email", { length: 255 }).notNull(),
-		code: varchar("code", { length: 8 }).notNull(),
+		hashedToken: varchar("hashed_token", { length: 255 }).unique().notNull(),
+		revoked: boolean("revoked").default(false).notNull(),
 		expiresAt: timestamp("expires_at", {
 			withTimezone: true,
 			mode: "date",
 		}).notNull(),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+		verifiedAt: timestamp("verified_at", {
+			withTimezone: true,
+			mode: "date",
+		}),
 	},
 	(t) => ({
 		userIdx: index("verification_code_user_idx").on(t.userId),
@@ -95,11 +101,11 @@ export const sessionRelations = relations(sessions, ({ one }) => ({
 	}),
 }));
 
-export const emailVerificationCodeRelations = relations(
-	emailVerificationCodes,
+export const emailVerificationTokenRelations = relations(
+	emailVerificationTokens,
 	({ one }) => ({
 		user: one(users, {
-			fields: [emailVerificationCodes.userId],
+			fields: [emailVerificationTokens.userId],
 			references: [users.id],
 		}),
 	}),
