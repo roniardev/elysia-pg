@@ -4,16 +4,25 @@ import { verifyJWT } from "../auth/usecase/verify-jwt.usecase";
 import { createPost } from "./usecase/create.usecase";
 import { encryptResponse } from "@/utils/encrypt-response";
 import type { GeneralResponse } from "@/common/model/general-response";
-import { readPost } from "./usecase/read-all.usecase";
+import { readAllPost } from "./usecase/read-all.usecase";
 import { updatePost } from "./usecase/update.usecase";
+import { deletePost } from "./usecase/delete.usecase";
+import { readPost } from "./usecase/read.usecase";
 
 export const posts = new Elysia()
 	.onAfterHandle(
 		({
 			response,
+			request,
 		}: {
 			response: GeneralResponse;
+			request: Request;
 		}) => {
+			console.log({
+				from: "posts",
+				response,
+				request,
+			});
 			return encryptResponse(response);
 		},
 	)
@@ -21,5 +30,7 @@ export const posts = new Elysia()
 	.use(jwtRefreshSetup)
 	.use(verifyJWT)
 	.use(createPost)
+	.use(readAllPost)
 	.use(readPost)
-	.use(updatePost);
+	.use(updatePost)
+	.use(deletePost);

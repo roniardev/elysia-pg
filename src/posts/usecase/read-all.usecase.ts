@@ -2,10 +2,9 @@ import { Elysia } from "elysia";
 import { readAllPostModel } from "../data/posts.model";
 import { db } from "@/db";
 import bearer from "@elysiajs/bearer";
-import { posts } from "@/db/schema";
 import { jwtAccessSetup } from "@/src/auth/setup/auth.setup";
 
-export const readPost = new Elysia()
+export const readAllPost = new Elysia()
 	.use(readAllPostModel)
 	.use(jwtAccessSetup)
 	.use(bearer())
