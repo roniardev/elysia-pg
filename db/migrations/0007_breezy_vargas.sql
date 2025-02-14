@@ -1,0 +1,2 @@
+ALTER TABLE "email_verification_tokens" ADD COLUMN "created_at" timestamp DEFAULT now() NOT NULL;--> statement-breakpoint
+ALTER TABLE "email_verification_tokens" ADD COLUMN "verified_at" timestamp with time zone;

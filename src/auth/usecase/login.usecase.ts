@@ -33,6 +33,13 @@ export const login = new Elysia()
 				};
 			}
 
+			if (!existingUser.emailVerified) {
+				set.status = 403;
+				return {
+					message: "Email not verified.",
+				};
+			}
+
 			// CHECK EXISTING SESSION
 			const existingSession = await db.query.sessions.findFirst({
 				where: (table, { eq: eqFn }) => {

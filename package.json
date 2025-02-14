@@ -33,7 +33,8 @@
         "ioredis": "^5.4.2",
         "logestic": "^1.2.4",
         "lucia": "^3.2.2",
-        "postgres": "^3.4.5"
+        "postgres": "^3.4.5",
+        "resend": "^4.1.2"
     },
     "devDependencies": {
         "@biomejs/biome": "^1.9.4",

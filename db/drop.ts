@@ -5,7 +5,7 @@ import {
 	userPermissions,
 	permissions,
 	posts,
-	emailVerificationCodes,
+	emailVerificationTokens,
 	passwordResetTokens,
 	users,
 } from "./schema";
@@ -17,7 +17,7 @@ const tables = [
 	userPermissions,
 	permissions,
 	posts,
-	emailVerificationCodes,
+	emailVerificationTokens,
 	passwordResetTokens,
 	users,
 ];

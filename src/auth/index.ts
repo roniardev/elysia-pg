@@ -2,5 +2,12 @@ import { Elysia } from "elysia";
 import { login } from "./usecase/login.usecase";
 import { logout } from "./usecase/logout.usecase";
 import { verifyJWT } from "./usecase/verify-jwt.usecase";
+import { register } from "./usecase/register.usecase";
+import { verifyEmail } from "./usecase/verify-email.usecase";
 
-export const auth = new Elysia().use(login).use(logout).use(verifyJWT);
+export const auth = new Elysia()
+	.use(login)
+	.use(logout)
+	.use(verifyJWT)
+	.use(register)
+	.use(verifyEmail);
