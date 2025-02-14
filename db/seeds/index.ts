@@ -3,7 +3,12 @@ import { runUsersSeed } from "./user.seed";
 import { runPermissionsSeed } from "./permission.seed";
 import { runUserPermissionsSeed } from "./user-permissions.seed";
 
-const tasks = [runUserPermissionsSeed];
+const tasks = [
+	runUsersSeed,
+	runPermissionsSeed,
+	runUserPermissionsSeed,
+	runPostsSeed,
+];
 
 tasks
 	.reduce(async (prevPromise, nextTask) => {
