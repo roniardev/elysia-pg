@@ -11,7 +11,8 @@
         "db:migrate": "bun x drizzle-kit migrate",
         "db:seed": "dotenv bun ./db/seeds/index.ts",
         "db:studio": "bun x drizzle-kit studio",
-        "db:diagram": "tsx ./utils/dbml.ts"
+        "db:diagram": "tsx ./utils/dbml.ts",
+        "db:drop": "bun ./db/drop.ts"
     },
     "dependencies": {
         "@bogeychan/elysia-logger": "^0.1.7",
