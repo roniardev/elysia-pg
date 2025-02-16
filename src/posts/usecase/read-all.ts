@@ -2,9 +2,11 @@ import { Elysia } from "elysia";
 import bearer from "@elysiajs/bearer";
 
 import { db } from "@/db";
+import { PostPermission } from "@/common/enum/permissions";
+import { verifyPermission } from "@/src/general/usecase/verify-permission";
 
-import { readAllPostModel } from "../data/posts.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
+import { readAllPostModel } from "../data/posts.model";
 
 export const readAllPost = new Elysia()
 	.use(readAllPostModel)
@@ -26,23 +28,12 @@ export const readAllPost = new Elysia()
 			}
 
 			// CHECK EXISTING READ ALL POST PERMISSION
-			const readAllPermission = await db.query.permissions.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.name, "read-all:post");
-				},
-			});
+			const { valid } = await verifyPermission(
+				PostPermission.READ_ALL_POST,
+				validToken.id,
+			);
 
-			const userPermission = await db.query.userPermissions.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return (
-						eqFn(table.userId, validToken.id) &&
-						eqFn(table.permissionId, readAllPermission?.id as string) &&
-						eqFn(table.revoked, false)
-					);
-				},
-			});
-
-			if (!userPermission) {
+			if (!valid) {
 				set.status = 403;
 				return {
 					status: false,

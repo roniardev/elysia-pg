@@ -1,8 +1,10 @@
 import { Elysia } from "elysia";
 import bearer from "@elysiajs/bearer";
-import { db } from "@/db";
 
+import { db } from "@/db";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
+import { verifyPermission } from "@/src/general/usecase/verify-permission";
+import { PostPermission } from "@/common/enum/permissions";
 
 export const readPost = new Elysia()
 	.use(jwtAccessSetup)
@@ -27,23 +29,12 @@ export const readPost = new Elysia()
 		});
 
 		// CHECK EXISTING READ POST PERMISSION
-		const readPermission = await db.query.permissions.findFirst({
-			where: (table, { eq: eqFn }) => {
-				return eqFn(table.name, "read:post");
-			},
-		});
+		const { valid } = await verifyPermission(
+			PostPermission.READ_POST,
+			validToken.id,
+		);
 
-		const userPermission = await db.query.userPermissions.findFirst({
-			where: (table, { eq: eqFn }) => {
-				return (
-					eqFn(table.userId, validToken.id) &&
-					eqFn(table.permissionId, readPermission?.id as string) &&
-					eqFn(table.revoked, false)
-				);
-			},
-		});
-
-		if (!userPermission) {
+		if (!valid) {
 			set.status = 403;
 			return {
 				status: false,
