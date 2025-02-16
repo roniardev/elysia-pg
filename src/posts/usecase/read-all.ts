@@ -4,7 +4,7 @@ import bearer from "@elysiajs/bearer";
 import { db } from "@/db";
 
 import { readAllPostModel } from "../data/posts.model";
-import { jwtAccessSetup } from "@/src/auth/setup/auth.setup";
+import { jwtAccessSetup } from "@/src/auth/setup/auth";
 
 export const readAllPost = new Elysia()
 	.use(readAllPostModel)
@@ -13,16 +13,19 @@ export const readAllPost = new Elysia()
 	.get(
 		"/post",
 		async ({ bearer, set, jwtAccess, query }) => {
+			// CHECK VALID TOKEN
 			const validToken = await jwtAccess.verify(bearer);
 			const { page, limit } = query;
 
 			if (!validToken) {
 				set.status = 403;
 				return {
+					status: false,
 					message: "Unauthorized",
 				};
 			}
 
+			// CHECK EXISTING READ ALL POST PERMISSION
 			const readAllPermission = await db.query.permissions.findFirst({
 				where: (table, { eq: eqFn }) => {
 					return eqFn(table.name, "read-all:post");
@@ -42,10 +45,12 @@ export const readAllPost = new Elysia()
 			if (!userPermission) {
 				set.status = 403;
 				return {
+					status: false,
 					message: "Unauthorized Permission",
 				};
 			}
 
+			// CHECK EXISTING USER
 			const existingUser = await db.query.users.findFirst({
 				where: (table, { eq: eqFn }) => {
 					return eqFn(table.id, validToken.id);
@@ -55,10 +60,12 @@ export const readAllPost = new Elysia()
 			if (!existingUser) {
 				set.status = 400;
 				return {
+					status: false,
 					message: "Invalid User",
 				};
 			}
 
+			// GET ALL POSTS
 			const posts = await db.query.posts.findMany({
 				where: (table, { eq: eqFn }) => {
 					return eqFn(table.userId, validToken.id);

@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 
-import { jwtAccessSetup } from "@/src/auth/setup/auth.setup";
+import { jwtAccessSetup } from "@/src/auth/setup/auth";
 import bearer from "@elysiajs/bearer";
 
 import { createPost } from "./usecase/create";

@@ -6,7 +6,7 @@ import { db } from "@/db";
 import { posts } from "@/db/schema";
 
 import { createPostModel } from "../data/posts.model";
-import { jwtAccessSetup } from "@/src/auth/setup/auth.setup";
+import { jwtAccessSetup } from "@/src/auth/setup/auth";
 
 export const createPost = new Elysia()
 	.use(createPostModel)
@@ -15,6 +15,7 @@ export const createPost = new Elysia()
 	.post(
 		"/post",
 		async ({ body, bearer, set, jwtAccess }) => {
+			// CHECK VALID TOKEN
 			const validToken = await jwtAccess.verify(bearer);
 
 			if (!validToken) {
@@ -24,6 +25,7 @@ export const createPost = new Elysia()
 				};
 			}
 
+			// CHECK EXISTING USER
 			const existingUser = await db.query.users.findFirst({
 				where: (table, { eq: eqFn }) => {
 					return eqFn(table.id, validToken.id);
@@ -37,6 +39,7 @@ export const createPost = new Elysia()
 				};
 			}
 
+			// CHECK EXISTING CREATE POST PERMISSION
 			const createPermission = await db.query.permissions.findFirst({
 				where: (table, { eq: eqFn }) => {
 					return eqFn(table.name, "create:post");
@@ -60,6 +63,7 @@ export const createPost = new Elysia()
 				};
 			}
 
+			// CREATE POST
 			const postId = generateId(21);
 
 			try {
@@ -71,9 +75,11 @@ export const createPost = new Elysia()
 					content: body.content,
 				});
 			} catch (error) {
-				set.status = 400;
+				console.error(error);
+				set.status = 500;
 				return {
 					message: "Failed to create post",
+					data: error,
 				};
 			}
 
