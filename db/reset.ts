@@ -1,7 +1,5 @@
 import { db } from "./index";
 import {
-	refreshToken,
-	sessions,
 	userPermissions,
 	permissions,
 	posts,
@@ -12,8 +10,6 @@ import {
 import { getTableName } from "drizzle-orm";
 
 const tables = [
-	refreshToken,
-	sessions,
 	userPermissions,
 	permissions,
 	posts,
