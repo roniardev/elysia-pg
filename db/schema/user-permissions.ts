@@ -7,8 +7,8 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
-import { users } from "./user.schema";
-import { permissions } from "./permission.schema";
+import { users } from "./user";
+import { permissions } from "./permission";
 
 export const userPermissions = pgTable(
 	"user_permissions",

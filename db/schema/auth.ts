@@ -7,7 +7,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
-import { users } from "./user.schema";
+import { users } from "./user";
 
 export const emailVerificationTokens = pgTable(
 	"email_verification_tokens",
