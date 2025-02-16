@@ -1,10 +1,12 @@
 import { Elysia } from "elysia";
-import { updatePostModel } from "../data/posts.model";
-import { jwtAccessSetup } from "@/src/auth/setup/auth.setup";
 import bearer from "@elysiajs/bearer";
+import { eq } from "drizzle-orm";
+
 import { db } from "@/db";
 import { posts } from "@/db/schema";
-import { eq } from "drizzle-orm";
+
+import { updatePostModel } from "../data/posts.model";
+import { jwtAccessSetup } from "@/src/auth/setup/auth.setup";
 
 export const updatePost = new Elysia()
 	.use(updatePostModel)

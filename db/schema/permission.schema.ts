@@ -1,11 +1,3 @@
-// TODO: Implement permission schema
-// id: uuid
-// name: string
-// description: string
-// createdAt: timestamp
-// updatedAt: timestamp
-// deletedAt: timestamp
-
 import { pgTable, varchar, timestamp } from "drizzle-orm/pg-core";
 
 export const permissions = pgTable("permissions", {

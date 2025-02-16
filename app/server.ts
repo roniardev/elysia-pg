@@ -19,7 +19,6 @@ export const app = new Elysia()
 		}),
 	)
 	.use(swagger())
-	.use(bearer())
 	.use(cors())
 	.use(serverTiming())
 	.use(auth)

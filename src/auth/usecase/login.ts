@@ -1,9 +1,11 @@
-import { Elysia, t } from "elysia";
+import { Elysia } from "elysia";
+import dayjs from "dayjs";
+
+import { db } from "@/db";
+import { RedisClientConfig } from "@/utils/redis-client";
+import { config } from "@/app/config";
 import { basicAuthModel } from "../data/auth.model";
 import { jwtAccessSetup, jwtRefreshSetup } from "../setup/auth.setup";
-import { db } from "@/db";
-import { refreshToken, sessions } from "@/db/schema";
-import { generateId } from "lucia";
 
 export const login = new Elysia()
 	.use(basicAuthModel)
@@ -39,29 +41,12 @@ export const login = new Elysia()
 					message: "Email not verified.",
 				};
 			}
-
-			// CHECK EXISTING SESSION
-			const existingSession = await db.query.sessions.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.userId, existingUser.id);
-				},
-			});
-
-			const isExpiredSession =
-				(existingSession?.expiresAt || new Date(0)) < new Date();
-
-			if (existingSession && !isExpiredSession) {
-				set.status = 403;
-				return {
-					message: "Session already exists.",
-				};
-			}
-
 			// CHECK VALID PASSWORD
 			const validPassword = await Bun.password.verify(
 				body.password,
 				existingUser.hashedPassword || "",
 			);
+
 			if (!validPassword) {
 				set.status = 403;
 				return {
@@ -69,37 +54,55 @@ export const login = new Elysia()
 				};
 			}
 
-			// GENERATE SESSION
-			const sessionId = generateId(21);
-			await db.insert(sessions).values({
-				expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 31),
-				id: sessionId,
-				userId: existingUser.id,
-				ip: server?.requestIP(request)?.address || "",
-			});
+			const existingRefreshToken = await RedisClientConfig.get(
+				`${existingUser.id}:refreshToken`,
+			);
+
+			const existingAccessToken = await RedisClientConfig.get(
+				`${existingUser.id}:accessToken`,
+			);
+
+			if (existingRefreshToken || existingAccessToken) {
+				set.status = 403;
+				return {
+					message: "Session already exists.",
+				};
+			}
 
 			// GENERATE REFRESH TOKEN & ACCESS TOKEN
-			const refreshId = generateId(21);
-			const refreshTokenGenerate = await jwtRefresh.sign({
-				id: refreshId,
-			});
-			const hashedToken = new Bun.CryptoHasher("sha512")
-				.update(refreshTokenGenerate)
-				.digest("hex");
-
-			await db.insert(refreshToken).values({
-				hashedToken,
-				id: refreshId,
-				sessionId: sessionId,
+			const refreshToken = await jwtRefresh.sign({
+				id: existingUser.id,
+				exp: dayjs().unix() + config.REFRESH_TOKEN_EXPIRE_TIME,
 			});
 
 			const accessToken = await jwtAccess.sign({
 				id: String(existingUser.id),
+				exp: dayjs().unix() + config.ACCESS_TOKEN_EXPIRE_TIME,
 			});
+
+			await RedisClientConfig.set(
+				`${existingUser.id}:refreshToken`,
+				refreshToken,
+			);
+
+			await RedisClientConfig.expire(
+				`${existingUser.id}:refreshToken`,
+				config.REFRESH_TOKEN_EXPIRE_TIME,
+			);
+
+			await RedisClientConfig.set(
+				`${existingUser.id}:accessToken`,
+				accessToken,
+			);
+
+			await RedisClientConfig.expire(
+				`${existingUser.id}:accessToken`,
+				config.ACCESS_TOKEN_EXPIRE_TIME,
+			);
 
 			return {
 				accessToken,
-				refreshToken: refreshTokenGenerate,
+				refreshToken,
 			};
 		},
 		{

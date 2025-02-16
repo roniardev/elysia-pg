@@ -1,10 +1,12 @@
 import { Elysia } from "elysia";
-import { createPostModel } from "../data/posts.model";
-import { jwtAccessSetup } from "@/src/auth/setup/auth.setup";
+import { generateId } from "lucia";
+import bearer from "@elysiajs/bearer";
+
 import { db } from "@/db";
 import { posts } from "@/db/schema";
-import bearer from "@elysiajs/bearer";
-import { generateId } from "lucia";
+
+import { createPostModel } from "../data/posts.model";
+import { jwtAccessSetup } from "@/src/auth/setup/auth.setup";
 
 export const createPost = new Elysia()
 	.use(createPostModel)

@@ -1,17 +1,18 @@
 import { Elysia } from "elysia";
-import { login } from "./usecase/login.usecase";
-import { logout } from "./usecase/logout.usecase";
-import { verifyJWT } from "./usecase/verify-jwt.usecase";
-import { register } from "./usecase/register.usecase";
-import { verifyEmail } from "./usecase/verify-email.usecase";
-import { forgotPassword } from "./usecase/forgot-password.usecase";
-import { resetPassword } from "./usecase/reset-password.usecase";
+
+import { login } from "./usecase/login";
+import { logout } from "./usecase/logout";
+import { register } from "./usecase/register";
+import { verifyEmail } from "./usecase/verify-email";
+import { forgotPassword } from "./usecase/forgot-password";
+import { resetPassword } from "./usecase/reset-password.";
+import { regenerateAccessToken } from "./usecase/regenerate-access-token.";
 
 export const auth = new Elysia()
 	.use(login)
 	.use(logout)
-	.use(verifyJWT)
 	.use(register)
 	.use(verifyEmail)
 	.use(forgotPassword)
-	.use(resetPassword);
+	.use(resetPassword)
+	.use(regenerateAccessToken);

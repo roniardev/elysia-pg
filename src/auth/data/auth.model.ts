@@ -34,3 +34,9 @@ export const resetPasswordModel = new Elysia().model({
 		confirmPassword: t.String(),
 	}),
 });
+
+export const regenerateAccessTokenModel = new Elysia().model({
+	regenerateAccessTokenModel: t.Object({
+		accessToken: t.String(),
+	}),
+});
