@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { generateId } from "lucia";
+import { ulid } from "ulid";
 
 import { db } from "@/db";
 import { passwordResetTokens } from "@/db/schema";
@@ -39,7 +39,7 @@ export const forgotPassword = new Elysia()
 
 			try {
 				await db.insert(passwordResetTokens).values({
-					id: generateId(21),
+					id: ulid(),
 					userId: existingUser.id,
 					hashedToken,
 					expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 HOUR,

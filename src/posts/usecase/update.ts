@@ -17,76 +17,76 @@ export const updatePost = new Elysia()
 	.put(
 		"/post/:id",
 		async ({ body, params, bearer, set, jwtAccess }) => {
+			// CHECK VALID TOKEN
+			const validToken = await jwtAccess.verify(bearer);
+
+			if (!validToken) {
+				set.status = 403;
+				return {
+					message: "Unauthorized",
+				};
+			}
+
+			// CHECK EXISTING USER
+			const existingUser = await db.query.users.findFirst({
+				where: (table, { eq: eqFn }) => {
+					return eqFn(table.id, validToken.id);
+				},
+			});
+
+			// CHECK EXISTING UPDATE POST PERMISSION
+			const updatePermission = await db.query.permissions.findFirst({
+				where: (table, { eq: eqFn }) => {
+					return eqFn(table.name, "update:post");
+				},
+			});
+
+			const userPermission = await db.query.userPermissions.findFirst({
+				where: (table, { eq: eqFn }) => {
+					return (
+						eqFn(table.userId, validToken.id) &&
+						eqFn(table.permissionId, updatePermission?.id as string) &&
+						eqFn(table.revoked, false)
+					);
+				},
+			});
+
+			if (!userPermission) {
+				set.status = 403;
+				return {
+					message: "Unauthorized Permission",
+				};
+			}
+
+			if (!existingUser) {
+				set.status = 400;
+				return {
+					message: "Invalid User",
+				};
+			}
+
+			// CHECK EXISTING POST
+			const post = await db.query.posts.findFirst({
+				where: (table, { eq: eqFn }) => {
+					return eqFn(table.id, params.id);
+				},
+			});
+
+			if (!post) {
+				set.status = 400;
+				return {
+					message: "Post not found",
+				};
+			}
+
+			if (post.userId !== existingUser.id) {
+				set.status = 400;
+				return {
+					message: "Invalid User",
+				};
+			}
+
 			await verrou.createLock("updatePost").run(async () => {
-				// CHECK VALID TOKEN
-				const validToken = await jwtAccess.verify(bearer);
-
-				if (!validToken) {
-					set.status = 403;
-					return {
-						message: "Unauthorized",
-					};
-				}
-
-				// CHECK EXISTING USER
-				const existingUser = await db.query.users.findFirst({
-					where: (table, { eq: eqFn }) => {
-						return eqFn(table.id, validToken.id);
-					},
-				});
-
-				// CHECK EXISTING UPDATE POST PERMISSION
-				const updatePermission = await db.query.permissions.findFirst({
-					where: (table, { eq: eqFn }) => {
-						return eqFn(table.name, "update:post");
-					},
-				});
-
-				const userPermission = await db.query.userPermissions.findFirst({
-					where: (table, { eq: eqFn }) => {
-						return (
-							eqFn(table.userId, validToken.id) &&
-							eqFn(table.permissionId, updatePermission?.id as string) &&
-							eqFn(table.revoked, false)
-						);
-					},
-				});
-
-				if (!userPermission) {
-					set.status = 403;
-					return {
-						message: "Unauthorized Permission",
-					};
-				}
-
-				if (!existingUser) {
-					set.status = 400;
-					return {
-						message: "Invalid User",
-					};
-				}
-
-				// CHECK EXISTING POST
-				const post = await db.query.posts.findFirst({
-					where: (table, { eq: eqFn }) => {
-						return eqFn(table.id, params.id);
-					},
-				});
-
-				if (!post) {
-					set.status = 400;
-					return {
-						message: "Post not found",
-					};
-				}
-
-				if (post.userId !== existingUser.id) {
-					set.status = 400;
-					return {
-						message: "Invalid User",
-					};
-				}
-
 				// UPDATE POST
 				try {
 					await db

@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { generateId } from "lucia";
+import { ulid } from "ulid";	
 
 import { db } from "@/db";
 import { emailVerificationTokens, users } from "@/db/schema";
@@ -43,7 +43,7 @@ export const register = new Elysia()
 			// CREATE USER
 
 			const hashedPassword = await Bun.password.hash(password);
-			const userId = generateId(21);
+			const userId = ulid();
 			const user = await db.insert(users).values({
 				id: userId,
 				email,
@@ -68,7 +68,7 @@ export const register = new Elysia()
 			// CREATE EMAIL VERIFICATION TOKEN
 			try {
 				await db.insert(emailVerificationTokens).values({
-					id: generateId(21),
+					id: ulid(),
 					email,
 					userId: userId,
 					hashedToken,

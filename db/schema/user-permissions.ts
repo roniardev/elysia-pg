@@ -13,10 +13,10 @@ import { permissions } from "./permission";
 export const userPermissions = pgTable(
 	"user_permissions",
 	{
-		userId: varchar("user_id", { length: 21 })
+		userId: varchar("user_id", { length: 26 })
 			.notNull()
 			.references(() => users.id),
-		permissionId: varchar("permission_id", { length: 21 })
+		permissionId: varchar("permission_id", { length: 26 })
 			.notNull()
 			.references(() => permissions.id),
 		createdAt: timestamp("created_at").defaultNow().notNull(),

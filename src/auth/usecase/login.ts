@@ -16,71 +16,71 @@ export const login = new Elysia()
 	.post(
 		"/login",
 		async function handler({ body, set, jwtAccess, jwtRefresh }) {
+			// CHECK EXISTING USER
+			const existingUser = await db.query.users.findFirst({
+				where: (table, { eq: eqFn }) => {
+					return eqFn(table.email, body.email);
+				},
+			});
+
+			if (!existingUser) {
+				set.status = 403;
+				return {
+					status: false,
+					message: "Invalid credentials.",
+				};
+			}
+
+			if (!existingUser.emailVerified) {
+				set.status = 403;
+				return {
+					status: false,
+					message: "Email not verified.",
+				};
+			}
+			// CHECK VALID PASSWORD
+			const validPassword = await Bun.password.verify(
+				body.password,
+				existingUser.hashedPassword || "",
+			);
+
+			if (!validPassword) {
+				set.status = 403;
+				return {
+					status: false,
+					message: "Invalid credentials.",
+				};
+			}
+
+			// CHECK EXISTING REFRESH TOKEN
+			const existingRefreshToken = await redis.get(
+				`${existingUser.id}:refreshToken`,
+			);
+
+			const existingAccessToken = await redis.get(
+				`${existingUser.id}:accessToken`,
+			);
+
+			if (existingRefreshToken || existingAccessToken) {
+				set.status = 403;
+				return {
+					status: false,
+					message: "Session already exists.",
+				};
+			}
+
+			// GENERATE REFRESH TOKEN & ACCESS TOKEN
+			const refreshToken = await jwtRefresh.sign({
+				id: existingUser.id,
+				exp: dayjs().unix() + config.REFRESH_TOKEN_EXPIRE_TIME,
+			});
+
+			const accessToken = await jwtAccess.sign({
+				id: String(existingUser.id),
+				exp: dayjs().unix() + config.ACCESS_TOKEN_EXPIRE_TIME,
+			});
+
 			await verrou.createLock("login").run(async () => {
-				// CHECK EXISTING USER
-				const existingUser = await db.query.users.findFirst({
-					where: (table, { eq: eqFn }) => {
-						return eqFn(table.email, body.email);
-					},
-				});
-
-				if (!existingUser) {
-					set.status = 403;
-					return {
-						status: false,
-						message: "Invalid credentials.",
-					};
-				}
-
-				if (!existingUser.emailVerified) {
-					set.status = 403;
-					return {
-						status: false,
-						message: "Email not verified.",
-					};
-				}
-				// CHECK VALID PASSWORD
-				const validPassword = await Bun.password.verify(
-					body.password,
-					existingUser.hashedPassword || "",
-				);
-
-				if (!validPassword) {
-					set.status = 403;
-					return {
-						status: false,
-						message: "Invalid credentials.",
-					};
-				}
-
-				// CHECK EXISTING REFRESH TOKEN
-				const existingRefreshToken = await redis.get(
-					`${existingUser.id}:refreshToken`,
-				);
-
-				const existingAccessToken = await redis.get(
-					`${existingUser.id}:accessToken`,
-				);
-
-				if (existingRefreshToken || existingAccessToken) {
-					set.status = 403;
-					return {
-						status: false,
-						message: "Session already exists.",
-					};
-				}
-
-				// GENERATE REFRESH TOKEN & ACCESS TOKEN
-				const refreshToken = await jwtRefresh.sign({
-					id: existingUser.id,
-					exp: dayjs().unix() + config.REFRESH_TOKEN_EXPIRE_TIME,
-				});
-
-				const accessToken = await jwtAccess.sign({
-					id: String(existingUser.id),
-					exp: dayjs().unix() + config.ACCESS_TOKEN_EXPIRE_TIME,
-				});
-
 				// SET REFRESH TOKEN & ACCESS TOKEN TO REDIS
 				try {
 					await redis.set(`${existingUser.id}:refreshToken`, refreshToken);
@@ -106,14 +106,14 @@ export const login = new Elysia()
 						data: error,
 					};
 				}
-
-				return {
-					status: true,
-					message: "Login successful.",
-					accessToken,
-					refreshToken,
-				};
 			});
+
+			return {
+				status: true,
+				message: "Login successful.",
+				accessToken,
+				refreshToken,
+			};
 		},
 		{
 			body: "basicAuthModel",

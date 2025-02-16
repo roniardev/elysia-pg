@@ -1,7 +1,7 @@
-import { runPostsSeed } from "./post.seed";
-import { runUsersSeed } from "./user.seed";
-import { runPermissionsSeed } from "./permission.seed";
-import { runUserPermissionsSeed } from "./user-permissions.seed";
+import { runPostsSeed } from "./post";
+import { runUsersSeed } from "./user";
+import { runPermissionsSeed } from "./permission";
+import { runUserPermissionsSeed } from "./user-permissions";
 
 const tasks = [
 	runUsersSeed,
