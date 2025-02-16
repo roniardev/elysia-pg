@@ -23,9 +23,7 @@ export const users = pgTable(
 		),
 		deletedAt: timestamp("deleted_at", { mode: "date" }),
 	},
-	(t) => ({
-		emailIdx: index("user_email_idx").on(t.email),
-	}),
+	(t) => [index("user_email_idx").on(t.email)],
 );
 
 export type User = typeof users.$inferSelect;

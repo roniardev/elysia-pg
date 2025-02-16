@@ -25,11 +25,11 @@ export const userPermissions = pgTable(
 		),
 		revoked: boolean("revoked").default(false).notNull(),
 	},
-	(table) => {
-		return {
-			pk: primaryKey(table.userId, table.permissionId),
-		};
-	},
+	(table) => [
+		primaryKey({
+			columns: [table.userId, table.permissionId],
+		}),
+	],
 );
 
 export const userPermissionsRelations = relations(
