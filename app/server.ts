@@ -7,17 +7,10 @@ import { Logestic } from "logestic";
 import { rateLimit } from "elysia-rate-limit";
 import { posts } from "@/src/posts";
 import { auth } from "@/src/auth";
-import { initializeRedisClient } from "@/utils/redis-client";
+import { initializeRedisClient } from "@/utils/services/redis";
 
-initializeRedisClient();
 export const app = new Elysia()
 	.use(Logestic.preset("fancy"))
-	.use(
-		rateLimit({
-			max: 10,
-			duration: 60000,
-		}),
-	)
 	.use(swagger())
 	.use(cors())
 	.use(serverTiming())

@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { emailVerificationTokens, users } from "@/db/schema";
 
 import { verifyEmailModel } from "../data/auth.model";
-import { jwtAccessSetup } from "../setup/auth.setup";
+import { jwtAccessSetup } from "../setup/auth";
 
 export const verifyEmail = new Elysia()
 	.use(verifyEmailModel)
@@ -13,6 +13,7 @@ export const verifyEmail = new Elysia()
 	.post(
 		"/verify-email",
 		async ({ body, set, jwtAccess }) => {
+			// CHECK VALID TOKEN
 			const emailToken = await jwtAccess.verify(body.token);
 
 			if (!emailToken) {
@@ -23,6 +24,7 @@ export const verifyEmail = new Elysia()
 				};
 			}
 
+			// CHECK EXISTING USER
 			const existingUser = await db.query.users.findFirst({
 				where: (table, { eq: eqFn }) => {
 					return eqFn(table.id, emailToken.id);
@@ -37,6 +39,7 @@ export const verifyEmail = new Elysia()
 				};
 			}
 
+			// CHECK EXISTING EMAIL VERIFICATION TOKEN
 			const userToken = await db.query.emailVerificationTokens.findFirst({
 				where: (table, { eq: eqFn }) => {
 					return eqFn(table.userId, emailToken.id);
@@ -74,6 +77,7 @@ export const verifyEmail = new Elysia()
 				};
 			}
 
+			// UPDATE EMAIL VERIFICATION TOKEN
 			const emailVerificationTokenUpdate = await db
 				.update(emailVerificationTokens)
 				.set({
@@ -89,15 +93,18 @@ export const verifyEmail = new Elysia()
 				};
 			}
 
-			const userUpdate = await db
-				.update(users)
-				.set({
-					emailVerified: true,
-				})
-				.where(eq(users.id, userToken.userId));
-
-			if (!userUpdate) {
+			// UPDATE USER EMAIL VERIFICATION
+			try {
+				await db
+					.update(users)
+					.set({
+						emailVerified: true,
+					})
+					.where(eq(users.id, userToken.userId));
+			} catch (error) {
+				console.error(error);
 				set.status = 500;
+
 				return {
 					status: false,
 					message: "Failed to verify email",

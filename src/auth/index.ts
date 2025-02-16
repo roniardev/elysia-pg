@@ -1,4 +1,5 @@
 import { Elysia } from "elysia";
+import { rateLimit } from "elysia-rate-limit";
 
 import { login } from "./usecase/login";
 import { logout } from "./usecase/logout";
@@ -9,6 +10,13 @@ import { resetPassword } from "./usecase/reset-password.";
 import { regenerateAccessToken } from "./usecase/regenerate-access-token.";
 
 export const auth = new Elysia()
+	.use(
+		rateLimit({
+			max: 10,
+			duration: 60000,
+			scoping: "scoped",
+		}),
+	)
 	.use(login)
 	.use(logout)
 	.use(register)

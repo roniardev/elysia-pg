@@ -2,12 +2,13 @@ import { Elysia } from "elysia";
 import bearer from "@elysiajs/bearer";
 import { db } from "@/db";
 
-import { jwtAccessSetup } from "@/src/auth/setup/auth.setup";
+import { jwtAccessSetup } from "@/src/auth/setup/auth";
 
 export const readPost = new Elysia()
 	.use(jwtAccessSetup)
 	.use(bearer())
 	.get("/post/:id", async ({ params, bearer, set, jwtAccess }) => {
+		// CHECK VALID TOKEN
 		const validToken = await jwtAccess.verify(bearer);
 
 		if (!validToken) {
@@ -18,12 +19,14 @@ export const readPost = new Elysia()
 			};
 		}
 
+		// CHECK EXISTING USER
 		const existingUser = await db.query.users.findFirst({
 			where: (table, { eq: eqFn }) => {
 				return eqFn(table.id, validToken.id);
 			},
 		});
 
+		// CHECK EXISTING READ POST PERMISSION
 		const readPermission = await db.query.permissions.findFirst({
 			where: (table, { eq: eqFn }) => {
 				return eqFn(table.name, "read:post");
@@ -56,6 +59,7 @@ export const readPost = new Elysia()
 			};
 		}
 
+		// READ POST
 		const post = await db.query.posts.findFirst({
 			where: (table, { eq: eqFn }) => {
 				return eqFn(table.id, params.id);

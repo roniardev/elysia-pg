@@ -6,7 +6,7 @@ import { passwordResetTokens } from "@/db/schema";
 import { sendEmail } from "@/utils/send-email";
 
 import { forgotPasswordModel } from "../data/auth.model";
-import { jwtRefreshSetup } from "../setup/auth.setup";
+import { jwtRefreshSetup } from "../setup/auth";
 import { resetPasswordTemplate } from "@/common/email-templates/reset-password";
 
 export const forgotPassword = new Elysia()
@@ -17,6 +17,7 @@ export const forgotPassword = new Elysia()
 		async ({ body, set, jwtRefresh }) => {
 			const { email } = body;
 
+			// CHECK EXISTING USER
 			const existingUser = await db.query.users.findFirst({
 				where: (table, { eq: eqFn }) => {
 					return eqFn(table.email, email);
@@ -26,6 +27,7 @@ export const forgotPassword = new Elysia()
 			if (!existingUser) {
 				set.status = 404;
 				return {
+					status: false,
 					message: "User not found",
 				};
 			}
@@ -35,13 +37,23 @@ export const forgotPassword = new Elysia()
 			});
 			const hashedToken = await Bun.password.hash(emailToken);
 
-			await db.insert(passwordResetTokens).values({
-				id: generateId(21),
-				userId: existingUser.id,
-				hashedToken,
-				expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 HOUR,
-			});
+			try {
+				await db.insert(passwordResetTokens).values({
+					id: generateId(21),
+					userId: existingUser.id,
+					hashedToken,
+					expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 HOUR,
+				});
+			} catch (error) {
+				console.error(error);
+				set.status = 500;
+				return {
+					status: false,
+					message: "Internal server error.",
+				};
+			}
 
+			// SEND EMAIL
 			const emailResponse = await sendEmail(
 				email,
 				"Reset your password",
@@ -51,12 +63,15 @@ export const forgotPassword = new Elysia()
 			if (!emailResponse) {
 				set.status = 500;
 				return {
+					status: false,
 					message: "Failed to send email",
 				};
 			}
 
 			set.status = 200;
+
 			return {
+				status: true,
 				message:
 					"Email sent, please check your email for the reset password link",
 			};

@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import type { JWTPayloadSpec } from "@elysiajs/jwt";
 
-import { RedisClientConfig } from "@/utils/redis-client";
+import { redis } from "@/utils/services/redis";
 
 export const verifyAuth = async (
 	bearer: string,
@@ -19,13 +19,9 @@ export const verifyAuth = async (
 		};
 	}
 
-	const existingRefreshToken = await RedisClientConfig.get(
-		`${token.id}:refreshToken`,
-	);
+	const existingRefreshToken = await redis.get(`${token.id}:refreshToken`);
 
-	const existingAccessToken = await RedisClientConfig.get(
-		`${token.id}:accessToken`,
-	);
+	const existingAccessToken = await redis.get(`${token.id}:accessToken`);
 
 	if (token?.exp && token.exp < dayjs().unix()) {
 		return {

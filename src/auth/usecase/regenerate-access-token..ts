@@ -1,10 +1,12 @@
 import { Elysia } from "elysia";
-import { jwtRefreshSetup, jwtAccessSetup } from "../setup/auth.setup";
-import { regenerateAccessTokenModel } from "../data/auth.model";
-import { RedisClientConfig } from "@/utils/redis-client";
-import { config } from "@/app/config";
 import dayjs from "dayjs";
 import bearer from "@elysiajs/bearer";
+
+import { config } from "@/app/config";
+import { redis } from "@/utils/services/redis";
+
+import { jwtRefreshSetup, jwtAccessSetup } from "../setup/auth";
+import { regenerateAccessTokenModel } from "../data/auth.model";
 
 export const regenerateAccessToken = new Elysia()
 	.use(jwtRefreshSetup)
@@ -14,11 +16,13 @@ export const regenerateAccessToken = new Elysia()
 	.get(
 		"/regenerate-access-token",
 		async ({ set, jwtRefresh, bearer, jwtAccess }) => {
+			// CHECK VALID TOKEN
 			const validToken = await jwtRefresh.verify(bearer);
 
 			if (!validToken) {
 				set.status = 401;
 				return {
+					status: false,
 					message: "Unauthorized",
 				};
 			}
@@ -33,24 +37,34 @@ export const regenerateAccessToken = new Elysia()
 				exp: dayjs().unix() + config.ACCESS_TOKEN_EXPIRE_TIME,
 			});
 
-			await RedisClientConfig.set(
-				`${validToken.id}:refreshToken`,
-				refreshToken,
-			);
+			// SET REFRESH & ACCESS TOKEN TO REDIS
+			try {
+				await redis.set(`${validToken.id}:refreshToken`, refreshToken);
 
-			await RedisClientConfig.expire(
-				`${validToken.id}:refreshToken`,
-				config.REFRESH_TOKEN_EXPIRE_TIME,
-			);
+				await redis.expire(
+					`${validToken.id}:refreshToken`,
+					config.REFRESH_TOKEN_EXPIRE_TIME,
+				);
 
-			await RedisClientConfig.set(`${validToken.id}:accessToken`, accessToken);
+				await redis.set(`${validToken.id}:accessToken`, accessToken);
 
-			await RedisClientConfig.expire(
-				`${validToken.id}:accessToken`,
-				config.ACCESS_TOKEN_EXPIRE_TIME,
-			);
+				await redis.expire(
+					`${validToken.id}:accessToken`,
+					config.ACCESS_TOKEN_EXPIRE_TIME,
+				);
+			} catch (error) {
+				console.error(error);
+				set.status = 500;
+
+				return {
+					status: false,
+					message: "Internal server error.",
+				};
+			}
 
 			return {
+				status: true,
+				message: "Access token regenerated successfully.",
 				accessToken,
 				refreshToken,
 			};
