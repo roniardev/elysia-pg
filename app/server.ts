@@ -1,18 +1,22 @@
-import { bearer } from "@elysiajs/bearer";
+import { Elysia } from "elysia";
+import { Logestic } from "logestic";
 import { cors } from "@elysiajs/cors";
 import { serverTiming } from "@elysiajs/server-timing";
 import { swagger } from "@elysiajs/swagger";
-import { Elysia } from "elysia";
-import { Logestic } from "logestic";
-import { rateLimit } from "elysia-rate-limit";
+
+import { config } from "./config";
+
 import { posts } from "@/src/posts";
 import { auth } from "@/src/auth";
-import { initializeRedisClient } from "@/utils/services/redis";
 
 export const app = new Elysia()
 	.use(Logestic.preset("fancy"))
 	.use(swagger())
-	.use(cors())
+	.use(
+		cors({
+			origin: config.CORS_ORIGIN.split(","),
+		}),
+	)
 	.use(serverTiming())
 	.use(auth)
 	.use(posts)
