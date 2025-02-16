@@ -12,8 +12,8 @@ import { users } from "./user";
 export const emailVerificationTokens = pgTable(
 	"email_verification_tokens",
 	{
-		id: varchar("id", { length: 21 }).primaryKey(),
-		userId: varchar("user_id", { length: 21 })
+		id: varchar("id", { length: 26 }).primaryKey(),
+		userId: varchar("user_id", { length: 26 })
 			.unique()
 			.notNull()
 			.references(() => users.id),
@@ -39,8 +39,8 @@ export const emailVerificationTokens = pgTable(
 export const passwordResetTokens = pgTable(
 	"password_reset_tokens",
 	{
-		id: varchar("id", { length: 21 }).primaryKey(),
-		userId: varchar("user_id", { length: 21 })
+		id: varchar("id", { length: 26 }).primaryKey(),
+		userId: varchar("user_id", { length: 26 })
 			.notNull()
 			.references(() => users.id),
 		hashedToken: varchar("hashed_token", { length: 255 }).unique().notNull(),

@@ -14,65 +14,66 @@ export const deletePost = new Elysia()
 	.use(jwtAccessSetup)
 	.use(bearer())
 	.delete("/post/:id", async ({ bearer, set, jwtAccess, params }) => {
+		const validToken = await jwtAccess.verify(bearer);
+
+		if (!validToken) {
+			set.status = 403;
+			return {
+				status: false,
+				message: "Unauthorized",
+			};
+		}
+
+		// CHECK EXISTING DELETE POST PERMISSION
+		const deletePermission = await db.query.permissions.findFirst({
+			where: (table, { eq: eqFn }) => {
+				return eqFn(table.name, "delete:post");
+			},
+		});
+
+		const userPermission = await db.query.userPermissions.findFirst({
+			where: (table, { eq: eqFn }) => {
+				return (
+					eqFn(table.userId, validToken.id) &&
+					eqFn(table.permissionId, deletePermission?.id as string) &&
+					eqFn(table.revoked, false)
+				);
+			},
+		});
+
+		if (!userPermission) {
+			set.status = 403;
+			return {
+				status: false,
+				message: "Unauthorized Permission",
+			};
+		}
+
+		// CHECK EXISTING POST
+		const existingPost = await db.query.posts.findFirst({
+			where: (table, { eq: eqFn }) => {
+				return eqFn(table.id, params.id);
+			},
+		});
+
+		if (!existingPost) {
+			set.status = 400;
+			return {
+				status: false,
+				message: "Post not found",
+			};
+		}
+
+		if (existingPost.userId !== validToken.id) {
+			set.status = 400;
+			return {
+				status: false,
+				message: "Unauthorized",
+			};
+		}
+
 		await verrou.createLock("deletePost").run(async () => {
 			// CHECK VALID TOKEN
-			const validToken = await jwtAccess.verify(bearer);
-
-			if (!validToken) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Unauthorized",
-				};
-			}
-
-			// CHECK EXISTING DELETE POST PERMISSION
-			const deletePermission = await db.query.permissions.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.name, "delete:post");
-				},
-			});
-
-			const userPermission = await db.query.userPermissions.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return (
-						eqFn(table.userId, validToken.id) &&
-						eqFn(table.permissionId, deletePermission?.id as string) &&
-						eqFn(table.revoked, false)
-					);
-				},
-			});
-
-			if (!userPermission) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Unauthorized Permission",
-				};
-			}
-
-			// CHECK EXISTING POST
-			const existingPost = await db.query.posts.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.id, params.id);
-				},
-			});
-
-			if (!existingPost) {
-				set.status = 400;
-				return {
-					status: false,
-					message: "Post not found",
-				};
-			}
-
-			if (existingPost.userId !== validToken.id) {
-				set.status = 400;
-				return {
-					status: false,
-					message: "Unauthorized",
-				};
-			}
 
 			// DELETE POST
 			try {
@@ -86,11 +87,11 @@ export const deletePost = new Elysia()
 					data: error,
 				};
 			}
-
-			set.status = 200;
-			return {
-				status: true,
-				message: "Post deleted",
-			};
 		});
+
+		set.status = 200;
+		return {
+			status: true,
+			message: "Post deleted",
+		};
 	});

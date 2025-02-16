@@ -6,8 +6,8 @@ import { users } from "./user";
 export const posts = pgTable(
 	"posts",
 	{
-		id: varchar("id", { length: 21 }).primaryKey(),
-		userId: varchar("user_id", { length: 255 })
+		id: varchar("id", { length: 26 }).primaryKey(),
+		userId: varchar("user_id", { length: 26 })
 			.notNull()
 			.references(() => users.id),
 		title: varchar("title", { length: 255 }).notNull(),

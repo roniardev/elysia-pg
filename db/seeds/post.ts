@@ -1,11 +1,11 @@
 /* eslint-disable no-console */
 import { faker } from "@faker-js/faker";
 import { drizzle } from "drizzle-orm/postgres-js";
-import { generateId } from "lucia";
 import postgres from "postgres";
 
 import { config } from "@/app/config";
 import * as schema from "@/db/schema";
+import { ulid } from "ulid";
 
 export async function runPostsSeed() {
 	const connection = postgres(config.DATABASE_URL);
@@ -19,8 +19,8 @@ export async function runPostsSeed() {
 	for (let i = 0; i < 8; i++) {
 		data.push({
 			title: faker.lorem.sentence(10),
-			userId: "m7xa8kd9xx40kn3qrtrgo",
-			id: generateId(21),
+			userId: "01JM71SE4S1SHAW7YGS6SWQC2H",
+			id: ulid(),
 			status: faker.helpers.arrayElement(["draft", "published"]),
 			tags: "random",
 			visibility: faker.helpers.arrayElement(["public", "private"]),

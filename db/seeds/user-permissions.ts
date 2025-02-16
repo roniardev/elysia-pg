@@ -14,24 +14,24 @@ export async function runUserPermissionsSeed() {
 	const start = Date.now();
 	const data: (typeof schema.userPermissions.$inferInsert)[] = [
 		{
-			userId: "m7xa8kd9xx40kn3qrtrgo",
-			permissionId: "mhk4oxb8askso5tjr9eyt",
+			userId: "01JM71SE4S1SHAW7YGS6SWQC2H",
+			permissionId: "01JM71SE4T1709CSXCF4W3J3XR",
 		},
 		{
-			userId: "m7xa8kd9xx40kn3qrtrgo",
-			permissionId: "arvx28b2x9wgkl7qk9x9c",
+			userId: "01JM71SE4S1SHAW7YGS6SWQC2H",
+			permissionId: "01JM71SE4T4DZGY8H5TKXHCTZE",
 		},
 		{
-			userId: "m7xa8kd9xx40kn3qrtrgo",
-			permissionId: "oolwe8214xn9mqrmrn24g",
+			userId: "01JM71SE4S1SHAW7YGS6SWQC2H",
+			permissionId: "01JM71SE4TD9GTGVBZ6TK8GE6A",
 		},
 		{
-			userId: "m7xa8kd9xx40kn3qrtrgo",
-			permissionId: "a3m8hmgd5xvaz9amdvagw",
+			userId: "01JM71SE4S1SHAW7YGS6SWQC2H",
+			permissionId: "01JM71SE4THD02JK37P7BWE3BV",
 		},
 		{
-			userId: "m7xa8kd9xx40kn3qrtrgo",
-			permissionId: "e5d1rtj5kh5g0rewlp9nb",
+			userId: "01JM71SE4S1SHAW7YGS6SWQC2H",
+			permissionId: "01JM71SE4TYDYEBS509C2X11R7",
 		},
 	];
 

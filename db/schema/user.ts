@@ -12,7 +12,7 @@ import { userPermissions } from "./user-permissions";
 export const users = pgTable(
 	"users",
 	{
-		id: varchar("id", { length: 21 }).primaryKey(),
+		id: varchar("id", { length: 26 }).primaryKey(),
 		email: varchar("email", { length: 255 }).unique().notNull(),
 		emailVerified: boolean("email_verified").default(false).notNull(),
 		hashedPassword: varchar("hashed_password", { length: 255 }),

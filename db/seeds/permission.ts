@@ -1,7 +1,4 @@
-/* eslint-disable no-console */
-import { faker } from "@faker-js/faker";
 import { drizzle } from "drizzle-orm/postgres-js";
-import { generateId } from "lucia";
 import postgres from "postgres";
 
 import { config } from "@/app/config";
@@ -16,27 +13,27 @@ export async function runPermissionsSeed() {
 	const start = Date.now();
 	const data: (typeof schema.permissions.$inferInsert)[] = [
 		{
-			id: "mhk4oxb8askso5tjr9eyt",
+			id: "01JM71SE4T1709CSXCF4W3J3XR",
 			name: "create:post",
 			description: "Create a post",
 		},
 		{
-			id: "arvx28b2x9wgkl7qk9x9c",
+			id: "01JM71SE4T4DZGY8H5TKXHCTZE",
 			name: "update:post",
 			description: "Update a post",
 		},
 		{
-			id: "oolwe8214xn9mqrmrn24g",
+			id: "01JM71SE4TD9GTGVBZ6TK8GE6A",
 			name: "delete:post",
 			description: "Delete a post",
 		},
 		{
-			id: "a3m8hmgd5xvaz9amdvagw",
+			id: "01JM71SE4THD02JK37P7BWE3BV",
 			name: "read-all:post",
 			description: "Read all posts",
 		},
 		{
-			id: "e5d1rtj5kh5g0rewlp9nb",
+			id: "01JM71SE4TYDYEBS509C2X11R7",
 			name: "read:post",
 			description: "Read a post",
 		},

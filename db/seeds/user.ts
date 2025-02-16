@@ -18,7 +18,7 @@ export async function runUsersSeed() {
 	// eslint-disable-next-line no-plusplus
 	for (let i = 0; i < 1; i++) {
 		data.push({
-			id: "m7xa8kd9xx40kn3qrtrgo",
+			id: "01JM71SE4S1SHAW7YGS6SWQC2H",
 			email: "roon.ardiyanto@gmail.com",
 			emailVerified: true,
 			hashedPassword,

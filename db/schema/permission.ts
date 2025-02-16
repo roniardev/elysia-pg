@@ -1,7 +1,7 @@
 import { pgTable, varchar, timestamp } from "drizzle-orm/pg-core";
 
 export const permissions = pgTable("permissions", {
-	id: varchar("id", { length: 21 }).primaryKey(),
+	id: varchar("id", { length: 26 }).primaryKey(),
 	name: varchar("name", { length: 255 }).notNull(),
 	description: varchar("description", { length: 255 }),
 	createdAt: timestamp("created_at").defaultNow().notNull(),

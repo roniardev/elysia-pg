@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
-import { generateId } from "lucia";
 import bearer from "@elysiajs/bearer";
+import { ulid } from "ulid";
 
 import { db } from "@/db";
 import { posts } from "@/db/schema";
@@ -64,7 +64,7 @@ export const createPost = new Elysia()
 			}
 
 			// CREATE POST
-			const postId = generateId(21);
+			const postId = ulid();
 
 			try {
 				await db.insert(posts).values({
