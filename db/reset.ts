@@ -20,13 +20,13 @@ const tables = [
 
 for (const table of tables) {
 	const name = getTableName(table);
-	console.log(`Dropping ${name}`);
+	console.log(`Resetting ${name}`);
 	await db.delete(table);
-	console.log(`Dropped ${name}`);
+	console.log(`Resetted ${name}`);
 	const tableResult = await db.select().from(table);
 	console.log(`${name} result: `, tableResult);
 }
 
-console.log("Database dropped");
+console.log("Database resetted");
 
 process.exit(0);

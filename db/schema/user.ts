@@ -7,7 +7,7 @@ import {
 	pgTable,
 } from "drizzle-orm/pg-core";
 
-import { userPermissions } from "./user-permissions.schema";
+import { userPermissions } from "./user-permissions";
 
 export const users = pgTable(
 	"users",
@@ -21,12 +21,10 @@ export const users = pgTable(
 		updatedAt: timestamp("updated_at", { mode: "date" }).$onUpdate(
 			() => new Date(),
 		),
-		sessionId: varchar("session_id", { length: 21 }).unique(),
 		deletedAt: timestamp("deleted_at", { mode: "date" }),
 	},
 	(t) => ({
 		emailIdx: index("user_email_idx").on(t.email),
-		sessionIdx: index("users_session_idx").on(t.sessionId),
 	}),
 );
 

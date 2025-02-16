@@ -75,12 +75,10 @@ table users {
   photo varchar(255)
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp
-  session_id varchar(21) [unique]
   deleted_at timestamp
 
   indexes {
     email [name: 'user_email_idx']
-    session_id [name: 'users_session_idx']
   }
 }
 
