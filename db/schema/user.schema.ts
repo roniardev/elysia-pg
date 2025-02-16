@@ -6,7 +6,7 @@ import {
 	varchar,
 	pgTable,
 } from "drizzle-orm/pg-core";
-import { sessions } from "./auth.schema";
+
 import { userPermissions } from "./user-permissions.schema";
 
 export const users = pgTable(
@@ -34,9 +34,5 @@ export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 
 export const userRelations = relations(users, ({ one, many }) => ({
-	session: one(sessions, {
-		fields: [users.sessionId],
-		references: [sessions.id],
-	}),
 	permissions: many(userPermissions),
 }));
