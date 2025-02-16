@@ -6,9 +6,10 @@ import { db } from "@/db";
 import { posts } from "@/db/schema";
 import { verrou } from "@/utils/services/locks";
 
-
 import { updatePostModel } from "../data/posts.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
+import { verifyPermission } from "@/src/general/usecase/verify-permission";
+import { PostPermission } from "@/common/enum/permissions";
 
 export const updatePost = new Elysia()
 	.use(updatePostModel)
@@ -35,23 +36,12 @@ export const updatePost = new Elysia()
 			});
 
 			// CHECK EXISTING UPDATE POST PERMISSION
-			const updatePermission = await db.query.permissions.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.name, "update:post");
-				},
-			});
+			const { valid } = await verifyPermission(
+				PostPermission.UPDATE_POST,
+				validToken.id,
+			);
 
-			const userPermission = await db.query.userPermissions.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return (
-						eqFn(table.userId, validToken.id) &&
-						eqFn(table.permissionId, updatePermission?.id as string) &&
-						eqFn(table.revoked, false)
-					);
-				},
-			});
-
-			if (!userPermission) {
+			if (!valid) {
 				set.status = 403;
 				return {
 					message: "Unauthorized Permission",

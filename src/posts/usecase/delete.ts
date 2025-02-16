@@ -5,6 +5,8 @@ import bearer from "@elysiajs/bearer";
 import { db } from "@/db";
 import { posts } from "@/db/schema";
 import { verrou } from "@/utils/services/locks";
+import { PostPermission } from "@/common/enum/permissions";
+import { verifyPermission } from "@/src/general/usecase/verify-permission";
 
 import { deletePostModel } from "../data/posts.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
@@ -25,23 +27,12 @@ export const deletePost = new Elysia()
 		}
 
 		// CHECK EXISTING DELETE POST PERMISSION
-		const deletePermission = await db.query.permissions.findFirst({
-			where: (table, { eq: eqFn }) => {
-				return eqFn(table.name, "delete:post");
-			},
-		});
+		const { valid } = await verifyPermission(
+			PostPermission.DELETE_POST,
+			validToken.id,
+		);
 
-		const userPermission = await db.query.userPermissions.findFirst({
-			where: (table, { eq: eqFn }) => {
-				return (
-					eqFn(table.userId, validToken.id) &&
-					eqFn(table.permissionId, deletePermission?.id as string) &&
-					eqFn(table.revoked, false)
-				);
-			},
-		});
-
-		if (!userPermission) {
+		if (!valid) {
 			set.status = 403;
 			return {
 				status: false,

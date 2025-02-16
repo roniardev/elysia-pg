@@ -4,6 +4,8 @@ import { ulid } from "ulid";
 
 import { db } from "@/db";
 import { posts } from "@/db/schema";
+import { PostPermission } from "@/common/enum/permissions";
+import { verifyPermission } from "@/src/general/usecase/verify-permission";
 
 import { createPostModel } from "../data/posts.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
@@ -39,24 +41,12 @@ export const createPost = new Elysia()
 				};
 			}
 
-			// CHECK EXISTING CREATE POST PERMISSION
-			const createPermission = await db.query.permissions.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.name, "create:post");
-				},
-			});
+			const { valid } = await verifyPermission(
+				PostPermission.CREATE_POST,
+				existingUser.id,
+			);
 
-			const userPermission = await db.query.userPermissions.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return (
-						eqFn(table.userId, existingUser.id) &&
-						eqFn(table.permissionId, createPermission?.id as string) &&
-						eqFn(table.revoked, false)
-					);
-				},
-			});
-
-			if (!userPermission) {
+			if (!valid) {
 				set.status = 403;
 				return {
 					message: "Unauthorized Permission",
