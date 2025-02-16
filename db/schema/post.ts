@@ -29,10 +29,10 @@ export const posts = pgTable(
 		),
 		deletedAt: timestamp("deleted_at", { mode: "date" }),
 	},
-	(t) => ({
-		userIdx: index("post_user_idx").on(t.userId),
-		createdAtIdx: index("post_created_at_idx").on(t.createdAt),
-	}),
+	(t) => [
+		index("post_user_idx").on(t.userId),
+		index("post_created_at_idx").on(t.createdAt),
+	],
 );
 
 export type Post = typeof posts.$inferSelect;

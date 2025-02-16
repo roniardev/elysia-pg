@@ -30,10 +30,10 @@ export const emailVerificationTokens = pgTable(
 			mode: "date",
 		}),
 	},
-	(t) => ({
-		userIdx: index("verification_code_user_idx").on(t.userId),
-		emailIdx: index("verification_code_email_idx").on(t.email),
-	}),
+	(t) => [
+		index("verification_code_user_idx").on(t.userId),
+		index("verification_code_email_idx").on(t.email),
+	],
 );
 
 export const passwordResetTokens = pgTable(
@@ -51,9 +51,7 @@ export const passwordResetTokens = pgTable(
 			mode: "date",
 		}).notNull(),
 	},
-	(t) => ({
-		userIdx: index("password_token_user_idx").on(t.userId),
-	}),
+	(t) => [index("password_token_user_idx").on(t.userId)],
 );
 
 export const emailVerificationTokenRelations = relations(
