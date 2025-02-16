@@ -10,7 +10,6 @@
         "db:push": "bun x drizzle-kit push",
         "db:migrate": "bun x drizzle-kit migrate",
         "db:seed": " bun ./db/seeds/index.ts",
-        "db:studio": "bun x drizzle-kit studio",
         "db:diagram": "bun ./utils/dbml.ts",
         "db:reset": "bun ./db/reset.ts"
     },
@@ -41,7 +40,7 @@
         "@biomejs/biome": "^1.9.4",
         "@faker-js/faker": "^9.3.0",
         "@types/bun": "^1.1.14",
-        "drizzle-kit": "^0.30.1",
+        "drizzle-kit": "^0.30.4",
         "typescript": "^5.7.2"
     }
 }
