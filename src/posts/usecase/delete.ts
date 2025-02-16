@@ -1,13 +1,18 @@
 import { Elysia } from "elysia";
-import { readPostModel } from "../data/posts.model";
-import { jwtAccessSetup } from "@/src/auth/setup/auth.setup";
+import { eq } from "drizzle-orm";
 import bearer from "@elysiajs/bearer";
-import { db } from "@/db";
 
-export const readPost = new Elysia()
+import { db } from "@/db";
+import { posts } from "@/db/schema";
+
+import { deletePostModel } from "../data/posts.model";
+import { jwtAccessSetup } from "@/src/auth/setup/auth.setup";
+
+export const deletePost = new Elysia()
+	.use(deletePostModel)
 	.use(jwtAccessSetup)
 	.use(bearer())
-	.get("/post/:id", async ({ params, bearer, set, jwtAccess }) => {
+	.delete("/post/:id", async ({ bearer, set, jwtAccess, params }) => {
 		const validToken = await jwtAccess.verify(bearer);
 
 		if (!validToken) {
@@ -18,15 +23,9 @@ export const readPost = new Elysia()
 			};
 		}
 
-		const existingUser = await db.query.users.findFirst({
+		const deletePermission = await db.query.permissions.findFirst({
 			where: (table, { eq: eqFn }) => {
-				return eqFn(table.id, validToken.id);
-			},
-		});
-
-		const readPermission = await db.query.permissions.findFirst({
-			where: (table, { eq: eqFn }) => {
-				return eqFn(table.name, "read:post");
+				return eqFn(table.name, "delete:post");
 			},
 		});
 
@@ -34,7 +33,7 @@ export const readPost = new Elysia()
 			where: (table, { eq: eqFn }) => {
 				return (
 					eqFn(table.userId, validToken.id) &&
-					eqFn(table.permissionId, readPermission?.id as string) &&
+					eqFn(table.permissionId, deletePermission?.id as string) &&
 					eqFn(table.revoked, false)
 				);
 			},
@@ -48,21 +47,13 @@ export const readPost = new Elysia()
 			};
 		}
 
-		if (!existingUser) {
-			set.status = 400;
-			return {
-				status: false,
-				message: "Invalid User",
-			};
-		}
-
-		const post = await db.query.posts.findFirst({
+		const existingPost = await db.query.posts.findFirst({
 			where: (table, { eq: eqFn }) => {
 				return eqFn(table.id, params.id);
 			},
 		});
 
-		if (!post) {
+		if (!existingPost) {
 			set.status = 400;
 			return {
 				status: false,
@@ -70,31 +61,26 @@ export const readPost = new Elysia()
 			};
 		}
 
-		if (post.userId !== existingUser.id) {
+		if (existingPost.userId !== validToken.id) {
 			set.status = 400;
 			return {
 				status: false,
-				message: "Invalid User",
+				message: "Unauthorized",
 			};
 		}
 
-		const readPost = await db.query.posts.findFirst({
-			where: (table, { eq: eqFn }) => {
-				return eqFn(table.id, params.id);
-			},
-		});
+		const deletePost = await db.delete(posts).where(eq(posts.id, params.id));
 
-		if (!readPost) {
+		if (!deletePost) {
 			set.status = 400;
 			return {
 				status: false,
-				message: "Failed to read post",
+				message: "Failed to delete post",
 			};
 		}
 
 		return {
 			status: true,
-			message: "Post read successfully",
-			data: readPost,
+			message: "Post deleted",
 		};
 	});

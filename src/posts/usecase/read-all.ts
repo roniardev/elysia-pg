@@ -1,7 +1,9 @@
 import { Elysia } from "elysia";
-import { readAllPostModel } from "../data/posts.model";
-import { db } from "@/db";
 import bearer from "@elysiajs/bearer";
+
+import { db } from "@/db";
+
+import { readAllPostModel } from "../data/posts.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth.setup";
 
 export const readAllPost = new Elysia()

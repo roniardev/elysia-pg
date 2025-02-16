@@ -1,11 +1,13 @@
 import { Elysia } from "elysia";
-import { forgotPasswordModel } from "../data/auth.model";
+import { generateId } from "lucia";
+
 import { db } from "@/db";
-import { jwtRefreshSetup } from "../setup/auth.setup";
 import { passwordResetTokens } from "@/db/schema";
 import { sendEmail } from "@/utils/send-email";
+
+import { forgotPasswordModel } from "../data/auth.model";
+import { jwtRefreshSetup } from "../setup/auth.setup";
 import { resetPasswordTemplate } from "@/common/email-templates/reset-password";
-import { generateId } from "lucia";
 
 export const forgotPassword = new Elysia()
 	.use(jwtRefreshSetup)

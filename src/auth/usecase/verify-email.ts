@@ -1,8 +1,10 @@
 import { Elysia } from "elysia";
-import { verifyEmailModel } from "../data/auth.model";
+import { eq } from "drizzle-orm";
+
 import { db } from "@/db";
 import { emailVerificationTokens, users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+
+import { verifyEmailModel } from "../data/auth.model";
 import { jwtAccessSetup } from "../setup/auth.setup";
 
 export const verifyEmail = new Elysia()

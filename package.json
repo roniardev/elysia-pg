@@ -9,7 +9,7 @@
         "db:generate": "bun x drizzle-kit generate",
         "db:push": "bun x drizzle-kit push",
         "db:migrate": "bun x drizzle-kit migrate",
-        "db:seed": "dotenv bun ./db/seeds/index.ts",
+        "db:seed": " bun ./db/seeds/index.ts",
         "db:studio": "bun x drizzle-kit studio",
         "db:diagram": "tsx ./utils/dbml.ts",
         "db:drop": "bun ./db/drop.ts"
@@ -22,6 +22,7 @@
         "@elysiajs/server-timing": "^1.2.0",
         "@elysiajs/swagger": "^1.2.0",
         "@verrou/core": "^0.5.1",
+        "dayjs": "^1.11.13",
         "drizzle-dbml-generator": "^0.10.0",
         "drizzle-orm": "^0.38.3",
         "elysia": "^1.2.10",

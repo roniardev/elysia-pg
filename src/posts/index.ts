@@ -1,36 +1,54 @@
 import { Elysia } from "elysia";
-import { jwtAccessSetup, jwtRefreshSetup } from "@/src/auth/setup/auth.setup";
-import { verifyJWT } from "../auth/usecase/verify-jwt.usecase";
-import { createPost } from "./usecase/create.usecase";
+
+import { jwtAccessSetup } from "@/src/auth/setup/auth.setup";
+import bearer from "@elysiajs/bearer";
+
+import { createPost } from "./usecase/create";
 import { encryptResponse } from "@/utils/encrypt-response";
-import type { GeneralResponse } from "@/common/model/general-response";
-import { readAllPost } from "./usecase/read-all.usecase";
-import { updatePost } from "./usecase/update.usecase";
-import { deletePost } from "./usecase/delete.usecase";
-import { readPost } from "./usecase/read.usecase";
+import { readAllPost } from "./usecase/read-all";
+import { updatePost } from "./usecase/update";
+import { deletePost } from "./usecase/delete";
+import { readPost } from "./usecase/read";
+import { verifyAuth } from "../general/usecase/verify-auth";
 
 export const posts = new Elysia()
-	.onAfterHandle(
-		({
-			response,
-			request,
-		}: {
-			response: GeneralResponse;
-			request: Request;
-		}) => {
-			console.log({
-				from: "posts",
-				response,
-				request,
-			});
-			return encryptResponse(response);
-		},
-	)
 	.use(jwtAccessSetup)
-	.use(jwtRefreshSetup)
-	.use(verifyJWT)
-	.use(createPost)
-	.use(readAllPost)
-	.use(readPost)
-	.use(updatePost)
-	.use(deletePost);
+	.use(bearer())
+	.guard(
+		{
+			beforeHandle: async ({ bearer, jwtAccess, set }) => {
+				const token = await jwtAccess.verify(bearer);
+				let valid = false;
+				let message = "";
+
+				if (token && bearer) {
+					const { valid: isAuthorized, message: authMessage } =
+						await verifyAuth(bearer, token);
+					valid = isAuthorized;
+					message = authMessage;
+				}
+
+				if (!valid) {
+					set.status = 401;
+					return {
+						message,
+					};
+				}
+			},
+			afterHandle: ({ response, request }) => {
+				console.log({
+					from: "posts",
+					response,
+					request,
+				});
+				return encryptResponse(response);
+			},
+		},
+		(app) =>
+			app
+				.use(createPost)
+				.use(readAllPost)
+				.use(readPost)
+				.use(updatePost)
+				.use(deletePost),
+	);

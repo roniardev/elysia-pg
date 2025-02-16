@@ -1,7 +1,9 @@
+import { Elysia } from "elysia";
+import { eq } from "drizzle-orm";
+
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { Elysia } from "elysia";
+
 import { resetPasswordModel } from "../data/auth.model";
 import { jwtAccessSetup } from "../setup/auth.setup";
 
@@ -11,7 +13,7 @@ export const resetPassword = new Elysia()
 	.post(
 		"/reset-password",
 		async ({ body, set, jwtAccess }) => {
-			const { token, password, confirmPassword } = body;
+			const { password, confirmPassword } = body;
 			const emailToken = await jwtAccess.verify(body.token);
 
 			if (!emailToken) {

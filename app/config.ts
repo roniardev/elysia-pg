@@ -24,4 +24,12 @@ export const config = {
 	RESEND_API_KEY: env.get("RESEND_API_KEY").required().asString(),
 	RESEND_FROM_EMAIL: env.get("RESEND_FROM_EMAIL").required().asString(),
 	REDIS_URL: env.get("REDIS_URL").required().asString(),
+	REFRESH_TOKEN_EXPIRE_TIME: env
+		.get("REFRESH_TOKEN_EXPIRE_TIME")
+		.default(60 * 60 * 24 * 1)
+		.asInt(),
+	ACCESS_TOKEN_EXPIRE_TIME: env
+		.get("ACCESS_TOKEN_EXPIRE_TIME")
+		.default(60 * 30)
+		.asInt(),
 };

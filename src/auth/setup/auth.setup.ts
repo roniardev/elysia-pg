@@ -1,6 +1,7 @@
-import { config } from "@/app/config";
 import { jwt } from "@elysiajs/jwt";
 import { Elysia, t } from "elysia";
+
+import { config } from "@/app/config";
 
 export const jwtAccessSetup = new Elysia({
 	name: "jwtAccess",

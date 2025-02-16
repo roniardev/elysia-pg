@@ -1,19 +1,20 @@
-import { Elysia, t } from "elysia";
-import { registerModel } from "../data/auth.model";
-import { jwtAccessSetup, jwtRefreshSetup } from "../setup/auth.setup";
+import { Elysia } from "elysia";
+import { generateId } from "lucia";
+
 import { db } from "@/db";
 import { emailVerificationTokens, users } from "@/db/schema";
-import { generateId } from "lucia";
 import { verifyEmailTemplate } from "@/common/email-templates/verify-email";
 import { sendEmail } from "@/utils/send-email";
+
+import { registerModel } from "../data/auth.model";
+import { jwtAccessSetup } from "../setup/auth.setup";
 
 export const register = new Elysia()
 	.use(registerModel)
 	.use(jwtAccessSetup)
-	.use(jwtRefreshSetup)
 	.post(
 		"/register",
-		async function handler({ body, set, jwtRefresh }) {
+		async function handler({ body, set, jwtAccess }) {
 			const { email, password, confirmPassword } = body;
 
 			if (password !== confirmPassword) {
@@ -52,7 +53,7 @@ export const register = new Elysia()
 				};
 			}
 
-			const emailToken = await jwtRefresh.sign({
+			const emailToken = await jwtAccess.sign({
 				id: userId,
 			});
 
