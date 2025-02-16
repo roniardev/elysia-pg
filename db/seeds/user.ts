@@ -15,7 +15,6 @@ export async function runUsersSeed() {
 	const data: (typeof schema.users.$inferInsert)[] = [];
 	const hashedPassword = await Bun.password.hash("satusatu");
 
-	// eslint-disable-next-line no-plusplus
 	for (let i = 0; i < 1; i++) {
 		data.push({
 			id: "01JM71SE4S1SHAW7YGS6SWQC2H",

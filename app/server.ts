@@ -28,8 +28,6 @@ export const app = new Elysia()
 				>;
 				const name = error.all[0] as unknown as Record<string, string>;
 
-				const errorType = name.type;
-
 				const err = resError.filter(
 					(err) =>
 						(Number(err?.type) || 0) >= 40 &&

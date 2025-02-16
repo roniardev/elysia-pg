@@ -15,7 +15,7 @@ export async function runPostsSeed() {
 
 	const start = Date.now();
 	const data: (typeof schema.posts.$inferInsert)[] = [];
-	// eslint-disable-next-line no-plusplus
+
 	for (let i = 0; i < 8; i++) {
 		data.push({
 			title: faker.lorem.sentence(10),
