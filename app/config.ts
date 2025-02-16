@@ -32,4 +32,5 @@ export const config = {
 		.get("ACCESS_TOKEN_EXPIRE_TIME")
 		.default(60 * 30)
 		.asInt(),
+	CORS_ORIGIN: env.get("CORS_ORIGIN").required().asString(),
 };
