@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { emailVerificationTokens, users } from "@/db/schema";
@@ -26,8 +26,8 @@ export const verifyEmail = new Elysia()
 
 			// CHECK EXISTING USER
 			const existingUser = await db.query.users.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.id, emailToken.id);
+				where: (table) => {
+					return and(eq(table.id, emailToken.id), isNull(table.deletedAt));
 				},
 			});
 
@@ -41,8 +41,8 @@ export const verifyEmail = new Elysia()
 
 			// CHECK EXISTING EMAIL VERIFICATION TOKEN
 			const userToken = await db.query.emailVerificationTokens.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.userId, emailToken.id);
+				where: (table) => {
+					return and(eq(table.userId, emailToken.id), eq(table.revoked, false));
 				},
 			});
 

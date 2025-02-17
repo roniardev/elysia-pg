@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { users } from "@/db/schema";
@@ -27,8 +27,8 @@ export const resetPassword = new Elysia()
 
 			// CHECK EXISTING USER
 			const existingUser = await db.query.users.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.id, emailToken.id);
+				where: (table) => {
+					return and(eq(table.id, emailToken.id), isNull(table.deletedAt));
 				},
 			});
 
@@ -42,8 +42,8 @@ export const resetPassword = new Elysia()
 
 			// CHECK EXISTING PASSWORD RESET TOKEN
 			const existingToken = await db.query.passwordResetTokens.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.userId, emailToken.id);
+				where: (table) => {
+					return and(eq(table.userId, emailToken.id), eq(table.revoked, false));
 				},
 			});
 

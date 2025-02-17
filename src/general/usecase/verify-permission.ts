@@ -1,10 +1,10 @@
 import { and, eq } from "drizzle-orm";
 
-import type { PostPermission } from "@/common/enum/permissions";
+import type { PostPermission, UserPermission } from "@/common/enum/permissions";
 import { db } from "@/db";
 
 export const verifyPermission = async (
-	permission: PostPermission,
+	permission: PostPermission | UserPermission,
 	userId: string,
 ) => {
 	const existingUser = await db.query.users.findFirst({

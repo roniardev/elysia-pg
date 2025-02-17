@@ -5,3 +5,11 @@ export enum PostPermission {
 	UPDATE_POST = "update:post",
 	DELETE_POST = "delete:post",
 }
+
+export enum UserPermission {
+	CREATE_USER = "create:user",
+	READ_USER = "read:user",
+	READ_ALL_USER = "read-all:user",
+	UPDATE_USER = "update:user",
+	DELETE_USER = "delete:user",
+}

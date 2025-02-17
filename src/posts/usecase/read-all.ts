@@ -18,7 +18,7 @@ export const readAllPost = new Elysia()
 			// CHECK VALID TOKEN
 			const validToken = await jwtAccess.verify(bearer);
 			const { page, limit } = query;
-
+			
 			if (!validToken) {
 				set.status = 403;
 				return {
