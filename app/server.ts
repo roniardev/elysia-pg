@@ -8,8 +8,15 @@ import { config } from "./config";
 
 import { posts } from "@/src/posts";
 import { auth } from "@/src/auth";
+import { users } from "@/src/users";
 
-export const app = new Elysia()
+export const app = new Elysia({
+	serve: {
+		idleTimeout: 255,
+		maxRequestBodySize: 1024 * 1024 * 10, // 10MB,
+		development: config.NODE_ENV === "development",
+	},
+})
 	.use(Logestic.preset("fancy"))
 	.use(swagger())
 	.use(
@@ -20,6 +27,7 @@ export const app = new Elysia()
 	.use(serverTiming())
 	.use(auth)
 	.use(posts)
+	.use(users)
 	.onError(({ error, code, set }) => {
 		switch (code) {
 			case "VALIDATION": {

@@ -1,4 +1,6 @@
 import { Elysia } from "elysia";
+import { and, eq, isNull } from "drizzle-orm";
+
 import dayjs from "dayjs";
 
 import { db } from "@/db";
@@ -18,8 +20,8 @@ export const login = new Elysia()
 		async function handler({ body, set, jwtAccess, jwtRefresh }) {
 			// CHECK EXISTING USER
 			const existingUser = await db.query.users.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.email, body.email);
+				where: (table) => {
+					return and(eq(table.email, body.email), isNull(table.deletedAt));
 				},
 			});
 

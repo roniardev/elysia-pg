@@ -37,6 +37,31 @@ export async function runPermissionsSeed() {
 			name: "read:post",
 			description: "Read a post",
 		},
+		{
+			id: "01JM8P67X78PBQKBWT39CCVC5K",
+			name: "create:user",
+			description: "Create a user",
+		},
+		{
+			id: "01JM8P67X7DD53CVDJ4BPC6TPZ",
+			name: "read:user",
+			description: "Read a user",
+		},
+		{
+			id: "01JM8P67X7E71QXJ0BMWBB2NHC",
+			name: "read-all:user",
+			description: "Read all users",
+		},
+		{
+			id: "01JM8P67X7D798NMYK6HC731F1",
+			name: "update:user",
+			description: "Update a user",
+		},
+		{
+			id: "01JM8P67X7747C3VFZAYJVJMX1",
+			name: "delete:user",
+			description: "Delete a user",
+		},
 	];
 
 	try {

@@ -1,5 +1,6 @@
 import { Elysia } from "elysia";
 import { ulid } from "ulid";
+import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { passwordResetTokens } from "@/db/schema";
@@ -19,8 +20,8 @@ export const forgotPassword = new Elysia()
 
 			// CHECK EXISTING USER
 			const existingUser = await db.query.users.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.email, email);
+				where: (table) => {
+					return and(eq(table.email, email), isNull(table.deletedAt));
 				},
 			});
 

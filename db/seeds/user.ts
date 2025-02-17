@@ -12,17 +12,23 @@ export async function runUsersSeed() {
 	console.log("⏳ Running users seeder...");
 
 	const start = Date.now();
-	const data: (typeof schema.users.$inferInsert)[] = [];
 	const hashedPassword = await Bun.password.hash("satusatu");
+	const hashedAdminPassword = await Bun.password.hash("kapitalis");
 
-	for (let i = 0; i < 1; i++) {
-		data.push({
+	const data: (typeof schema.users.$inferInsert)[] = [
+		{
 			id: "01JM71SE4S1SHAW7YGS6SWQC2H",
 			email: "roon.ardiyanto@gmail.com",
 			emailVerified: true,
 			hashedPassword,
-		});
-	}
+		},
+		{
+			id: "01JM8P67X5GFPVQDVD82666MPS",
+			email: "super@admin.com",
+			emailVerified: true,
+			hashedPassword: hashedAdminPassword,
+		},
+	];
 
 	try {
 		const end = Date.now();
