@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { faker } from "@faker-js/faker";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
