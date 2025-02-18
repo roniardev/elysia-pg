@@ -4,9 +4,11 @@ import bearer from "@elysiajs/bearer";
 import { db } from "@/db";
 import { PostPermission } from "@/common/enum/permissions";
 import { verifyPermission } from "@/src/general/usecase/verify-permission";
+import Sorting from "@/common/enum/sorting";
 
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
 import { readAllPostModel } from "../data/posts.model";
+import { and, eq, like } from "drizzle-orm";
 
 export const readAllPost = new Elysia()
 	.use(readAllPostModel)
@@ -17,8 +19,8 @@ export const readAllPost = new Elysia()
 		async ({ bearer, set, jwtAccess, query }) => {
 			// CHECK VALID TOKEN
 			const validToken = await jwtAccess.verify(bearer);
-			const { page, limit } = query;
-			
+			const { page, limit, sort, search } = query;
+
 			if (!validToken) {
 				set.status = 403;
 				return {
@@ -58,13 +60,26 @@ export const readAllPost = new Elysia()
 
 			// GET ALL POSTS
 			const posts = await db.query.posts.findMany({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.userId, validToken.id);
+				where: (table) => {
+					return and(
+						eq(table.userId, validToken.id),
+						search ? like(table.title, `%${search}%`) : undefined,
+					);
 				},
 				limit: Number(limit),
 				offset: (Number(page) - 1) * Number(limit),
-				orderBy: (table, { desc: descFn }) => {
+				orderBy: (table, { desc: descFn, asc: ascFn }) => {
+					if (sort === Sorting.ASC) {
+						return ascFn(table.createdAt);
+					}
 					return descFn(table.createdAt);
+				},
+				with: {
+					user: {
+						columns: {
+							id: true,
+						},
+					},
 				},
 			});
 
@@ -90,6 +105,6 @@ export const readAllPost = new Elysia()
 			};
 		},
 		{
-			query: "readPostModel",
+			query: "readAllPostModel",
 		},
 	);

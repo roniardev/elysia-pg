@@ -1,5 +1,7 @@
 import { Elysia, t } from "elysia";
 
+import Sorting from "@/common/enum/sorting";
+
 export const createPostModel = new Elysia().model({
 	createPostModel: t.Object({
 		title: t.String(),
@@ -12,9 +14,11 @@ export const createPostModel = new Elysia().model({
 });
 
 export const readAllPostModel = new Elysia().model({
-	readPostModel: t.Object({
+	readAllPostModel: t.Object({
 		page: t.Number(),
 		limit: t.Number(),
+		sort: t.Enum(Sorting).default(Sorting.DESC),
+		search: t.Optional(t.String()),
 	}),
 });
 

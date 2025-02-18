@@ -55,16 +55,32 @@ table posts {
   }
 }
 
+table scope_user_permissions {
+  id varchar(26) [pk, not null]
+  scope_id varchar(26) [not null]
+  user_permission_id varchar(26) [not null]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp
+  scope varchar(10) [not null, default: 'personal']
+  revoked boolean [not null, default: false]
+}
+
+table scopes {
+  id varchar(26) [pk, not null]
+  name varchar(255) [not null]
+  description varchar(255)
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp
+  deleted_at timestamp
+}
+
 table user_permissions {
+  id varchar(26) [pk, not null]
   user_id varchar(26) [not null]
   permission_id varchar(26) [not null]
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp
   revoked boolean [not null, default: false]
-
-  indexes {
-    (user_id, permission_id) [pk]
-  }
 }
 
 table users {
@@ -87,6 +103,10 @@ ref: email_verification_tokens.user_id - users.id
 ref: password_reset_tokens.user_id - users.id
 
 ref: posts.user_id - users.id
+
+ref: scope_user_permissions.scope_id - scopes.id
+
+ref: scope_user_permissions.user_permission_id > user_permissions.id
 
 ref: user_permissions.user_id > users.id
 
