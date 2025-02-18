@@ -1,0 +1,1 @@
+ALTER TABLE "scope_user_permissions" DROP COLUMN "scope";

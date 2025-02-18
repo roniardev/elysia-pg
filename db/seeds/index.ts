@@ -2,12 +2,15 @@ import { runPostsSeed } from "./post";
 import { runUsersSeed } from "./user";
 import { runPermissionsSeed } from "./permission";
 import { runUserPermissionsSeed } from "./user-permissions";
-
+import { runScopesSeed } from "./scope";
+import { runScopeUserPermissionsSeed } from "./scope-user-permissions";
 const tasks = [
 	runUsersSeed,
 	runPermissionsSeed,
 	runUserPermissionsSeed,
 	runPostsSeed,
+	runScopesSeed,
+	runScopeUserPermissionsSeed,
 ];
 
 tasks

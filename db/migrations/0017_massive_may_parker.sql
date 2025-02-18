@@ -1,0 +1,1 @@
+ALTER TABLE "scope_user_permissions" DROP CONSTRAINT "scope_user_permissions_scope_id_user_permission_id_pk";

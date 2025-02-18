@@ -6,10 +6,14 @@ import {
 	emailVerificationTokens,
 	passwordResetTokens,
 	users,
+	scopes,
+	scopeUserPermissions,
 } from "./schema";
 import { getTableName } from "drizzle-orm";
 
 const tables = [
+	scopeUserPermissions,
+	scopes,
 	userPermissions,
 	permissions,
 	posts,
