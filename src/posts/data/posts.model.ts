@@ -17,7 +17,7 @@ export const readAllPostModel = new Elysia().model({
 	readAllPostModel: t.Object({
 		page: t.Number(),
 		limit: t.Number(),
-		sort: t.Enum(Sorting).default(Sorting.DESC),
+		sort: t.Optional(t.String()),
 		search: t.Optional(t.String()),
 	}),
 });
