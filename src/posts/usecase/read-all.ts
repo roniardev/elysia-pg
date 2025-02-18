@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { PostPermission } from "@/common/enum/permissions";
 import { verifyPermission } from "@/src/general/usecase/verify-permission";
 import Sorting from "@/common/enum/sorting";
+import type { Post } from "@/db/schema";
 
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
 import { readAllPostModel } from "../data/posts.model";
@@ -18,6 +19,31 @@ export const readAllPost = new Elysia()
 	.get(
 		"/post",
 		async ({ bearer, set, jwtAccess, query }) => {
+			// HANDLE PUBLIC POST
+			let publicPosts: Post[] | undefined = undefined;
+
+			if (!bearer) {
+				publicPosts = await db.query.posts.findMany({
+					where: (table, { eq, and }) => and(eq(table.visibility, "public")),
+				});
+			}
+
+			if (!bearer && publicPosts) {
+				return {
+					status: true,
+					message: "Posts fetched successfully",
+					data: publicPosts,
+				};
+			}
+
+			if (!bearer && !publicPosts) {
+				set.status = 400;
+				return {
+					status: false,
+					message: "Posts not found",
+				};
+			}
+
 			// CHECK VALID TOKEN
 			const validToken = await jwtAccess.verify(bearer);
 			const { page, limit, sort, search } = query;

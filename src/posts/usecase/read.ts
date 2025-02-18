@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
 import { verifyPermission } from "@/src/general/usecase/verify-permission";
 import { PostPermission } from "@/common/enum/permissions";
+import type { Post } from "@/db/schema";
 
 import { readPostModel } from "../data/posts.model";
 import { getScope } from "@/src/general/usecase/get-scope";
@@ -17,6 +18,32 @@ export const readPost = new Elysia()
 	.get(
 		"/post/:id",
 		async ({ params, bearer, set, jwtAccess }) => {
+			// HANDLE PUBLIC POST
+			let publicPost: Post | undefined = undefined;
+
+			if (!bearer) {
+				publicPost = await db.query.posts.findFirst({
+					where: (table, { eq, and }) =>
+						and(eq(table.id, params.id), eq(table.visibility, "public")),
+				});
+			}
+
+			if (!bearer && publicPost) {
+				return {
+					status: true,
+					message: "Post read successfully",
+					data: publicPost,
+				};
+			}
+
+			if (!bearer && !publicPost) {
+				set.status = 400;
+				return {
+					status: false,
+					message: "Post not found",
+				};
+			}
+
 			// CHECK VALID TOKEN
 			const validToken = await jwtAccess.verify(bearer);
 
