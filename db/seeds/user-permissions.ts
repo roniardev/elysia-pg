@@ -67,11 +67,6 @@ export async function runUserPermissionsSeed() {
 		},
 		// Super Admin Manage Post Permissions
 		{
-			id: "01JMBB83W458VCQ8KT4DP4FQH2",
-			userId: "01JM8P67X5GFPVQDVD82666MPS",
-			permissionId: "01JM71SE4T1709CSXCF4W3J3XR",
-		},
-		{
 			id: "01JMBB83W47CH6DEKDETP0G3HC",
 			userId: "01JM8P67X5GFPVQDVD82666MPS",
 			permissionId: "01JM71SE4T4DZGY8H5TKXHCTZE",

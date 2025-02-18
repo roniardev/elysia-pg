@@ -5,11 +5,13 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { posts } from "@/db/schema";
 import { verrou } from "@/utils/services/locks";
+import { verifyPermission } from "@/src/general/usecase/verify-permission";
+import { getScope } from "@/src/general/usecase/get-scope";
 
 import { updatePostModel } from "../data/posts.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
-import { verifyPermission } from "@/src/general/usecase/verify-permission";
 import { PostPermission } from "@/common/enum/permissions";
+import { Scope } from "@/common/enum/scopes";
 
 export const updatePost = new Elysia()
 	.use(updatePostModel)
@@ -36,17 +38,19 @@ export const updatePost = new Elysia()
 			});
 
 			// CHECK EXISTING UPDATE POST PERMISSION
-			const { valid } = await verifyPermission(
+			const { valid, permission } = await verifyPermission(
 				PostPermission.UPDATE_POST,
 				validToken.id,
 			);
 
-			if (!valid) {
+			if (!valid || !permission) {
 				set.status = 403;
 				return {
 					message: "Unauthorized Permission",
 				};
 			}
+
+			const scope = await getScope(permission);
 
 			if (!existingUser) {
 				set.status = 400;
@@ -57,8 +61,14 @@ export const updatePost = new Elysia()
 
 			// CHECK EXISTING POST
 			const post = await db.query.posts.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.id, params.id);
+				where: (table, { eq, and }) => {
+					if (scope === Scope.PERSONAL) {
+						return and(
+							eq(table.id, params.id),
+							eq(table.userId, validToken.id),
+						);
+					}
+					return eq(table.id, params.id);
 				},
 			});
 
@@ -76,7 +86,7 @@ export const updatePost = new Elysia()
 				};
 			}
 
-			await verrou.createLock("updatePost").run(async () => {
+			await verrou.createLock(`updatePost-${post.id}`).run(async () => {
 				// UPDATE POST
 				try {
 					await db

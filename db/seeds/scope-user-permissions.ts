@@ -67,11 +67,6 @@ export async function runScopeUserPermissionsSeed() {
 		},
 		// Super Admin Manage Post Permissions
 		{
-			id: "01JMBCCANB5HXSVGNR7CRRXTBT",
-			scopeId: "01JMBBHZS7Q3BW2DS33P97Z0RA",
-			userPermissionId: "01JMBB83W458VCQ8KT4DP4FQH2",
-		},
-		{
 			id: "01JMBCCANBEW7ZZ26N7YCGQGVK",
 			scopeId: "01JMBBHZS7Q3BW2DS33P97Z0RA",
 			userPermissionId: "01JMBB83W47CH6DEKDETP0G3HC",
