@@ -51,6 +51,7 @@ export const verifyPermission = async (
 	}
 
 	return {
+		permission: userPermission.id,
 		valid: true,
 		message: "Authorized",
 	};

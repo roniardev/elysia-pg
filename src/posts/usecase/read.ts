@@ -7,6 +7,8 @@ import { verifyPermission } from "@/src/general/usecase/verify-permission";
 import { PostPermission } from "@/common/enum/permissions";
 
 import { readPostModel } from "../data/posts.model";
+import { getScope } from "@/src/general/usecase/get-scope";
+import { Scope } from "@/common/enum/scopes";
 
 export const readPost = new Elysia()
 	.use(readPostModel)
@@ -26,20 +28,13 @@ export const readPost = new Elysia()
 				};
 			}
 
-			// CHECK EXISTING USER
-			const existingUser = await db.query.users.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.id, validToken.id);
-				},
-			});
-
 			// CHECK EXISTING READ POST PERMISSION
-			const { valid } = await verifyPermission(
+			const { valid, permission } = await verifyPermission(
 				PostPermission.READ_POST,
 				validToken.id,
 			);
 
-			if (!valid) {
+			if (!valid || !permission) {
 				set.status = 403;
 				return {
 					status: false,
@@ -47,18 +42,19 @@ export const readPost = new Elysia()
 				};
 			}
 
-			if (!existingUser) {
-				set.status = 400;
-				return {
-					status: false,
-					message: "Invalid User",
-				};
-			}
+			const scope = await getScope(permission);
 
 			// READ POST
 			const post = await db.query.posts.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.id, params.id);
+				where: (table, { eq, and }) => {
+					if (scope === Scope.PERSONAL) {
+						return and(
+							eq(table.id, params.id),
+							eq(table.userId, validToken.id),
+						);
+					}
+
+					return eq(table.id, params.id);
 				},
 			});
 
@@ -67,14 +63,6 @@ export const readPost = new Elysia()
 				return {
 					status: false,
 					message: "Post not found",
-				};
-			}
-
-			if (post.userId !== existingUser.id) {
-				set.status = 400;
-				return {
-					status: false,
-					message: "Invalid User",
 				};
 			}
 

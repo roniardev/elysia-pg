@@ -8,7 +8,8 @@ import Sorting from "@/common/enum/sorting";
 
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
 import { readAllPostModel } from "../data/posts.model";
-import { and, eq, like } from "drizzle-orm";
+import { getScope } from "@/src/general/usecase/get-scope";
+import { Scope } from "@/common/enum/scopes";
 
 export const readAllPost = new Elysia()
 	.use(readAllPostModel)
@@ -30,18 +31,20 @@ export const readAllPost = new Elysia()
 			}
 
 			// CHECK EXISTING READ ALL POST PERMISSION
-			const { valid } = await verifyPermission(
+			const { valid, permission } = await verifyPermission(
 				PostPermission.READ_ALL_POST,
 				validToken.id,
 			);
 
-			if (!valid) {
+			if (!valid || !permission) {
 				set.status = 403;
 				return {
 					status: false,
 					message: "Unauthorized Permission",
 				};
 			}
+
+			const scope = await getScope(permission);
 
 			// CHECK EXISTING USER
 			const existingUser = await db.query.users.findFirst({
@@ -60,11 +63,15 @@ export const readAllPost = new Elysia()
 
 			// GET ALL POSTS
 			const posts = await db.query.posts.findMany({
-				where: (table) => {
-					return and(
-						eq(table.userId, validToken.id),
-						search ? like(table.title, `%${search}%`) : undefined,
-					);
+				where: (table, { eq, like, and }) => {
+					if (scope === Scope.PERSONAL) {
+						return and(
+							eq(table.userId, validToken.id),
+							search ? like(table.title, `%${search}%`) : undefined,
+						);
+					}
+
+					return search ? like(table.title, `%${search}%`) : undefined;
 				},
 				limit: Number(limit),
 				offset: (Number(page) - 1) * Number(limit),

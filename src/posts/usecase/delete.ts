@@ -7,9 +7,11 @@ import { posts } from "@/db/schema";
 import { verrou } from "@/utils/services/locks";
 import { PostPermission } from "@/common/enum/permissions";
 import { verifyPermission } from "@/src/general/usecase/verify-permission";
+import { getScope } from "@/src/general/usecase/get-scope";
 
 import { deletePostModel } from "../data/posts.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
+import { Scope } from "@/common/enum/scopes";
 
 export const deletePost = new Elysia()
 	.use(deletePostModel)
@@ -27,12 +29,12 @@ export const deletePost = new Elysia()
 		}
 
 		// CHECK EXISTING DELETE POST PERMISSION
-		const { valid } = await verifyPermission(
+		const { valid, permission } = await verifyPermission(
 			PostPermission.DELETE_POST,
 			validToken.id,
 		);
 
-		if (!valid) {
+		if (!valid || !permission) {
 			set.status = 403;
 			return {
 				status: false,
@@ -40,10 +42,15 @@ export const deletePost = new Elysia()
 			};
 		}
 
+		const scope = await getScope(permission);
+
 		// CHECK EXISTING POST
 		const existingPost = await db.query.posts.findFirst({
-			where: (table, { eq: eqFn }) => {
-				return eqFn(table.id, params.id);
+			where: (table, { eq, and }) => {
+				if (scope === Scope.PERSONAL) {
+					return and(eq(table.id, params.id), eq(table.userId, validToken.id));
+				}
+				return eq(table.id, params.id);
 			},
 		});
 
@@ -63,9 +70,7 @@ export const deletePost = new Elysia()
 			};
 		}
 
-		await verrou.createLock("deletePost").run(async () => {
-			// CHECK VALID TOKEN
-
+		await verrou.createLock(`deletePost-${existingPost.id}`).run(async () => {
 			// DELETE POST
 			try {
 				await db.delete(posts).where(eq(posts.id, params.id));

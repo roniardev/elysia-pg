@@ -122,6 +122,7 @@ export const createUser = new Elysia()
 			if (permissions) {
 				for (const permission of permissions) {
 					await db.insert(userPermissions).values({
+						id: ulid(),
 						userId: userId,
 						permissionId: permission,
 					});
