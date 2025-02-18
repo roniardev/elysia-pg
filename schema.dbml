@@ -61,7 +61,6 @@ table scope_user_permissions {
   user_permission_id varchar(26) [not null]
   created_at timestamp [not null, default: `now()`]
   updated_at timestamp
-  scope varchar(10) [not null, default: 'personal']
   revoked boolean [not null, default: false]
 }
 
