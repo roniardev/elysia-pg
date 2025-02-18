@@ -73,7 +73,7 @@ export const deletePost = new Elysia()
 		await verrou.createLock(`deletePost-${existingPost.id}`).run(async () => {
 			// DELETE POST
 			try {
-				await db.delete(posts).where(eq(posts.id, params.id));
+				await db.delete(posts).where(eq(posts.id, existingPost.id));
 			} catch (error) {
 				console.error(error);
 				set.status = 500;

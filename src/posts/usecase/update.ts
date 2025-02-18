@@ -60,7 +60,7 @@ export const updatePost = new Elysia()
 			}
 
 			// CHECK EXISTING POST
-			const post = await db.query.posts.findFirst({
+			const existingPost = await db.query.posts.findFirst({
 				where: (table, { eq, and }) => {
 					if (scope === Scope.PERSONAL) {
 						return and(
@@ -72,39 +72,39 @@ export const updatePost = new Elysia()
 				},
 			});
 
-			if (!post) {
+			if (!existingPost) {
 				set.status = 400;
 				return {
 					message: "Post not found",
 				};
 			}
 
-			if (post.userId !== existingUser.id) {
+			if (existingPost.userId !== existingUser.id) {
 				set.status = 400;
 				return {
 					message: "Invalid User",
 				};
 			}
 
-			await verrou.createLock(`updatePost-${post.id}`).run(async () => {
+			await verrou.createLock(`updatePost-${existingPost.id}`).run(async () => {
 				// UPDATE POST
 				try {
 					await db
 						.update(posts)
 						.set({
-							title: body.title || post.title,
-							excerpt: body.excerpt || post.excerpt,
-							content: body.content || post.content,
+							title: body.title || existingPost.title,
+							excerpt: body.excerpt || existingPost.excerpt,
+							content: body.content || existingPost.content,
 							status:
 								(body.status as "draft" | "published") ||
-								(post.status as "draft" | "published"),
+								(existingPost.status as "draft" | "published"),
 							visibility:
 								(body.visibility as "public" | "private") ||
-								(post.visibility as "public" | "private"),
-							tags: body.tags || post.tags,
+								(existingPost.visibility as "public" | "private"),
+							tags: body.tags || existingPost.tags,
 							updatedAt: new Date(),
 						})
-						.where(eq(posts.id, params.id));
+						.where(eq(posts.id, existingPost.id));
 				} catch (error) {
 					console.error(error);
 					set.status = 500;
