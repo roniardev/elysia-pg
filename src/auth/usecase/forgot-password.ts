@@ -7,15 +7,15 @@ import { passwordResetTokens } from "@/db/schema";
 import { sendEmail } from "@/utils/send-email";
 
 import { forgotPasswordModel } from "../data/auth.model";
-import { jwtRefreshSetup } from "../setup/auth";
+import { jwtEmailSetup } from "../setup/auth";
 import { resetPasswordTemplate } from "@/common/email-templates/reset-password";
 
 export const forgotPassword = new Elysia()
-	.use(jwtRefreshSetup)
+	.use(jwtEmailSetup)
 	.use(forgotPasswordModel)
 	.post(
 		"/forgot-password",
-		async ({ body, set, jwtRefresh }) => {
+		async ({ body, set, jwtEmail }) => {
 			const { email } = body;
 
 			// CHECK EXISTING USER
@@ -33,9 +33,10 @@ export const forgotPassword = new Elysia()
 				};
 			}
 
-			const emailToken = await jwtRefresh.sign({
+			const emailToken = await jwtEmail.sign({
 				id: existingUser.id,
 			});
+
 			const hashedToken = await Bun.password.hash(emailToken);
 
 			try {

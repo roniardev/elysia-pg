@@ -19,31 +19,6 @@ export const readAllPost = new Elysia()
 	.get(
 		"/post",
 		async ({ bearer, set, jwtAccess, query }) => {
-			// HANDLE PUBLIC POST
-			let publicPosts: Post[] | undefined = undefined;
-
-			if (!bearer) {
-				publicPosts = await db.query.posts.findMany({
-					where: (table, { eq, and }) => and(eq(table.visibility, "public")),
-				});
-			}
-
-			if (!bearer && publicPosts) {
-				return {
-					status: true,
-					message: "Posts fetched successfully",
-					data: publicPosts,
-				};
-			}
-
-			if (!bearer && !publicPosts) {
-				set.status = 400;
-				return {
-					status: false,
-					message: "Posts not found",
-				};
-			}
-
 			// CHECK VALID TOKEN
 			const validToken = await jwtAccess.verify(bearer);
 			const { page, limit, sort, search } = query;

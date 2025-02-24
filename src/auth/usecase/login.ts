@@ -10,6 +10,9 @@ import { verrou } from "@/utils/services/locks";
 
 import { basicAuthModel } from "../data/auth.model";
 import { jwtAccessSetup, jwtRefreshSetup } from "../setup/auth";
+import { handleErrorResponse } from "@/utils/handle-error-response";
+import { ResponseErrorStatus } from "@/common/enum/response-status";
+import { ErrorMessage } from "@/common/enum/error-message";
 
 export const login = new Elysia()
 	.use(basicAuthModel)
@@ -26,19 +29,23 @@ export const login = new Elysia()
 			});
 
 			if (!existingUser) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Invalid credentials.",
-				};
+				return handleErrorResponse(
+					ResponseErrorStatus.FORBIDDEN,
+					ErrorMessage.INVALID_CREDENTIALS,
+					() => {
+						set.status = 403;
+					},
+				);
 			}
 
 			if (!existingUser.emailVerified) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Email not verified.",
-				};
+				return handleErrorResponse(
+					ResponseErrorStatus.FORBIDDEN,
+					ErrorMessage.EMAIL_NOT_VERIFIED,
+					() => {
+						set.status = 403;
+					},
+				);
 			}
 			// CHECK VALID PASSWORD
 			const validPassword = await Bun.password.verify(
@@ -47,11 +54,13 @@ export const login = new Elysia()
 			);
 
 			if (!validPassword) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Invalid credentials.",
-				};
+				return handleErrorResponse(
+					ResponseErrorStatus.FORBIDDEN,
+					ErrorMessage.INVALID_CREDENTIALS,
+					() => {
+						set.status = 403;
+					},
+				);
 			}
 
 			// CHECK EXISTING REFRESH TOKEN
@@ -63,12 +72,14 @@ export const login = new Elysia()
 				`${existingUser.id}:accessToken`,
 			);
 
-			if (existingRefreshToken || existingAccessToken) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Session already exists.",
-				};
+			if (existingRefreshToken) {
+				return handleErrorResponse(
+					ResponseErrorStatus.FORBIDDEN,
+					ErrorMessage.SESSION_ALREADY_EXISTS,
+					() => {
+						set.status = 403;
+					},
+				);
 			}
 
 			// GENERATE REFRESH TOKEN & ACCESS TOKEN
@@ -82,7 +93,7 @@ export const login = new Elysia()
 				exp: dayjs().unix() + config.ACCESS_TOKEN_EXPIRE_TIME,
 			});
 
-			await verrou.createLock("login").run(async () => {
+			await verrou.createLock(`${existingUser.id}:login`).run(async () => {
 				// SET REFRESH TOKEN & ACCESS TOKEN TO REDIS
 				try {
 					await redis.set(`${existingUser.id}:refreshToken`, refreshToken);
@@ -100,13 +111,13 @@ export const login = new Elysia()
 					);
 				} catch (error) {
 					console.error(error);
-					set.status = 500;
-
-					return {
-						status: false,
-						message: "Internal server error.",
-						data: error,
-					};
+					return handleErrorResponse(
+						ResponseErrorStatus.INTERNAL_SERVER_ERROR,
+						ErrorMessage.INTERNAL_SERVER_ERROR,
+						() => {
+							set.status = 500;
+						},
+					);
 				}
 			});
 
