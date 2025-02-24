@@ -28,3 +28,16 @@ export const jwtRefreshSetup = new Elysia({
 		exp: "7d",
 	}),
 );
+
+export const jwtEmailSetup = new Elysia({
+	name: "jwtEmail",
+}).use(
+	jwt({
+		name: "jwtEmail",
+		schema: t.Object({
+			id: t.String(),
+		}),
+		secret: config.JWT_EMAIL_SECRET,
+		exp: "15m",
+	}),
+);

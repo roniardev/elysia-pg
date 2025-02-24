@@ -17,6 +17,18 @@ export const register = new Elysia()
 		async function handler({ body, set, jwtAccess }) {
 			const { email, password, confirmPassword } = body;
 
+			const isValidEmail = email.match(
+				/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+			);
+
+			if (!isValidEmail) {
+				set.status = 400;
+				return {
+					status: false,
+					message: "Invalid email.",
+				};
+			}
+			
 			if (password !== confirmPassword) {
 				set.status = 400;
 				return {
@@ -41,7 +53,6 @@ export const register = new Elysia()
 			}
 
 			// CREATE USER
-
 			const hashedPassword = await Bun.password.hash(password);
 			const userId = ulid();
 			const user = await db.insert(users).values({

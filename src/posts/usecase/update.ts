@@ -86,7 +86,7 @@ export const updatePost = new Elysia()
 				};
 			}
 
-			await verrou.createLock(`updatePost-${existingPost.id}`).run(async () => {
+			await verrou.createLock(`updatePost:${existingPost.id}`).run(async () => {
 				// UPDATE POST
 				try {
 					await db

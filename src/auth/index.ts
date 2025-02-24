@@ -8,11 +8,12 @@ import { verifyEmail } from "./usecase/verify-email";
 import { forgotPassword } from "./usecase/forgot-password";
 import { resetPassword } from "./usecase/reset-password.";
 import { regenerateAccessToken } from "./usecase/regenerate-access-token.";
+import { config } from "@/app/config";
 
 export const auth = new Elysia()
 	.use(
 		rateLimit({
-			max: 10,
+			max: config.NODE_ENV === "test" ? 10000 : 100,
 			duration: 60000,
 			scoping: "scoped",
 		}),
