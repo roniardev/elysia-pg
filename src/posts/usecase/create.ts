@@ -1,7 +1,6 @@
 import { Elysia } from "elysia";
 import bearer from "@elysiajs/bearer";
 import { ulid } from "ulid";
-import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { posts } from "@/db/schema";
@@ -37,7 +36,7 @@ export const createPost = new Elysia()
 
 			// CHECK EXISTING USER
 			const existingUser = await db.query.users.findFirst({
-				where: (table) => {
+				where: (table, { eq, and, isNull }) => {
 					return and(eq(table.id, validToken.id), isNull(table.deletedAt));
 				},
 			});

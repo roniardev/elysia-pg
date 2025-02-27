@@ -50,8 +50,8 @@ export const readAllPost = new Elysia()
 
 			// CHECK EXISTING USER
 			const existingUser = await db.query.users.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.id, validToken.id);
+				where: (table, { eq }) => {
+					return eq(table.id, validToken.id);
 				},
 			});
 

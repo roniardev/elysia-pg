@@ -1,5 +1,3 @@
-import { and, eq } from "drizzle-orm";
-
 import type { PostPermission, UserPermission } from "@/common/enum/permissions";
 import { db } from "@/db";
 
@@ -8,8 +6,8 @@ export const verifyPermission = async (
 	userId: string,
 ) => {
 	const existingUser = await db.query.users.findFirst({
-		where: (table, { eq: eqFn }) => {
-			return eqFn(table.id, userId);
+		where: (table, { eq }) => {
+			return eq(table.id, userId);
 		},
 	});
 
@@ -21,8 +19,8 @@ export const verifyPermission = async (
 	}
 
 	const getPermission = await db.query.permissions.findFirst({
-		where: (table, { eq: eqFn }) => {
-			return eqFn(table.name, permission);
+		where: (table, { eq }) => {
+			return eq(table.name, permission);
 		},
 	});
 
@@ -34,7 +32,7 @@ export const verifyPermission = async (
 	}
 
 	const userPermission = await db.query.userPermissions.findFirst({
-		where: (table) => {
+		where: (table, { eq, and }) => {
 			return and(
 				eq(table.userId, existingUser.id),
 				eq(table.permissionId, getPermission.id),

@@ -19,6 +19,11 @@ export enum ErrorMessage {
 		PAGE_NOT_FOUND = "Page not found",
 		FAILED_TO_READ_POST = "Failed to read post",
 		FAILED_TO_UPDATE_POST = "Failed to update post",
+		FAILED_TO_CREATE_USER = "Failed to create user",
+		FAILED_TO_CREATE_EMAIL_VERIFICATION_TOKEN = "Failed to create email verification token",
+		FAILED_TO_SEND_EMAIL = "Failed to send email",
+		FAILED_TO_DELETE_USER = "Failed to delete user",
+		USER_ALREADY_DELETED = "User already deleted",
 	}
 
 export enum SuccessMessage {
@@ -34,4 +39,7 @@ export enum SuccessMessage {
 		POSTS_FETCHED = "Posts fetched successfully",
 		POST_READ = "Post read successfully",
 		POST_UPDATED = "Post updated successfully",
+		USER_CREATED = "User created successfully",
+		USER_DELETED = "User deleted successfully",
+		USER_FOUND = "User found",
 	}
