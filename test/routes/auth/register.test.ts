@@ -3,6 +3,10 @@ import { db } from "@/db";
 import { emailVerificationTokens, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { redis } from "@/utils/services/redis";
+import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
+import { config } from "@/app/config";
+
+const API_URL = `${config.API_URL}:${config.PORT}`;
 
 describe("/register", () => {
 	beforeAll(async () => {
@@ -15,7 +19,7 @@ describe("/register", () => {
 	});
 
 	it("return a Invalid email.", async () => {
-		const response = await fetch("http://localhost:3000/register", {
+		const response = await fetch(`${API_URL}/register`, {
 			method: "POST",
 			body: JSON.stringify({
 				email: "invalidemail",
@@ -31,11 +35,11 @@ describe("/register", () => {
 		};
 
 		expect(json.status).toBe(false);
-		expect(json.message).toBe("Invalid email.");
+		expect(json.message).toBe(ErrorMessage.INVALID_EMAIL);
 	});
 
 	it("return a Password and confirm password do not match", async () => {
-		const response = await fetch("http://localhost:3000/register", {
+		const response = await fetch(`${API_URL}/register`, {
 			method: "POST",
 			body: JSON.stringify({
 				email: "test@test.com",
@@ -51,11 +55,11 @@ describe("/register", () => {
 		};
 
 		expect(json.status).toBe(false);
-		expect(json.message).toBe("Password and confirm password do not match");
+		expect(json.message).toBe(ErrorMessage.PASSWORD_DO_NOT_MATCH);
 	});
 
 	it("return a User already exists", async () => {
-		const response = await fetch("http://localhost:3000/register", {
+		const response = await fetch(`${API_URL}/register`, {
 			method: "POST",
 			body: JSON.stringify({
 				email: "test@test.com",
@@ -71,11 +75,11 @@ describe("/register", () => {
 		};
 
 		expect(json.status).toBe(false);
-		expect(json.message).toBe("User already exists");
+		expect(json.message).toBe(ErrorMessage.USER_ALREADY_EXISTS);
 	});
 
 	it("return a User registered successfully", async () => {
-		const response = await fetch("http://localhost:3000/register", {
+		const response = await fetch(`${API_URL}/register`, {
 			method: "POST",
 			body: JSON.stringify({
 				email: "test2@test.com",
@@ -91,9 +95,7 @@ describe("/register", () => {
 		};
 
 		expect(json.status).toBe(true);
-		expect(json.message).toBe(
-			"User registered successfully, please verify your email",
-		);
+		expect(json.message).toBe(SuccessMessage.USER_REGISTERED);
 
 		const user = await db.query.users.findFirst({
 			where: (table, { eq: eqFn }) => {

@@ -6,6 +6,13 @@ import { users } from "@/db/schema";
 
 import { resetPasswordModel } from "../data/auth.model";
 import { jwtAccessSetup } from "../setup/auth";
+import { getUser } from "@/src/general/usecase/get-user";
+import {
+	ResponseErrorStatus,
+	ResponseSuccessStatus,
+} from "@/common/enum/response-status";
+import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
+import { handleResponse } from "@/utils/handle-response";
 
 export const resetPassword = new Elysia()
 	.use(jwtAccessSetup)
@@ -18,26 +25,24 @@ export const resetPassword = new Elysia()
 			const emailToken = await jwtAccess.verify(body.token);
 
 			if (!emailToken) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Token invalid",
-				};
+				return handleResponse(ErrorMessage.INVALID_EMAIL_TOKEN, () => {
+					set.status = ResponseErrorStatus.BAD_REQUEST;
+				});
 			}
 
 			// CHECK EXISTING USER
-			const existingUser = await db.query.users.findFirst({
-				where: (table) => {
-					return and(eq(table.id, emailToken.id), isNull(table.deletedAt));
+			const existingUser = await getUser({
+				identifier: emailToken.id,
+				type: "id",
+				condition: {
+					deleted: false,
 				},
 			});
 
-			if (!existingUser) {
-				set.status = 404;
-				return {
-					status: false,
-					message: "User not found",
-				};
+			if (!existingUser?.user) {
+				return handleResponse(ErrorMessage.USER_NOT_FOUND, () => {
+					set.status = ResponseErrorStatus.NOT_FOUND;
+				});
 			}
 
 			// CHECK EXISTING PASSWORD RESET TOKEN
@@ -48,11 +53,9 @@ export const resetPassword = new Elysia()
 			});
 
 			if (!existingToken) {
-				set.status = 404;
-				return {
-					status: false,
-					message: "Token invalid",
-				};
+				return handleResponse(ErrorMessage.INVALID_EMAIL_TOKEN, () => {
+					set.status = ResponseErrorStatus.NOT_FOUND;
+				});
 			}
 
 			// CHECK PASSWORD RESET TOKEN
@@ -62,38 +65,30 @@ export const resetPassword = new Elysia()
 			);
 
 			if (!existingToken || !validToken) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Token invalid",
-				};
+				return handleResponse(ErrorMessage.INVALID_EMAIL_TOKEN, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 			const isExpired = existingToken.expiresAt < new Date();
 
 			if (isExpired) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Token expired",
-				};
+				return handleResponse(ErrorMessage.EMAIL_TOKEN_EXPIRED, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 
 			const isRevoked = existingToken.revoked;
 
 			if (isRevoked) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Token revoked",
-				};
+				return handleResponse(ErrorMessage.INVALID_EMAIL_TOKEN, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 
 			if (password !== confirmPassword) {
-				set.status = 400;
-				return {
-					status: false,
-					message: "Password and confirm password do not match",
-				};
+				return handleResponse(ErrorMessage.PASSWORD_DO_NOT_MATCH, () => {
+					set.status = ResponseErrorStatus.BAD_REQUEST;
+				});
 			}
 
 			const hashedPassword = await Bun.password.hash(body.password);
@@ -105,23 +100,17 @@ export const resetPassword = new Elysia()
 					.set({
 						hashedPassword,
 					})
-					.where(eq(users.id, existingUser.id));
+					.where(eq(users.id, existingUser.user?.id));
 			} catch (error) {
 				console.error(error);
-				set.status = 500;
-
-				return {
-					status: false,
-					message: "Failed to reset password",
-				};
+				return handleResponse(ErrorMessage.INTERNAL_SERVER_ERROR, () => {
+					set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR;
+				});
 			}
 
-			set.status = 200;
-
-			return {
-				status: true,
-				message: "Password reset successfully",
-			};
+			return handleResponse(SuccessMessage.PASSWORD_RESET_SUCCESS, () => {
+				set.status = ResponseSuccessStatus.OK;
+			});
 		},
 		{
 			body: "resetPasswordModel",

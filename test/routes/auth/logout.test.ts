@@ -2,6 +2,10 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
+import { config } from "@/app/config";
+
+const API_URL = `${config.API_URL}:${config.PORT}`;
 
 describe("/logout", () => {
 	let accessToken: string;
@@ -12,7 +16,7 @@ describe("/logout", () => {
 			hashedPassword: await Bun.password.hash("password"),
 			emailVerified: true,
 		});
-		const response = await fetch("http://localhost:3000/login", {
+		const response = await fetch(`${API_URL}/login`, {
 			method: "POST",
 			body: JSON.stringify({
 				email: "test@test.com",
@@ -23,14 +27,16 @@ describe("/logout", () => {
 		const json = (await response.json()) as {
 			status: boolean;
 			message: string;
-			accessToken: string;
-			refreshToken: string;
+			data: {
+				accessToken: string;
+				refreshToken: string;
+			};
 		};
-		accessToken = json.accessToken;
+		accessToken = json.data.accessToken;
 	});
 
 	it("return a Unauthorized", async () => {
-		const response = await fetch("http://localhost:3000/logout", {
+		const response = await fetch(`${API_URL}/logout`, {
 			method: "POST",
 			headers: {
 				Authorization: "Bearer invalid",
@@ -43,11 +49,11 @@ describe("/logout", () => {
 		};
 
 		expect(json.status).toBe(false);
-		expect(json.message).toBe("Unauthorized");
+		expect(json.message).toBe(ErrorMessage.UNAUTHORIZED);
 	});
 
 	it("return a Logged out successfully.", async () => {
-		const response = await fetch("http://localhost:3000/logout", {
+		const response = await fetch(`${API_URL}/logout`, {
 			method: "POST",
 			headers: { Authorization: `Bearer ${accessToken}` },
 		});
@@ -58,7 +64,7 @@ describe("/logout", () => {
 		};
 
 		expect(json.status).toBe(true);
-		expect(json.message).toBe("Logged out successfully.");
+		expect(json.message).toBe(SuccessMessage.LOGOUT_SUCCESS);
 	});
 
 	afterAll(async () => {

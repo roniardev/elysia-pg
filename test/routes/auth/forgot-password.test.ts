@@ -3,6 +3,10 @@ import { db } from "@/db";
 import { passwordResetTokens, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { redis } from "@/utils/services/redis";
+import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
+import { config } from "@/app/config";
+
+const API_URL = `${config.API_URL}:${config.PORT}`;
 
 describe("/forgot-password", () => {
 	beforeAll(async () => {
@@ -14,8 +18,8 @@ describe("/forgot-password", () => {
 		});
 	});
 
-	it("return a Invalid email", async () => {
-		const response = await fetch("http://localhost:3000/forgot-password", {
+	it("return a User not found", async () => {
+		const response = await fetch(`${API_URL}/forgot-password`, {
 			method: "POST",
 			body: JSON.stringify({ email: "invalid@email.com" }),
 			headers: { "Content-Type": "application/json" },
@@ -27,11 +31,27 @@ describe("/forgot-password", () => {
 		};
 
 		expect(json.status).toBe(false);
-		expect(json.message).toBe("User not found");
+		expect(json.message).toBe(ErrorMessage.USER_NOT_FOUND);
+	});
+
+	it("return a Invalid email", async () => {
+		const response = await fetch(`${API_URL}/forgot-password`, {
+			method: "POST",
+			body: JSON.stringify({ email: "invalidemail" }),
+			headers: { "Content-Type": "application/json" },
+		});
+
+		const json = (await response.json()) as {
+			status: boolean;
+			message: string;
+		};
+
+		expect(json.status).toBe(false);
+		expect(json.message).toBe(ErrorMessage.INVALID_EMAIL);
 	});
 
 	it("return a Email sent successfully", async () => {
-		const response = await fetch("http://localhost:3000/forgot-password", {
+		const response = await fetch(`${API_URL}/forgot-password`, {
 			method: "POST",
 			body: JSON.stringify({ email: "test@test.com" }),
 			headers: { "Content-Type": "application/json" },
@@ -43,9 +63,7 @@ describe("/forgot-password", () => {
 		};
 
 		expect(json.status).toBe(true);
-		expect(json.message).toBe(
-			"Email sent, please check your email for the reset password link",
-		);
+		expect(json.message).toBe(SuccessMessage.EMAIL_SENT);
 	});
 
 	afterAll(async () => {
