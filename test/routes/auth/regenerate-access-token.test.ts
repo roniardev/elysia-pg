@@ -3,9 +3,13 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { redis } from "@/utils/services/redis";
+import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
+import { config } from "@/app/config";
+
+const API_URL = `${config.API_URL}:${config.PORT}`;
 
 describe("/regenerate-access-token", () => {
-	let accessToken = "";
+	let refreshToken = "";
 
 	beforeAll(async () => {
 		await db.insert(users).values({
@@ -15,7 +19,7 @@ describe("/regenerate-access-token", () => {
 			emailVerified: true,
 		});
 
-		const login = await fetch("http://localhost:3000/login", {
+		const login = await fetch(`${API_URL}/login`, {
 			method: "POST",
 			body: JSON.stringify({ email: "test@test.com", password: "password" }),
 			headers: { "Content-Type": "application/json" },
@@ -24,23 +28,23 @@ describe("/regenerate-access-token", () => {
 		const loginJson = (await login.json()) as {
 			status: boolean;
 			message: string;
-			accessToken: string;
+			data: {
+				accessToken: string;
+				refreshToken: string;
+			};
 		};
 
-		accessToken = loginJson.accessToken;
+		refreshToken = loginJson.data.refreshToken;
 	});
 
 	it("return a Invalid credentials", async () => {
-		const response = await fetch(
-			"http://localhost:3000/regenerate-access-token",
-			{
-				method: "GET",
-				headers: {
-					Authorization: "Bearer invalidRefreshToken",
-					"Content-Type": "application/json",
-				},
+		const response = await fetch(`${API_URL}/regenerate-access-token`, {
+			method: "GET",
+			headers: {
+				Authorization: "Bearer invalidRefreshToken",
+				"Content-Type": "application/json",
 			},
-		);
+		});
 
 		const json = (await response.json()) as {
 			status: boolean;
@@ -48,27 +52,26 @@ describe("/regenerate-access-token", () => {
 		};
 
 		expect(json.status).toBe(false);
-		expect(json.message).toBe("Unauthorized");
+		expect(json.message).toBe(ErrorMessage.UNAUTHORIZED);
 	});
 
 	it("return a Valid access token", async () => {
-		const response = await fetch(
-			"http://localhost:3000/regenerate-access-token",
-			{
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${accessToken}`,
-				},
+		const response = await fetch(`${API_URL}/regenerate-access-token`, {
+			method: "GET",
+			headers: {
+				Authorization: `Bearer ${refreshToken}`,
 			},
-		);
+		});
 
 		const json = (await response.json()) as {
 			status: boolean;
 			message: string;
+			accessToken: string;
+			refreshToken: string;
 		};
 
 		expect(json.status).toBe(true);
-		expect(json.message).toBe("Access token regenerated successfully.");
+		expect(json.message).toBe(SuccessMessage.ACCESS_TOKEN_REGENERATED);
 	});
 
 	afterAll(async () => {

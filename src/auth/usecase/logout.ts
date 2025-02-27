@@ -6,6 +6,12 @@ import { redis } from "@/utils/services/redis";
 
 import { basicAuthModel } from "../data/auth.model";
 import { jwtAccessSetup, jwtRefreshSetup } from "../setup/auth";
+import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
+import {
+	ResponseErrorStatus,
+	ResponseSuccessStatus,
+} from "@/common/enum/response-status";
+import { handleResponse } from "@/utils/handle-response";
 
 export const logout = new Elysia()
 	.use(basicAuthModel)
@@ -19,11 +25,9 @@ export const logout = new Elysia()
 			const validToken = await jwtAccess.verify(bearer);
 
 			if (!validToken) {
-				set.status = 401;
-				return {
-					status: false,
-					message: "Unauthorized",
-				};
+				return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
+					set.status = ResponseErrorStatus.UNAUTHORIZED;
+				});
 			}
 
 			// CHECK EXISTING SESSION
@@ -31,44 +35,26 @@ export const logout = new Elysia()
 				`${validToken.id}:refreshToken`,
 			);
 
-			const validRefreshToken = await jwtRefresh.verify(
-				existingRefreshToken || "",
-			);
-
 			const existingAccessToken = await redis.get(
 				`${validToken.id}:accessToken`,
 			);
 
 			if (validToken?.exp && validToken.exp < dayjs().unix()) {
-				set.status = 401;
-				return {
-					status: false,
-					message: "Unauthorized",
-				};
+				return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
+					set.status = ResponseErrorStatus.UNAUTHORIZED;
+				});
 			}
 
-			// if (validRefreshToken?.exp && validRefreshToken?.exp < dayjs().unix()) {
-			// 	set.status = 401;
-			// 	return {
-			// 		status: false,
-			// 		message: "Unauthorized",
-			// 	};
-			// }
-
 			if (bearer !== existingAccessToken) {
-				set.status = 401;
-				return {
-					status: false,
-					message: "Unauthorized",
-				};
+				return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
+					set.status = ResponseErrorStatus.UNAUTHORIZED;
+				});
 			}
 
 			if (!existingRefreshToken || !existingAccessToken) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Forbidden",
-				};
+				return handleResponse(ErrorMessage.FORBIDDEN, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 
 			// DELETE REFRESH & ACCESS TOKEN FROM REDIS
@@ -77,19 +63,14 @@ export const logout = new Elysia()
 				await redis.del(`${validToken.id}:accessToken`);
 			} catch (error) {
 				console.error(error);
-				set.status = 500;
 
-				return {
-					status: false,
-					message: "Internal server error.",
-				};
+				return handleResponse(ErrorMessage.INTERNAL_SERVER_ERROR, () => {
+					set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR;
+				});
 			}
 
-			set.status = 202;
-
-			return {
-				status: true,
-				message: "Logged out successfully.",
-			};
+			return handleResponse(SuccessMessage.LOGOUT_SUCCESS, () => {
+				set.status = ResponseSuccessStatus.ACCEPTED;
+			});
 		},
 	);

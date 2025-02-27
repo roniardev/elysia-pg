@@ -5,9 +5,16 @@ import { db } from "@/db";
 import { emailVerificationTokens, users } from "@/db/schema";
 import { verifyEmailTemplate } from "@/common/email-templates/verify-email";
 import { sendEmail } from "@/utils/send-email";
+import { getUser } from "@/src/general/usecase/get-user";
 
 import { registerModel } from "../data/auth.model";
 import { jwtAccessSetup } from "../setup/auth";
+import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
+import { handleResponse } from "@/utils/handle-response";
+import {
+	ResponseErrorStatus,
+	ResponseSuccessStatus,
+} from "@/common/enum/response-status";
 
 export const register = new Elysia()
 	.use(registerModel)
@@ -22,34 +29,27 @@ export const register = new Elysia()
 			);
 
 			if (!isValidEmail) {
-				set.status = 400;
-				return {
-					status: false,
-					message: "Invalid email.",
-				};
+				return handleResponse(ErrorMessage.INVALID_EMAIL, () => {
+					set.status = ResponseErrorStatus.BAD_REQUEST;
+				});
 			}
 			
 			if (password !== confirmPassword) {
-				set.status = 400;
-				return {
-					status: false,
-					message: "Password and confirm password do not match",
-				};
+				return handleResponse(ErrorMessage.PASSWORD_DO_NOT_MATCH, () => {
+					set.status = ResponseErrorStatus.BAD_REQUEST;
+				});
 			}
 
 			// CHECK EXISTING USER
-			const existingUser = await db.query.users.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.email, email);
-				},
+			const existingUser = await getUser({
+				identifier: email,
+				type: "email",
 			});
 
-			if (existingUser) {
-				set.status = 400;
-				return {
-					status: false,
-					message: "User already exists",
-				};
+			if (existingUser.valid) {
+				return handleResponse(ErrorMessage.USER_ALREADY_EXISTS, () => {
+					set.status = ResponseErrorStatus.BAD_REQUEST;
+				});
 			}
 
 			// CREATE USER
@@ -63,11 +63,9 @@ export const register = new Elysia()
 			});
 
 			if (!user) {
-				set.status = 500;
-				return {
-					status: false,
-					message: "Failed to register user",
-				};
+				return handleResponse(ErrorMessage.INTERNAL_SERVER_ERROR, () => {
+					set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR;
+				});
 			}
 
 			const emailToken = await jwtAccess.sign({
@@ -91,7 +89,7 @@ export const register = new Elysia()
 
 				return {
 					status: false,
-					message: "Failed to create email verification token",
+					message: ErrorMessage.INTERNAL_SERVER_ERROR,
 				};
 			}
 			
@@ -102,19 +100,14 @@ export const register = new Elysia()
 			);
 
 			if (!emailResponse) {
-				set.status = 500;
-				return {
-					status: false,
-					message: "Failed to send email",
-				};
+				return handleResponse(ErrorMessage.INTERNAL_SERVER_ERROR, () => {
+					set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR;
+				});
 			}
 
-			set.status = 201;
-
-			return {
-				status: true,
-				message: "User registered successfully, please verify your email",
-			};
+			return handleResponse(SuccessMessage.USER_REGISTERED, () => {
+				set.status = ResponseSuccessStatus.CREATED;
+			});
 		},
 		{
 			body: "registerModel",

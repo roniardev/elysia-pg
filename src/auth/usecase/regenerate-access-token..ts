@@ -7,6 +7,12 @@ import { redis } from "@/utils/services/redis";
 
 import { jwtRefreshSetup, jwtAccessSetup } from "../setup/auth";
 import { regenerateAccessTokenModel } from "../data/auth.model";
+import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
+import {
+	ResponseErrorStatus,
+	ResponseSuccessStatus,
+} from "@/common/enum/response-status";
+import { handleResponse } from "@/utils/handle-response";
 
 export const regenerateAccessToken = new Elysia()
 	.use(jwtRefreshSetup)
@@ -20,11 +26,9 @@ export const regenerateAccessToken = new Elysia()
 			const validToken = await jwtRefresh.verify(bearer);
 
 			if (!validToken) {
-				set.status = 401;
-				return {
-					status: false,
-					message: "Unauthorized",
-				};
+				return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
+					set.status = ResponseErrorStatus.UNAUTHORIZED;
+				});
 			}
 
 			const refreshToken = await jwtRefresh.sign({
@@ -54,19 +58,22 @@ export const regenerateAccessToken = new Elysia()
 				);
 			} catch (error) {
 				console.error(error);
-				set.status = 500;
 
-				return {
-					status: false,
-					message: "Internal server error.",
-				};
+				return handleResponse(ErrorMessage.INTERNAL_SERVER_ERROR, () => {
+					set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR;
+				});
 			}
+			
 
-			return {
-				status: true,
-				message: "Access token regenerated successfully.",
-				accessToken,
-				refreshToken,
-			};
+			return handleResponse(
+				SuccessMessage.ACCESS_TOKEN_REGENERATED,
+				() => {
+					set.status = ResponseSuccessStatus.OK;
+				},
+				{
+					accessToken,
+					refreshToken,
+				},
+			);
 		},
 	);

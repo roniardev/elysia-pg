@@ -5,16 +5,17 @@ import { db } from "@/db";
 import { emailVerificationTokens, users } from "@/db/schema";
 
 import { verifyEmailModel } from "../data/auth.model";
-import { jwtAccessSetup } from "../setup/auth";
+import { jwtEmailSetup } from "../setup/auth";
+import { getUser } from "@/src/general/usecase/get-user";
 
 export const verifyEmail = new Elysia()
 	.use(verifyEmailModel)
-	.use(jwtAccessSetup)
+	.use(jwtEmailSetup)
 	.post(
 		"/verify-email",
-		async ({ body, set, jwtAccess }) => {
+		async ({ body, set, jwtEmail }) => {
 			// CHECK VALID TOKEN
-			const emailToken = await jwtAccess.verify(body.token);
+			const emailToken = await jwtEmail.verify(body.token);
 
 			if (!emailToken) {
 				set.status = 403;
@@ -25,13 +26,15 @@ export const verifyEmail = new Elysia()
 			}
 
 			// CHECK EXISTING USER
-			const existingUser = await db.query.users.findFirst({
-				where: (table) => {
-					return and(eq(table.id, emailToken.id), isNull(table.deletedAt));
+			const existingUser = await getUser({
+				identifier: emailToken.id,
+				type: "id",
+				condition: {
+					deleted: false,
 				},
 			});
 
-			if (existingUser?.emailVerified) {
+			if (existingUser?.user?.emailVerified) {
 				set.status = 403;
 				return {
 					status: false,
