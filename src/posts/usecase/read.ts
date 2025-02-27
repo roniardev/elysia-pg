@@ -5,7 +5,12 @@ import { db } from "@/db";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
 import { verifyPermission } from "@/src/general/usecase/verify-permission";
 import { PostPermission } from "@/common/enum/permissions";
-import type { Post } from "@/db/schema";
+import { handleResponse } from "@/utils/handle-response";
+import {
+	ResponseErrorStatus,
+	ResponseSuccessStatus,
+} from "@/common/enum/response-status";
+import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
 
 import { readPostModel } from "../data/posts.model";
 import { getScope } from "@/src/general/usecase/get-scope";
@@ -22,11 +27,9 @@ export const readPost = new Elysia()
 			const validToken = await jwtAccess.verify(bearer);
 
 			if (!validToken) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Unauthorized",
-				};
+				return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 
 			// CHECK EXISTING READ POST PERMISSION
@@ -36,11 +39,9 @@ export const readPost = new Elysia()
 			);
 
 			if (!valid || !permission) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Unauthorized Permission",
-				};
+				return handleResponse(ErrorMessage.UNAUTHORIZED_PERMISSION, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 
 			const scope = await getScope(permission);
@@ -60,11 +61,9 @@ export const readPost = new Elysia()
 			});
 
 			if (!post) {
-				set.status = 400;
-				return {
-					status: false,
-					message: "Post not found",
-				};
+				return handleResponse(ErrorMessage.POST_NOT_FOUND, () => {
+					set.status = ResponseErrorStatus.BAD_REQUEST;
+				});
 			}
 
 			const readPost = await db.query.posts.findFirst({
@@ -74,18 +73,18 @@ export const readPost = new Elysia()
 			});
 
 			if (!readPost) {
-				set.status = 400;
-				return {
-					status: false,
-					message: "Failed to read post",
-				};
+				return handleResponse(ErrorMessage.FAILED_TO_READ_POST, () => {
+					set.status = ResponseErrorStatus.BAD_REQUEST;
+				});
 			}
 
-			return {
-				status: true,
-				message: "Post read successfully",
-				data: readPost,
-			};
+			return handleResponse(
+				SuccessMessage.POST_READ,
+				() => {
+					set.status = ResponseSuccessStatus.OK;
+				},
+				readPost,
+			);
 		},
 		{
 			params: "readPostModel",

@@ -7,9 +7,17 @@ import { db } from "@/db";
 import { posts } from "@/db/schema";
 import { PostPermission } from "@/common/enum/permissions";
 import { verifyPermission } from "@/src/general/usecase/verify-permission";
+import { handleResponse } from "@/utils/handle-response";
+import {
+	ResponseErrorStatus,
+	ResponseSuccessStatus,
+} from "@/common/enum/response-status";
+import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
+
 
 import { createPostModel } from "../data/posts.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
+
 
 export const createPost = new Elysia()
 	.use(createPostModel)
@@ -22,10 +30,9 @@ export const createPost = new Elysia()
 			const validToken = await jwtAccess.verify(bearer);
 
 			if (!validToken) {
-				set.status = 403;
-				return {
-					message: "Unauthorized",
-				};
+				return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 
 			// CHECK EXISTING USER
@@ -36,10 +43,9 @@ export const createPost = new Elysia()
 			});
 
 			if (!existingUser) {
-				set.status = 400;
-				return {
-					message: "Invalid User",
-				};
+				return handleResponse(ErrorMessage.INVALID_USER, () => {
+					set.status = ResponseErrorStatus.BAD_REQUEST;
+				});
 			}
 
 			const { valid } = await verifyPermission(
@@ -48,10 +54,9 @@ export const createPost = new Elysia()
 			);
 
 			if (!valid) {
-				set.status = 403;
-				return {
-					message: "Unauthorized Permission",
-				};
+				return handleResponse(ErrorMessage.UNAUTHORIZED_PERMISSION, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 
 			// CREATE POST
@@ -67,14 +72,10 @@ export const createPost = new Elysia()
 				});
 			} catch (error) {
 				console.error(error);
-				set.status = 500;
-				return {
-					message: "Failed to create post",
-					data: error,
-				};
+				return handleResponse(ErrorMessage.INTERNAL_SERVER_ERROR, () => {
+					set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR;
+				});
 			}
-
-			set.status = 201;
 
 			const response = {
 				id: postId,
@@ -83,11 +84,13 @@ export const createPost = new Elysia()
 				content: body.content,
 			};
 
-			return {
-				status: true,
-				message: "Post created",
-				data: response,
-			};
+			return handleResponse(
+				SuccessMessage.POST_CREATED,
+				() => {
+					set.status = ResponseSuccessStatus.CREATED;
+				},
+				response,
+			);
 		},
 		{
 			body: "createPostModel",

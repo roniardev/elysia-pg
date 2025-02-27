@@ -8,6 +8,12 @@ import { verrou } from "@/utils/services/locks";
 import { PostPermission } from "@/common/enum/permissions";
 import { verifyPermission } from "@/src/general/usecase/verify-permission";
 import { getScope } from "@/src/general/usecase/get-scope";
+import { handleResponse } from "@/utils/handle-response";
+import {
+	ResponseErrorStatus,
+	ResponseSuccessStatus,
+} from "@/common/enum/response-status";
+import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
 
 import { deletePostModel } from "../data/posts.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
@@ -17,77 +23,73 @@ export const deletePost = new Elysia()
 	.use(deletePostModel)
 	.use(jwtAccessSetup)
 	.use(bearer())
-	.delete("/post/:id", async ({ bearer, set, jwtAccess, params }) => {
-		const validToken = await jwtAccess.verify(bearer);
+	.delete(
+		"/post/:id",
+		async ({ bearer, set, jwtAccess, params }) => {
+			const validToken = await jwtAccess.verify(bearer);
 
-		if (!validToken) {
-			set.status = 403;
-			return {
-				status: false,
-				message: "Unauthorized",
-			};
-		}
-
-		// CHECK EXISTING DELETE POST PERMISSION
-		const { valid, permission } = await verifyPermission(
-			PostPermission.DELETE_POST,
-			validToken.id,
-		);
-
-		if (!valid || !permission) {
-			set.status = 403;
-			return {
-				status: false,
-				message: "Unauthorized Permission",
-			};
-		}
-
-		const scope = await getScope(permission);
-
-		// CHECK EXISTING POST
-		const existingPost = await db.query.posts.findFirst({
-			where: (table, { eq, and }) => {
-				if (scope === Scope.PERSONAL) {
-					return and(eq(table.id, params.id), eq(table.userId, validToken.id));
-				}
-				return eq(table.id, params.id);
-			},
-		});
-
-		if (!existingPost) {
-			set.status = 400;
-			return {
-				status: false,
-				message: "Post not found",
-			};
-		}
-
-		if (existingPost.userId !== validToken.id) {
-			set.status = 400;
-			return {
-				status: false,
-				message: "Unauthorized",
-			};
-		}
-
-		await verrou.createLock(`deletePost:${existingPost.id}`).run(async () => {
-			// DELETE POST
-			try {
-				await db.delete(posts).where(eq(posts.id, existingPost.id));
-			} catch (error) {
-				console.error(error);
-				set.status = 500;
-				return {
-					status: false,
-					message: "Failed to delete post",
-					data: error,
-				};
+			if (!validToken) {
+				return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
-		});
 
-		set.status = 200;
-		return {
-			status: true,
-			message: "Post deleted",
-		};
-	});
+			// CHECK EXISTING DELETE POST PERMISSION
+			const { valid, permission } = await verifyPermission(
+				PostPermission.DELETE_POST,
+				validToken.id,
+			);
+
+			if (!valid || !permission) {
+				return handleResponse(ErrorMessage.UNAUTHORIZED_PERMISSION, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
+			}
+
+			const scope = await getScope(permission);
+
+			// CHECK EXISTING POST
+			const existingPost = await db.query.posts.findFirst({
+				where: (table, { eq, and }) => {
+					if (scope === Scope.PERSONAL) {
+						return and(
+							eq(table.id, params.id),
+							eq(table.userId, validToken.id),
+						);
+					}
+					return eq(table.id, params.id);
+				},
+			});
+
+			if (!existingPost) {
+				return handleResponse(ErrorMessage.POST_NOT_FOUND, () => {
+					set.status = ResponseErrorStatus.BAD_REQUEST;
+				});
+			}
+
+			if (existingPost.userId !== validToken.id) {
+				return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
+			}
+
+			await verrou.createLock(`deletePost:${existingPost.id}`).run(async () => {
+				// DELETE POST
+				try {
+					await db.delete(posts).where(eq(posts.id, existingPost.id));
+				} catch (error) {
+					console.error(error);
+					return handleResponse(ErrorMessage.INTERNAL_SERVER_ERROR, () => {
+						set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR;
+					});
+				}
+			});
+
+			return handleResponse(SuccessMessage.POST_DELETED, () => {
+				set.status = ResponseSuccessStatus.OK;
+			});
+		},
+		{
+			params: "deletePostModel",
+		},
+	);

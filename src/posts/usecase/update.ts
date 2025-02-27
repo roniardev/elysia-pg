@@ -7,6 +7,12 @@ import { posts } from "@/db/schema";
 import { verrou } from "@/utils/services/locks";
 import { verifyPermission } from "@/src/general/usecase/verify-permission";
 import { getScope } from "@/src/general/usecase/get-scope";
+import { handleResponse } from "@/utils/handle-response";
+import {
+	ResponseErrorStatus,
+	ResponseSuccessStatus,
+} from "@/common/enum/response-status";
+import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
 
 import { updatePostModel } from "../data/posts.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
@@ -24,10 +30,9 @@ export const updatePost = new Elysia()
 			const validToken = await jwtAccess.verify(bearer);
 
 			if (!validToken) {
-				set.status = 403;
-				return {
-					message: "Unauthorized",
-				};
+				return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 
 			// CHECK EXISTING USER
@@ -44,19 +49,17 @@ export const updatePost = new Elysia()
 			);
 
 			if (!valid || !permission) {
-				set.status = 403;
-				return {
-					message: "Unauthorized Permission",
-				};
+				return handleResponse(ErrorMessage.UNAUTHORIZED_PERMISSION, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 
 			const scope = await getScope(permission);
 
 			if (!existingUser) {
-				set.status = 400;
-				return {
-					message: "Invalid User",
-				};
+				return handleResponse(ErrorMessage.INVALID_USER, () => {
+					set.status = ResponseErrorStatus.BAD_REQUEST;
+				});
 			}
 
 			// CHECK EXISTING POST
@@ -73,17 +76,15 @@ export const updatePost = new Elysia()
 			});
 
 			if (!existingPost) {
-				set.status = 400;
-				return {
-					message: "Post not found",
-				};
+				return handleResponse(ErrorMessage.POST_NOT_FOUND, () => {
+					set.status = ResponseErrorStatus.BAD_REQUEST;
+				});
 			}
 
 			if (existingPost.userId !== existingUser.id) {
-				set.status = 400;
-				return {
-					message: "Invalid User",
-				};
+				return handleResponse(ErrorMessage.INVALID_USER, () => {
+					set.status = ResponseErrorStatus.BAD_REQUEST;
+				});
 			}
 
 			await verrou.createLock(`updatePost:${existingPost.id}`).run(async () => {
@@ -107,19 +108,15 @@ export const updatePost = new Elysia()
 						.where(eq(posts.id, existingPost.id));
 				} catch (error) {
 					console.error(error);
-					set.status = 500;
-					return {
-						status: false,
-						message: "Failed to update post",
-						data: error,
-					};
+					return handleResponse(ErrorMessage.FAILED_TO_UPDATE_POST, () => {
+						set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR;
+					});
 				}
 			});
 
-			return {
-				status: true,
-				message: "Post updated successfully",
-			};
+			return handleResponse(SuccessMessage.POST_UPDATED, () => {
+				set.status = ResponseSuccessStatus.OK;
+			});
 		},
 		{
 			body: "updatePostModel",
