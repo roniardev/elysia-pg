@@ -7,6 +7,7 @@
 		message: ErrorMessage | SuccessMessage,
 		callback: () => void,
 		data?: Record<string, unknown>,
+		attributes?: Record<string, unknown>,
 	) => {
 		callback();
 
@@ -18,5 +19,6 @@
 			status: !isErrorMessage,
 			message,
 			data,
+			...attributes,
 		};
 	};
