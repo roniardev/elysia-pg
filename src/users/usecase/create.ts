@@ -6,6 +6,12 @@ import { db } from "@/db";
 import { emailVerificationTokens, userPermissions, users } from "@/db/schema";
 import { UserPermission } from "@/common/enum/permissions";
 import { verifyPermission } from "@/src/general/usecase/verify-permission";
+import { handleResponse } from "@/utils/handle-response";
+import {
+	ResponseErrorStatus,
+	ResponseSuccessStatus,
+} from "@/common/enum/response-status";
+import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
 
 import { createUserModel } from "../data/users.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
@@ -23,11 +29,9 @@ export const createUser = new Elysia()
 			const validToken = await jwtAccess.verify(bearer);
 
 			if (!validToken) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Unauthorized",
-				};
+				return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 
 			const { valid } = await verifyPermission(
@@ -36,26 +40,22 @@ export const createUser = new Elysia()
 			);
 
 			if (!valid) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Invalid Permission",
-				};
+				return handleResponse(ErrorMessage.UNAUTHORIZED_PERMISSION, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 
 			// CHECK EXISTING USER
 			const existingUser = await db.query.users.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.email, body.email);
+				where: (table, { eq }) => {
+					return eq(table.email, body.email);
 				},
 			});
 
 			if (existingUser) {
-				set.status = 400;
-				return {
-					status: false,
-					message: "User already exists",
-				};
+				return handleResponse(ErrorMessage.USER_ALREADY_EXISTS, () => {
+					set.status = ResponseErrorStatus.BAD_REQUEST;
+				});
 			}
 
 			// CREATE USER
@@ -70,11 +70,9 @@ export const createUser = new Elysia()
 			});
 
 			if (!newUser) {
-				set.status = 500;
-				return {
-					status: false,
-					message: "Failed to create user",
-				};
+				return handleResponse(ErrorMessage.FAILED_TO_CREATE_USER, () => {
+					set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR;
+				});
 			}
 
 			const emailToken = await jwtAccess.sign({
@@ -95,12 +93,12 @@ export const createUser = new Elysia()
 					});
 				} catch (error) {
 					console.error(error);
-					set.status = 500;
-
-					return {
-						status: false,
-						message: "Failed to create email verification token",
-					};
+					return handleResponse(
+						ErrorMessage.FAILED_TO_CREATE_EMAIL_VERIFICATION_TOKEN,
+						() => {
+							set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR;
+						},
+					);
 				}
 
 				const emailResponse = await sendEmail(
@@ -110,11 +108,9 @@ export const createUser = new Elysia()
 				);
 
 				if (!emailResponse) {
-					set.status = 500;
-					return {
-						status: false,
-						message: "Failed to send email",
-					};
+					return handleResponse(ErrorMessage.FAILED_TO_SEND_EMAIL, () => {
+						set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR;
+					});
 				}
 			}
 
@@ -129,12 +125,9 @@ export const createUser = new Elysia()
 				}
 			}
 
-			set.status = 201;
-
-			return {
-				status: true,
-				message: "User created successfully.",
-			};
+			return handleResponse(SuccessMessage.USER_CREATED, () => {
+				set.status = ResponseSuccessStatus.CREATED;
+			});
 		},
 		{
 			body: "createUserModel",

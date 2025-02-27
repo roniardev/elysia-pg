@@ -5,6 +5,12 @@ import { db } from "@/db";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
 import { verifyPermission } from "@/src/general/usecase/verify-permission";
 import { UserPermission } from "@/common/enum/permissions";
+import { handleResponse } from "@/utils/handle-response";
+import {
+	ResponseErrorStatus,
+	ResponseSuccessStatus,
+} from "@/common/enum/response-status";
+import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
 
 import { readUserModel } from "../data/users.model";
 
@@ -18,11 +24,9 @@ export const readUser = new Elysia()
 			const validToken = await jwtAccess.verify(bearer);
 
 			if (!validToken) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Unauthorized",
-				};
+				return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 
 			const { valid } = await verifyPermission(
@@ -31,16 +35,14 @@ export const readUser = new Elysia()
 			);
 
 			if (!valid) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Invalid Permission",
-				};
+				return handleResponse(ErrorMessage.UNAUTHORIZED_PERMISSION, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 
 			const user = await db.query.users.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.id, params.id);
+				where: (table, { eq }) => {
+					return eq(table.id, params.id);
 				},
 				with: {
 					permissions: true,
@@ -48,11 +50,9 @@ export const readUser = new Elysia()
 			});
 
 			if (!user) {
-				set.status = 404;
-				return {
-					status: false,
-					message: "User not found",
-				};
+				return handleResponse(ErrorMessage.USER_NOT_FOUND, () => {
+					set.status = ResponseErrorStatus.NOT_FOUND;
+				});
 			}
 
 			const data = {
@@ -62,13 +62,15 @@ export const readUser = new Elysia()
 				permissions: user.permissions,
 			};
 
-			set.status = 200;
-
-			return {
-				status: true,
-				message: "User found",
-				data: data,
-			};
+			return handleResponse(
+				SuccessMessage.USER_FOUND,
+				() => {
+					set.status = ResponseSuccessStatus.OK;
+				},
+				{
+					data: data,
+				},
+			);
 		},
 		{
 			params: "readUserModel",

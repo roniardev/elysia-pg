@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { and, eq, isNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { emailVerificationTokens, users } from "@/db/schema";
@@ -7,6 +7,12 @@ import { emailVerificationTokens, users } from "@/db/schema";
 import { verifyEmailModel } from "../data/auth.model";
 import { jwtEmailSetup } from "../setup/auth";
 import { getUser } from "@/src/general/usecase/get-user";
+import {
+	ResponseErrorStatus,
+	ResponseSuccessStatus,
+} from "@/common/enum/response-status";
+import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
+import { handleResponse } from "@/utils/handle-response";
 
 export const verifyEmail = new Elysia()
 	.use(verifyEmailModel)
@@ -18,11 +24,9 @@ export const verifyEmail = new Elysia()
 			const emailToken = await jwtEmail.verify(body.token);
 
 			if (!emailToken) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Invalid token",
-				};
+				return handleResponse(ErrorMessage.INVALID_EMAIL_TOKEN, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 
 			// CHECK EXISTING USER
@@ -35,16 +39,14 @@ export const verifyEmail = new Elysia()
 			});
 
 			if (existingUser?.user?.emailVerified) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Email already verified",
-				};
+				return handleResponse(ErrorMessage.EMAIL_ALREADY_VERIFIED, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 
 			// CHECK EXISTING EMAIL VERIFICATION TOKEN
 			const userToken = await db.query.emailVerificationTokens.findFirst({
-				where: (table) => {
+				where: (table, { eq, and }) => {
 					return and(eq(table.userId, emailToken.id), eq(table.revoked, false));
 				},
 			});
@@ -55,29 +57,23 @@ export const verifyEmail = new Elysia()
 			);
 
 			if (!userToken || !validToken) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Invalid token",
-				};
+				return handleResponse(ErrorMessage.INVALID_EMAIL_TOKEN, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 
 			const isExpired = userToken.expiresAt < new Date();
 
 			if (isExpired) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Token expired",
-				};
+				return handleResponse(ErrorMessage.EMAIL_TOKEN_EXPIRED, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 
 			if (!validToken) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Invalid token",
-				};
+				return handleResponse(ErrorMessage.INVALID_EMAIL_TOKEN, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 
 			// UPDATE EMAIL VERIFICATION TOKEN
@@ -89,11 +85,9 @@ export const verifyEmail = new Elysia()
 				.where(eq(emailVerificationTokens.id, userToken.id));
 
 			if (!emailVerificationTokenUpdate) {
-				set.status = 500;
-				return {
-					status: false,
-					message: "Failed to verify email",
-				};
+				return handleResponse(ErrorMessage.INTERNAL_SERVER_ERROR, () => {
+					set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR;
+				});
 			}
 
 			// UPDATE USER EMAIL VERIFICATION
@@ -106,19 +100,14 @@ export const verifyEmail = new Elysia()
 					.where(eq(users.id, userToken.userId));
 			} catch (error) {
 				console.error(error);
-				set.status = 500;
-
-				return {
-					status: false,
-					message: "Failed to verify email",
-				};
+				return handleResponse(ErrorMessage.INTERNAL_SERVER_ERROR, () => {
+					set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR;
+				});
 			}
 
-			set.status = 200;
-			return {
-				status: true,
-				message: "Email verified",
-			};
+			return handleResponse(SuccessMessage.EMAIL_VERIFIED, () => {
+				set.status = ResponseSuccessStatus.OK;
+			});
 		},
 		{
 			body: "verifyEmailModel",

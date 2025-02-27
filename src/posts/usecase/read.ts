@@ -67,8 +67,8 @@ export const readPost = new Elysia()
 			}
 
 			const readPost = await db.query.posts.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.id, params.id);
+				where: (table, { eq }) => {
+					return eq(table.id, params.id);
 				},
 			});
 

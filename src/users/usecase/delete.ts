@@ -10,6 +10,12 @@ import { verifyPermission } from "@/src/general/usecase/verify-permission";
 
 import { deleteUserModel } from "../data/users.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
+import {
+	ResponseErrorStatus,
+	ResponseSuccessStatus,
+} from "@/common/enum/response-status";
+import { handleResponse } from "@/utils/handle-response";
+import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
 
 export const deleteUser = new Elysia()
 	.use(deleteUserModel)
@@ -21,32 +27,10 @@ export const deleteUser = new Elysia()
 			// CHECK VALID TOKEN
 			const validToken = await jwtAccess.verify(bearer);
 
-			const lock = verrou.createLock(`user:${params.id}`);
-			const acquired = await lock.acquire();
-
-			try {
-				// await 15s
-				console.log("Acquire lock");
-				await new Promise((resolve) => setTimeout(resolve, 15000));
-			} finally {
-				console.log("Release lock");
-				await lock.release();
-			}
-
-			if (!acquired) {
-				set.status = 429;
-				return {
-					status: false,
-					message: "Too many requests",
-				};
-			}
-
 			if (!validToken) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Unauthorized",
-				};
+				return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 
 			const { valid } = await verifyPermission(
@@ -55,33 +39,27 @@ export const deleteUser = new Elysia()
 			);
 
 			if (!valid) {
-				set.status = 403;
-				return {
-					status: false,
-					message: "Invalid Permission",
-				};
+				return handleResponse(ErrorMessage.UNAUTHORIZED_PERMISSION, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
 			}
 
 			const existingUser = await db.query.users.findFirst({
-				where: (table, { eq: eqFn }) => {
-					return eqFn(table.id, params.id);
+				where: (table, { eq }) => {
+					return eq(table.id, params.id);
 				},
 			});
 
 			if (!existingUser) {
-				set.status = 404;
-				return {
-					status: false,
-					message: "User not found",
-				};
+				return handleResponse(ErrorMessage.USER_NOT_FOUND, () => {
+					set.status = ResponseErrorStatus.NOT_FOUND;
+				});
 			}
 
 			if (existingUser.deletedAt) {
-				set.status = 400;
-				return {
-					status: false,
-					message: "User already deleted",
-				};
+				return handleResponse(ErrorMessage.USER_ALREADY_DELETED, () => {
+					set.status = ResponseErrorStatus.BAD_REQUEST;
+				});
 			}
 
 			const { id } = existingUser;
@@ -99,21 +77,15 @@ export const deleteUser = new Elysia()
 						.where(eq(users.id, id));
 				} catch (error) {
 					console.error(error);
-					set.status = 500;
-					return {
-						status: false,
-						message: "Failed to delete user",
-						data: error,
-					};
+					return handleResponse(ErrorMessage.FAILED_TO_DELETE_USER, () => {
+						set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR;
+					});
 				}
 			});
 
-			set.status = 200;
-
-			return {
-				status: true,
-				message: "User deleted successfully",
-			};
+			return handleResponse(SuccessMessage.USER_DELETED, () => {
+				set.status = ResponseSuccessStatus.OK;
+			});
 		},
 		{
 			params: "deleteUserModel",
