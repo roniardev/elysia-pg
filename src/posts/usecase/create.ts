@@ -26,8 +26,15 @@ export const createPost = new Elysia()
 		"/post",
 		async ({ body, bearer, set, jwtAccess }) => {
 			// CHECK VALID TOKEN
-			const validToken = await jwtAccess.verify(bearer);
+			console.log({ bearer });
+			if (!bearer) {
+				return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
+					set.status = ResponseErrorStatus.FORBIDDEN;
+				});
+			}
 
+			const validToken = await jwtAccess.verify(bearer);
+			console.log({ validToken });
 			if (!validToken) {
 				return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
 					set.status = ResponseErrorStatus.FORBIDDEN;
