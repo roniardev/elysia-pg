@@ -144,6 +144,10 @@ describe("/post", () => {
         if (userPermission) {
             await db.delete(scopeUserPermissions).where(eq(scopeUserPermissions.userPermissionId, userPermission.id));
         }
+
+        console.log({
+            DCP: decryptedJson
+        })
         
         expect(json.status).toBe(true);
         expect(json.message).toBe(SuccessMessage.POSTS_FETCHED);
