@@ -3,13 +3,12 @@ import type { GeneralResponse } from "@/common/model/general-response";
 
 export const encryptResponse = (response: GeneralResponse) => {
 	if (!response.data) return;
-	let responseData: Record<string, string | number | undefined> = {
+	let responseData: any = {
 		data: response.data,
 	};
 
 	if (response.total) {
-		responseData = {
-			...responseData,
+		responseData.meta = {
 			total: response.total,
 			totalPage: response.totalPage,
 			page: response.page,
