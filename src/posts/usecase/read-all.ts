@@ -16,6 +16,8 @@ import { jwtAccessSetup } from "@/src/auth/setup/auth";
 import { readAllPostModel } from "../data/posts.model";
 import { getScope } from "@/src/general/usecase/get-scope";
 import { Scope } from "@/common/enum/scopes";
+import { sql, and, eq, like } from "drizzle-orm";
+import { posts } from "@/db/schema";
 
 export const readAllPost = new Elysia()
 	.use(readAllPostModel)
@@ -62,7 +64,7 @@ export const readAllPost = new Elysia()
 			}
 
 			// GET ALL POSTS
-			const posts = await db.query.posts.findMany({
+			const postsRes = await db.query.posts.findMany({
 				where: (table, { eq, like, and }) => {
 					if (scope === Scope.PERSONAL) {
 						return and(
@@ -90,14 +92,28 @@ export const readAllPost = new Elysia()
 				},
 			});
 
-			const totalPage = Math.ceil(posts.length / Number(limit));
+			// Get total count based on scope and search
+			const whereConditions = [];
+			if (scope === Scope.PERSONAL) {
+				whereConditions.push(eq(posts.userId, validToken.id));
+			}
+			if (search) {
+				whereConditions.push(like(posts.title, `%${search}%`));
+			}
+
+			const totalAllData = await db
+				.select({ count: sql<number>`count(*)` })
+				.from(posts)
+				.where(whereConditions.length > 0 ? and(...whereConditions) : undefined);
+
+			const total = Number(totalAllData[0]?.count || 0);
+			const totalPage = Math.ceil(total / Number(limit));
 
 			if (page > totalPage) {
 				return handleResponse(ErrorMessage.PAGE_NOT_FOUND, () => {
 					set.status = ResponseErrorStatus.BAD_REQUEST;
 				});
 			}
-			const total = posts.length;
 
 			return handleResponse(
 				SuccessMessage.POSTS_FETCHED,
@@ -105,13 +121,13 @@ export const readAllPost = new Elysia()
 					set.status = ResponseSuccessStatus.OK;
 				},
 				{
-					data: posts,
+					data: postsRes,
 				},
 				{
-					total: total,
+					total,
 					page: Number(page),
 					limit: Number(limit),
-					totalPage: totalPage,
+					totalPage,
 				},
 			);
 		},

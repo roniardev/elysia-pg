@@ -51,19 +51,16 @@ export const deletePost = new Elysia()
 			// CHECK EXISTING POST
 			const existingPost = await db.query.posts.findFirst({
 				where: (table, { eq, and }) => {
-					if (scope === Scope.PERSONAL) {
-						return and(
-							eq(table.id, params.id),
-							eq(table.userId, validToken.id),
-						);
-					}
-					return eq(table.id, params.id);
+					return and(
+						eq(table.id, params.id),
+						eq(table.userId, validToken.id),
+					);
 				},
 			});
 
 			if (!existingPost) {
 				return handleResponse(ErrorMessage.POST_NOT_FOUND, () => {
-					set.status = ResponseErrorStatus.BAD_REQUEST;
+					set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR;
 				});
 			}
 
@@ -89,7 +86,7 @@ export const deletePost = new Elysia()
 				set.status = ResponseSuccessStatus.OK;
 			});
 		},
-		{
-			params: "deletePostModel",
-		},
+		// {
+		// 	params: "deletePostModel",
+		// },
 	);

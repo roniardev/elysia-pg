@@ -10,6 +10,7 @@ import { updatePost } from "./usecase/update";
 import { deletePost } from "./usecase/delete";
 import { readPost } from "./usecase/read";
 import { verifyAuth } from "../general/usecase/verify-auth";
+import { ErrorMessage } from "@/common/enum/response-message";
 
 export const posts = new Elysia()
 	.use(jwtAccessSetup)
@@ -31,7 +32,8 @@ export const posts = new Elysia()
 				if (!valid) {
 					set.status = 401;
 					return {
-						message,
+						status: false,
+						message: ErrorMessage.UNAUTHORIZED,
 					};
 				}
 			},
@@ -48,7 +50,7 @@ export const posts = new Elysia()
 			app
 				.use(createPost)
 				.use(readAllPost)
+				.use(deletePost)
 				.use(readPost)
 				.use(updatePost)
-				.use(deletePost),
 	);
