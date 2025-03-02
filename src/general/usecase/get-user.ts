@@ -49,10 +49,6 @@ export const getUser = async ({
 		},
 	});
 
-	console.log({
-		useran: user,
-	});
-
 	if (!user) {
 		return {
 			valid: false,
