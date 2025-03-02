@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import type { JWTPayloadSpec } from "@elysiajs/jwt";
 
 import { redis } from "@/utils/services/redis";
+import { ErrorMessage } from "@/common/enum/response-message";
 
 export const verifyAuth = async (
 	bearer: string,
@@ -15,7 +16,7 @@ export const verifyAuth = async (
 	if (typeof token !== "object") {
 		return {
 			valid: false,
-			message: "Unauthorized",
+			message: ErrorMessage.UNAUTHORIZED,
 		};
 	}
 
@@ -23,24 +24,31 @@ export const verifyAuth = async (
 
 	const existingAccessToken = await redis.get(`${token.id}:accessToken`);
 
+	if (!existingRefreshToken || !existingAccessToken) {
+		return {
+			valid: false,
+			message: ErrorMessage.UNAUTHORIZED,
+		};
+	}
+
 	if (token?.exp && token.exp < dayjs().unix()) {
 		return {
 			valid: false,
-			message: "Unauthorized",
+			message: ErrorMessage.UNAUTHORIZED,
 		};
 	}
 
 	if (bearer !== existingAccessToken) {
 		return {
 			valid: false,
-			message: "Unauthorized",
+			message: ErrorMessage.UNAUTHORIZED,
 		};
 	}
 
 	if (!existingRefreshToken || !existingAccessToken) {
 		return {
 			valid: false,
-			message: "Forbidden",
+			message: ErrorMessage.FORBIDDEN,
 		};
 	}
 
