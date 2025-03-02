@@ -24,6 +24,7 @@ export enum ErrorMessage {
 		FAILED_TO_SEND_EMAIL = "Failed to send email",
 		FAILED_TO_DELETE_USER = "Failed to delete user",
 		USER_ALREADY_DELETED = "User already deleted",
+		PERMISSION_NOT_FOUND = "Permission not found",
 	}
 
 export enum SuccessMessage {
@@ -42,4 +43,9 @@ export enum SuccessMessage {
 		USER_CREATED = "User created successfully",
 		USER_DELETED = "User deleted successfully",
 		USER_FOUND = "User found",
+		PERMISSION_CREATED = "Permission created successfully",
+		PERMISSION_DELETED = "Permission deleted successfully",
+		PERMISSIONS_FETCHED = "Permissions fetched successfully",
+		PERMISSION_READ = "Permission read successfully",
+		PERMISSION_UPDATED = "Permission updated successfully",
 	}

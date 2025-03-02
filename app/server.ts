@@ -9,6 +9,7 @@ import { config } from "./config";
 import { posts } from "@/src/posts";
 import { auth } from "@/src/auth";
 import { users } from "@/src/users";
+import { permissions } from "@/src/permissions";
 
 export const app = new Elysia({
 	serve: {
@@ -28,6 +29,7 @@ export const app = new Elysia({
 	.use(auth)
 	.use(posts)
 	.use(users)
+	.use(permissions)
 	.onError(({ error, code, set }) => {
 		switch (code) {
 			case "VALIDATION": {
