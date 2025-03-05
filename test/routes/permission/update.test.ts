@@ -7,7 +7,7 @@ import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
 import { config } from "@/app/config";
 import { ulid } from "ulid";
 import { decryptResponse } from "@/utils/decrypt-response";
-import { PermissionPermission } from "@/common/enum/permissions";
+import { ManagePermission } from "@/common/enum/permissions";
 
 const API_URL = `${config.API_URL}:${config.PORT}`;
 
@@ -58,7 +58,7 @@ describe("/permission/:id (PUT)", () => {
 
     // First ensure the update permission exists
     let updatePermission = await db.query.permissions.findFirst({
-      where: (table, { eq }) => eq(table.name, PermissionPermission.UPDATE_PERMISSION),
+      where: (table, { eq }) => eq(table.name, ManagePermission.UPDATE_PERMISSION),
     });
 
     if (!updatePermission) {
@@ -66,7 +66,7 @@ describe("/permission/:id (PUT)", () => {
       updatePermissionId = UPDATE_PERMISSION_ID;
       await db.insert(permissions).values({
         id: updatePermissionId,
-        name: PermissionPermission.UPDATE_PERMISSION,
+        name: ManagePermission.UPDATE_PERMISSION,
         description: "Permission to update permissions",
       });
     } else {

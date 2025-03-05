@@ -2,26 +2,24 @@ import { Elysia } from "elysia";
 import bearer from "@elysiajs/bearer";
 
 import { db } from "@/db";
-import { permissions } from "@/db/schema/permission";
-import { ManagePermission } from "@/common/enum/permissions";
 import { verifyPermission } from "@/src/general/usecase/verify-permission";
 import { handleResponse } from "@/utils/handle-response";
 import {
   ResponseErrorStatus,
   ResponseSuccessStatus,
 } from "@/common/enum/response-status";
-import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
+import { ErrorMessage } from "@/common/enum/response-message";
+import { ManagePermission } from "@/common/enum/permissions";
 
-import { deletePermissionModel } from "../data/permissions.model";
+import { readUserPermissionModel } from "../data/user-permissions.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
-import { eq } from "drizzle-orm";
 
-export const deletePermission = new Elysia()
-  .use(deletePermissionModel)
+export const readUserPermission = new Elysia()
+  .use(readUserPermissionModel)
   .use(jwtAccessSetup)
   .use(bearer())
-  .delete(
-    "/permission/:id",
+  .get(
+    "/user-permission/:id",
     async ({ params, bearer, set, jwtAccess }) => {
       // CHECK VALID TOKEN
       if (!bearer) {
@@ -50,9 +48,9 @@ export const deletePermission = new Elysia()
         });
       }
 
-      // Verify if user has permission to delete permissions
+      // Verify if user has permission to read user permissions
       const { valid } = await verifyPermission(
-        ManagePermission.DELETE_PERMISSION,
+        ManagePermission.READ_USER_PERMISSION,
         existingUser.id,
       );
 
@@ -62,42 +60,43 @@ export const deletePermission = new Elysia()
         });
       }
 
-      // Check if permission exists
-      const existingPermission = await db.query.permissions.findFirst({
-        where: (table, { eq, and, isNull }) => {
-          return and(eq(table.id, params.id), isNull(table.deletedAt));
+      // READ USER PERMISSION
+      const userPermission = await db.query.userPermissions.findFirst({
+        where: (fields, { eq }) => eq(fields.id, params.id),
+        with: {
+          permission: true,
         },
       });
 
-      if (!existingPermission) {
-        return handleResponse(ErrorMessage.PERMISSION_NOT_FOUND, () => {
+      if (!userPermission) {
+        return handleResponse(ErrorMessage.USER_PERMISSION_NOT_FOUND, () => {
           set.status = ResponseErrorStatus.NOT_FOUND;
         });
       }
 
-      // SOFT DELETE PERMISSION
-      try {
-        await db
-          .update(permissions)
-          .set({
-            deletedAt: new Date(),
-          })
-          .where(eq(permissions.id, params.id));
+      const response = {
+        id: userPermission.id,
+        userId: userPermission.userId,
+        permissionId: userPermission.permissionId,
+        revoked: userPermission.revoked,
+        createdAt: userPermission.createdAt.toISOString(),
+        updatedAt: userPermission.updatedAt?.toISOString() ?? null,
+        permission: {
+          id: userPermission.permission.id,
+          name: userPermission.permission.name,
+          description: userPermission.permission.description,
+        },
+      };
 
-        return handleResponse(
-          SuccessMessage.PERMISSION_DELETED,
-          () => {
-            set.status = ResponseSuccessStatus.OK;
-          },
-        );
-      } catch (error) {
-        console.error(error);
-        return handleResponse(ErrorMessage.INTERNAL_SERVER_ERROR, () => {
-          set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR;
-        });
-      }
+      return handleResponse(
+        "User permission retrieved successfully",
+        () => {
+          set.status = ResponseSuccessStatus.OK;
+        },
+        response,
+      );
     },
     {
-      params: "deletePermissionModel",
+      params: "readUserPermissionModel",
     },
   ); 

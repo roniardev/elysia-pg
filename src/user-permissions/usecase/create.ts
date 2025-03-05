@@ -1,9 +1,9 @@
 import { Elysia } from "elysia";
 import bearer from "@elysiajs/bearer";
+import { ulid } from "ulid";
 
 import { db } from "@/db";
-import { permissions } from "@/db/schema/permission";
-import { ManagePermission } from "@/common/enum/permissions";
+import { userPermissions } from "@/db/schema/user-permissions";
 import { verifyPermission } from "@/src/general/usecase/verify-permission";
 import { handleResponse } from "@/utils/handle-response";
 import {
@@ -11,18 +11,18 @@ import {
   ResponseSuccessStatus,
 } from "@/common/enum/response-status";
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
+import { ManagePermission } from "@/common/enum/permissions";
 
-import { deletePermissionModel } from "../data/permissions.model";
+import { createUserPermissionModel } from "../data/user-permissions.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
-import { eq } from "drizzle-orm";
 
-export const deletePermission = new Elysia()
-  .use(deletePermissionModel)
+export const createUserPermission = new Elysia()
+  .use(createUserPermissionModel)
   .use(jwtAccessSetup)
   .use(bearer())
-  .delete(
-    "/permission/:id",
-    async ({ params, bearer, set, jwtAccess }) => {
+  .post(
+    "/user-permission",
+    async ({ body, bearer, set, jwtAccess }) => {
       // CHECK VALID TOKEN
       if (!bearer) {
         return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
@@ -50,9 +50,9 @@ export const deletePermission = new Elysia()
         });
       }
 
-      // Verify if user has permission to delete permissions
+      // Verify if user has permission to create user permissions
       const { valid } = await verifyPermission(
-        ManagePermission.DELETE_PERMISSION,
+        ManagePermission.CREATE_PERMISSION,
         existingUser.id,
       );
 
@@ -62,42 +62,54 @@ export const deletePermission = new Elysia()
         });
       }
 
-      // Check if permission exists
-      const existingPermission = await db.query.permissions.findFirst({
-        where: (table, { eq, and, isNull }) => {
-          return and(eq(table.id, params.id), isNull(table.deletedAt));
-        },
+      // Check if permission already exists and not revoked
+      const existingPermission = await db.query.userPermissions.findFirst({
+        where: (fields, { eq, and }) =>
+          and(
+            eq(fields.userId, body.userId),
+            eq(fields.permissionId, body.permissionId),
+            eq(fields.revoked, false)
+          ),
       });
 
-      if (!existingPermission) {
-        return handleResponse(ErrorMessage.PERMISSION_NOT_FOUND, () => {
-          set.status = ResponseErrorStatus.NOT_FOUND;
+      if (existingPermission) {
+        return handleResponse(ErrorMessage.PERMISSION_ALREADY_ASSIGNED, () => {
+          set.status = ResponseErrorStatus.BAD_REQUEST;
         });
       }
 
-      // SOFT DELETE PERMISSION
-      try {
-        await db
-          .update(permissions)
-          .set({
-            deletedAt: new Date(),
-          })
-          .where(eq(permissions.id, params.id));
+      // CREATE USER PERMISSION
+      const userPermissionId = ulid();
 
-        return handleResponse(
-          SuccessMessage.PERMISSION_DELETED,
-          () => {
-            set.status = ResponseSuccessStatus.OK;
-          },
-        );
+      try {
+        await db.insert(userPermissions).values({
+          id: userPermissionId,
+          userId: body.userId,
+          permissionId: body.permissionId,
+        });
       } catch (error) {
         console.error(error);
         return handleResponse(ErrorMessage.INTERNAL_SERVER_ERROR, () => {
           set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR;
         });
       }
+
+      const response = {
+        id: userPermissionId,
+        userId: body.userId,
+        permissionId: body.permissionId,
+        revoked: false,
+      };
+
+      return handleResponse(
+        SuccessMessage.USER_PERMISSION_CREATED,
+        () => {
+          set.status = ResponseSuccessStatus.CREATED;
+        },
+        response,
+      );
     },
     {
-      params: "deletePermissionModel",
+      body: "createUserPermissionModel",
     },
   ); 

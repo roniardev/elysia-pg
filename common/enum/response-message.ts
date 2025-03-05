@@ -25,6 +25,7 @@ export enum ErrorMessage {
 		FAILED_TO_DELETE_USER = "Failed to delete user",
 		USER_ALREADY_DELETED = "User already deleted",
 		PERMISSION_NOT_FOUND = "Permission not found",
+		PERMISSION_ALREADY_ASSIGNED = "Permission already assigned",
 	}
 
 export enum SuccessMessage {
@@ -48,4 +49,9 @@ export enum SuccessMessage {
 		PERMISSIONS_FETCHED = "Permissions fetched successfully",
 		PERMISSION_READ = "Permission read successfully",
 		PERMISSION_UPDATED = "Permission updated successfully",
+		USER_PERMISSION_CREATED = "User permission created successfully",
+		USER_PERMISSION_DELETED = "User permission deleted successfully",
+		USER_PERMISSIONS_FETCHED = "User permissions fetched successfully",
+		USER_PERMISSION_READ = "User permission read successfully",
+		USER_PERMISSION_UPDATED = "User permission updated successfully",
 	}

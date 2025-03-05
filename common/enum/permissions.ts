@@ -14,7 +14,7 @@ export enum UserPermission {
 	DELETE_USER = "delete:user",
 }
 
-export enum PermissionPermission {
+export enum ManagePermission {
 	CREATE_PERMISSION = "create:permission",
 	READ_PERMISSION = "read:permission",
 	READ_ALL_PERMISSION = "read-all:permission",

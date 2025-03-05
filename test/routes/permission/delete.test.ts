@@ -7,7 +7,7 @@ import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
 import { config } from "@/app/config";
 import { ulid } from "ulid";
 import { decryptResponse } from "@/utils/decrypt-response";
-import { PermissionPermission } from "@/common/enum/permissions";
+import { ManagePermission } from "@/common/enum/permissions";
 
 const API_URL = `${config.API_URL}:${config.PORT}`;
 
@@ -51,7 +51,7 @@ describe("/permission/:id (DELETE)", () => {
 
     // First ensure the delete permission exists
     let deletePermission = await db.query.permissions.findFirst({
-      where: (table, { eq }) => eq(table.name, PermissionPermission.DELETE_PERMISSION),
+      where: (table, { eq }) => eq(table.name, ManagePermission.DELETE_PERMISSION),
     });
 
     if (!deletePermission) {
@@ -59,7 +59,7 @@ describe("/permission/:id (DELETE)", () => {
       deletePermissionId = DELETE_PERMISSION_ID;
       await db.insert(permissions).values({
         id: deletePermissionId,
-        name: PermissionPermission.DELETE_PERMISSION,
+        name: ManagePermission.DELETE_PERMISSION,
         description: "Permission to delete permissions",
       });
     } else {

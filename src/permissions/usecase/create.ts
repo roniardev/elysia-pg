@@ -11,7 +11,7 @@ import {
   ResponseSuccessStatus,
 } from "@/common/enum/response-status";
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
-import { PermissionPermission } from "@/common/enum/permissions";
+import { ManagePermission } from "@/common/enum/permissions";
 
 import { createPermissionModel } from "../data/permissions.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
@@ -52,7 +52,7 @@ export const createPermission = new Elysia()
 
       // Verify if user has permission to create permissions
       const { valid } = await verifyPermission(
-        PermissionPermission.CREATE_PERMISSION,
+        ManagePermission.CREATE_PERMISSION,
         existingUser.id,
       );
 
