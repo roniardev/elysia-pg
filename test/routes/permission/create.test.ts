@@ -7,7 +7,7 @@ import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
 import { config } from "@/app/config";
 import { ulid } from "ulid";
 import { decryptResponse } from "@/utils/decrypt-response";
-import { PermissionPermission } from "@/common/enum/permissions";
+import { ManagePermission } from "@/common/enum/permissions";
 
 const API_URL = `${config.API_URL}:${config.PORT}`;
 
@@ -54,7 +54,7 @@ describe("/permission", () => {
 
     // First ensure the permission exists
     let createPermission = await db.query.permissions.findFirst({
-      where: (table, { eq }) => eq(table.name, PermissionPermission.CREATE_PERMISSION),
+      where: (table, { eq }) => eq(table.name, ManagePermission.CREATE_PERMISSION),
     });
 
     if (!createPermission) {
@@ -62,7 +62,7 @@ describe("/permission", () => {
       createPermissionId = CREATE_PERMISSION_ID;
       await db.insert(permissions).values({
         id: createPermissionId,
-        name: PermissionPermission.CREATE_PERMISSION,
+        name: ManagePermission.CREATE_PERMISSION,
         description: "Permission to create permissions",
       });
     } else {

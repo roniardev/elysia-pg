@@ -4,7 +4,7 @@ import { isNull, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { permissions } from "@/db/schema/permission";
-import { PermissionPermission } from "@/common/enum/permissions";
+import { ManagePermission } from "@/common/enum/permissions";
 import { verifyPermission } from "@/src/general/usecase/verify-permission";
 import { handleResponse } from "@/utils/handle-response";
 import {
@@ -53,7 +53,7 @@ export const readAllPermission = new Elysia()
 
       // Verify if user has permission to read all permissions
       const { valid } = await verifyPermission(
-        PermissionPermission.READ_ALL_PERMISSION,
+        ManagePermission.READ_ALL_PERMISSION,
         existingUser.id,
       );
 

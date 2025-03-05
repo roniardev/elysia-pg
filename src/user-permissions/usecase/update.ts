@@ -1,9 +1,9 @@
 import { Elysia } from "elysia";
 import bearer from "@elysiajs/bearer";
+import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { permissions } from "@/db/schema/permission";
-import { ManagePermission } from "@/common/enum/permissions";
+import { userPermissions } from "@/db/schema/user-permissions";
 import { verifyPermission } from "@/src/general/usecase/verify-permission";
 import { handleResponse } from "@/utils/handle-response";
 import {
@@ -11,18 +11,18 @@ import {
   ResponseSuccessStatus,
 } from "@/common/enum/response-status";
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
+import { ManagePermission } from "@/common/enum/permissions";
 
-import { deletePermissionModel } from "../data/permissions.model";
+import { updateUserPermissionModel } from "../data/user-permissions.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
-import { eq } from "drizzle-orm";
 
-export const deletePermission = new Elysia()
-  .use(deletePermissionModel)
+export const updateUserPermission = new Elysia()
+  .use(updateUserPermissionModel)
   .use(jwtAccessSetup)
   .use(bearer())
-  .delete(
-    "/permission/:id",
-    async ({ params, bearer, set, jwtAccess }) => {
+  .patch(
+    "/user-permission/:id",
+    async ({ params, body, bearer, set, jwtAccess }) => {
       // CHECK VALID TOKEN
       if (!bearer) {
         return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
@@ -50,9 +50,9 @@ export const deletePermission = new Elysia()
         });
       }
 
-      // Verify if user has permission to delete permissions
+      // Verify if user has permission to update user permissions
       const { valid } = await verifyPermission(
-        ManagePermission.DELETE_PERMISSION,
+        ManagePermission.UPDATE_USER_PERMISSION,
         existingUser.id,
       );
 
@@ -62,33 +62,43 @@ export const deletePermission = new Elysia()
         });
       }
 
-      // Check if permission exists
-      const existingPermission = await db.query.permissions.findFirst({
-        where: (table, { eq, and, isNull }) => {
-          return and(eq(table.id, params.id), isNull(table.deletedAt));
-        },
+      // Check if user permission exists
+      const existingUserPermission = await db.query.userPermissions.findFirst({
+        where: (fields, { eq }) => eq(fields.id, params.id),
       });
 
-      if (!existingPermission) {
-        return handleResponse(ErrorMessage.PERMISSION_NOT_FOUND, () => {
+      if (!existingUserPermission) {
+        return handleResponse(ErrorMessage.USER_PERMISSION_NOT_FOUND, () => {
           set.status = ResponseErrorStatus.NOT_FOUND;
         });
       }
 
-      // SOFT DELETE PERMISSION
+      // UPDATE USER PERMISSION
       try {
-        await db
-          .update(permissions)
+        const [updatedUserPermission] = await db
+          .update(userPermissions)
           .set({
-            deletedAt: new Date(),
+            revoked: body.revoked,
+            updatedAt: new Date(),
           })
-          .where(eq(permissions.id, params.id));
+          .where(eq(userPermissions.id, params.id))
+          .returning();
+
+        const response = {
+          id: updatedUserPermission.id,
+          userId: updatedUserPermission.userId,
+          permissionId: updatedUserPermission.permissionId,
+          revoked: updatedUserPermission.revoked,
+          createdAt: updatedUserPermission.createdAt.toISOString(),
+          updatedAt: updatedUserPermission.updatedAt?.toISOString() ?? null,
+        };
 
         return handleResponse(
-          SuccessMessage.PERMISSION_DELETED,
+          SuccessMessage.USER_PERMISSION_UPDATED,
           () => {
             set.status = ResponseSuccessStatus.OK;
           },
+          response,
         );
       } catch (error) {
         console.error(error);
@@ -98,6 +108,7 @@ export const deletePermission = new Elysia()
       }
     },
     {
-      params: "deletePermissionModel",
+      params: "readUserPermissionModel",
+      body: "updateUserPermissionModel",
     },
   ); 

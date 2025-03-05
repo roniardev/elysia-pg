@@ -7,7 +7,7 @@ import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
 import { config } from "@/app/config";
 import { ulid } from "ulid";
 import { decryptResponse } from "@/utils/decrypt-response";
-import { PermissionPermission } from "@/common/enum/permissions";
+import { ManagePermission } from "@/common/enum/permissions";
 
 const API_URL = `${config.API_URL}:${config.PORT}`;
 
@@ -71,7 +71,7 @@ describe("/permissions", () => {
 
     // First check if the read-all permission exists
     let readAllPermission = await db.query.permissions.findFirst({
-      where: (table, { eq }) => eq(table.name, PermissionPermission.READ_ALL_PERMISSION),
+      where: (table, { eq }) => eq(table.name, ManagePermission.READ_ALL_PERMISSION),
     });
 
     readAllPermissionId = readAllPermission?.id || READ_ALL_PERMISSION_ID;
@@ -80,7 +80,7 @@ describe("/permissions", () => {
     if (!readAllPermission) {
       await db.insert(permissions).values({
         id: readAllPermissionId,
-        name: PermissionPermission.READ_ALL_PERMISSION,
+        name: ManagePermission.READ_ALL_PERMISSION,
         description: "Permission to read all permissions",
       });
     }

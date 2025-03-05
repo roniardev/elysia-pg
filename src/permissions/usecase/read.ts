@@ -3,7 +3,7 @@ import bearer from "@elysiajs/bearer";
 
 import { db } from "@/db";
 import { permissions } from "@/db/schema/permission";
-import { PermissionPermission } from "@/common/enum/permissions";
+import { ManagePermission } from "@/common/enum/permissions";
 import { verifyPermission } from "@/src/general/usecase/verify-permission";
 import { handleResponse } from "@/utils/handle-response";
 import {
@@ -51,7 +51,7 @@ export const readPermission = new Elysia()
 
       // Verify if user has permission to read permissions
       const { valid } = await verifyPermission(
-        PermissionPermission.READ_PERMISSION,
+        ManagePermission.READ_PERMISSION,
         existingUser.id,
       );
 
