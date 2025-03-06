@@ -11,7 +11,8 @@
         "db:migrate": "bun x drizzle-kit migrate",
         "db:seed": " bun ./db/seeds/index.ts",
         "db:diagram": "bun ./utils/dbml.ts && bun x dbml-renderer -i ./schema.dbml -o schema.svg",
-        "db:reset": "bun ./db/reset.ts"
+        "db:reset": "bun ./db/reset.ts",
+        "generate": "bun ./scripts/generate.ts"
     },
     "dependencies": {
         "@bogeychan/elysia-logger": "^0.1.7",
