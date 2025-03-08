@@ -11,25 +11,19 @@ import {
   ResponseSuccessStatus,
 } from "@/common/enum/response-status";
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
-import { ManagePermission } from "@/common/enum/permissions";
+import { ManageUserPermission } from "@/common/enum/permissions";
 
-import { updateUserPermissionModel } from "../data/user-permissions.model";
+import { updateUserPermissionModel, readUserPermissionModel } from "../data/user-permissions.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
 
 export const updateUserPermission = new Elysia()
   .use(updateUserPermissionModel)
+  .use(readUserPermissionModel)
   .use(jwtAccessSetup)
   .use(bearer())
   .patch(
     "/user-permission/:id",
     async ({ params, body, bearer, set, jwtAccess }) => {
-      // CHECK VALID TOKEN
-      if (!bearer) {
-        return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-          set.status = ResponseErrorStatus.FORBIDDEN;
-        });
-      }
-
       const validToken = await jwtAccess.verify(bearer);
       if (!validToken) {
         return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
@@ -52,7 +46,7 @@ export const updateUserPermission = new Elysia()
 
       // Verify if user has permission to update user permissions
       const { valid } = await verifyPermission(
-        ManagePermission.UPDATE_USER_PERMISSION,
+        ManageUserPermission.UPDATE_USER_PERMISSION,
         existingUser.id,
       );
 
@@ -83,6 +77,12 @@ export const updateUserPermission = new Elysia()
           })
           .where(eq(userPermissions.id, params.id))
           .returning();
+
+        if (!updatedUserPermission) {
+          return handleResponse(ErrorMessage.USER_PERMISSION_NOT_FOUND, () => {
+            set.status = ResponseErrorStatus.NOT_FOUND;
+          });
+        }
 
         const response = {
           id: updatedUserPermission.id,

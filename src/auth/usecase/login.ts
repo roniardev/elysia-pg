@@ -25,6 +25,17 @@ export const login = new Elysia()
 	.post(
 		"/login",
 		async function handler({ body, set, jwtAccess, jwtRefresh }) {
+
+			const isValidEmail = body.email.match(
+				/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+			);
+
+			if (!isValidEmail) {
+				return handleResponse(ErrorMessage.INVALID_EMAIL, () => {
+					set.status = ResponseErrorStatus.BAD_REQUEST;
+				});
+			}
+
 			// CHECK EXISTING USER
 			const existingUser = await getUser({
 				identifier: body.email,

@@ -1,8 +1,8 @@
-import type { ManagePermission, PostPermission, UserPermission } from "@/common/enum/permissions";
+import type { ManagePermission, ManageUserPermission, PostPermission, UserPermission } from "@/common/enum/permissions";
 import { db } from "@/db";
 
 export const verifyPermission = async (
-	permission: PostPermission | UserPermission | ManagePermission,
+	permission: PostPermission | UserPermission | ManagePermission | ManageUserPermission,
 	userId: string,
 ) => {
 	const existingUser = await db.query.users.findFirst({
