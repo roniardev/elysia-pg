@@ -21,3 +21,11 @@ export enum ManagePermission {
 	UPDATE_PERMISSION = "update:permission",
 	DELETE_PERMISSION = "delete:permission",
 }
+
+export enum ManageUserPermission {
+	CREATE_USER_PERMISSION = "create:user-permission",
+	READ_USER_PERMISSION = "read:user-permission",
+	READ_ALL_USER_PERMISSION = "read-all:user-permission",
+	UPDATE_USER_PERMISSION = "update:user-permission",
+	DELETE_USER_PERMISSION = "delete:user-permission",
+}

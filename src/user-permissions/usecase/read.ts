@@ -8,8 +8,8 @@ import {
   ResponseErrorStatus,
   ResponseSuccessStatus,
 } from "@/common/enum/response-status";
-import { ErrorMessage } from "@/common/enum/response-message";
-import { ManagePermission } from "@/common/enum/permissions";
+import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
+import { ManageUserPermission } from "@/common/enum/permissions";
 
 import { readUserPermissionModel } from "../data/user-permissions.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
@@ -21,13 +21,6 @@ export const readUserPermission = new Elysia()
   .get(
     "/user-permission/:id",
     async ({ params, bearer, set, jwtAccess }) => {
-      // CHECK VALID TOKEN
-      if (!bearer) {
-        return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-          set.status = ResponseErrorStatus.FORBIDDEN;
-        });
-      }
-
       const validToken = await jwtAccess.verify(bearer);
       if (!validToken) {
         return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
@@ -50,7 +43,7 @@ export const readUserPermission = new Elysia()
 
       // Verify if user has permission to read user permissions
       const { valid } = await verifyPermission(
-        ManagePermission.READ_USER_PERMISSION,
+        ManageUserPermission.READ_USER_PERMISSION,
         existingUser.id,
       );
 
@@ -89,7 +82,7 @@ export const readUserPermission = new Elysia()
       };
 
       return handleResponse(
-        "User permission retrieved successfully",
+        SuccessMessage.USER_PERMISSION_READ,
         () => {
           set.status = ResponseSuccessStatus.OK;
         },

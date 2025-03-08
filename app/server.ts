@@ -36,7 +36,6 @@ export const app = new Elysia({
 				const resError = error.all as unknown as Array<
 					Record<string, string | number>
 				>;
-				const name = error.all[0] as unknown as Record<string, string>;
 
 				const err = resError.filter(
 					(err) =>

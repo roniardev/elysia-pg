@@ -10,8 +10,8 @@ import {
   ResponseErrorStatus,
   ResponseSuccessStatus,
 } from "@/common/enum/response-status";
-import { ErrorMessage } from "@/common/enum/response-message";
-import { ManagePermission } from "@/common/enum/permissions";
+import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
+import { ManageUserPermission } from "@/common/enum/permissions";
 
 import { readAllUserPermissionModel } from "../data/user-permissions.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
@@ -23,13 +23,6 @@ export const readAllUserPermission = new Elysia()
   .get(
     "/user-permission",
     async ({ query, bearer, set, jwtAccess }) => {
-      // CHECK VALID TOKEN
-      if (!bearer) {
-        return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-          set.status = ResponseErrorStatus.FORBIDDEN;
-        });
-      }
-
       const validToken = await jwtAccess.verify(bearer);
       if (!validToken) {
         return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
@@ -52,7 +45,7 @@ export const readAllUserPermission = new Elysia()
 
       // Verify if user has permission to read user permissions
       const { valid } = await verifyPermission(
-        ManagePermission.READ_USER_PERMISSION,
+        ManageUserPermission.READ_USER_PERMISSION,
         existingUser.id,
       );
 
@@ -69,7 +62,7 @@ export const readAllUserPermission = new Elysia()
       let whereClause: SQL<unknown> = eq(userPermissions.userId, query.userId);
       
       if (!includeRevoked) {
-        whereClause = and(whereClause, eq(userPermissions.revoked, false));
+        whereClause = and(whereClause, eq(userPermissions.revoked, false)) as SQL<unknown>;
       }
 
       const [userPermissionsCount] = await db
@@ -87,7 +80,7 @@ export const readAllUserPermission = new Elysia()
         orderBy: [desc(userPermissions.createdAt)],
       });
 
-      const totalPages = Math.ceil(userPermissionsCount.count / limit);
+      const totalPages = Math.ceil((userPermissionsCount?.count || 0) / limit);
 
       const response = {
         data: userPermissionsList.map((userPermission) => ({
@@ -106,13 +99,13 @@ export const readAllUserPermission = new Elysia()
         pagination: {
           page,
           limit,
-          totalItems: userPermissionsCount.count,
+          totalItems: userPermissionsCount?.count || 0,
           totalPages,
         },
       };
 
       return handleResponse(
-        "User permissions retrieved successfully",
+        SuccessMessage.USER_PERMISSIONS_FETCHED,
         () => {
           set.status = ResponseSuccessStatus.OK;
         },

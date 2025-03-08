@@ -23,13 +23,6 @@ export const deletePermission = new Elysia()
   .delete(
     "/permission/:id",
     async ({ params, bearer, set, jwtAccess }) => {
-      // CHECK VALID TOKEN
-      if (!bearer) {
-        return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-          set.status = ResponseErrorStatus.FORBIDDEN;
-        });
-      }
-
       const validToken = await jwtAccess.verify(bearer);
       if (!validToken) {
         return handleResponse(ErrorMessage.UNAUTHORIZED, () => {

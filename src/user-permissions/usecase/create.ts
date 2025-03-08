@@ -11,7 +11,7 @@ import {
   ResponseSuccessStatus,
 } from "@/common/enum/response-status";
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
-import { ManagePermission } from "@/common/enum/permissions";
+import { ManageUserPermission } from "@/common/enum/permissions";
 
 import { createUserPermissionModel } from "../data/user-permissions.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
@@ -23,13 +23,6 @@ export const createUserPermission = new Elysia()
   .post(
     "/user-permission",
     async ({ body, bearer, set, jwtAccess }) => {
-      // CHECK VALID TOKEN
-      if (!bearer) {
-        return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-          set.status = ResponseErrorStatus.FORBIDDEN;
-        });
-      }
-
       const validToken = await jwtAccess.verify(bearer);
       if (!validToken) {
         return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
@@ -52,7 +45,7 @@ export const createUserPermission = new Elysia()
 
       // Verify if user has permission to create user permissions
       const { valid } = await verifyPermission(
-        ManagePermission.CREATE_PERMISSION,
+        ManageUserPermission.CREATE_USER_PERMISSION,
         existingUser.id,
       );
 

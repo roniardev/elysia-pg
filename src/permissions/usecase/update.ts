@@ -24,13 +24,6 @@ export const updatePermission = new Elysia()
   .put(
     "/permission/:id",
     async ({ params, body, bearer, set, jwtAccess }) => {
-      // CHECK VALID TOKEN
-      if (!bearer) {
-        return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-          set.status = ResponseErrorStatus.FORBIDDEN;
-        });
-      }
-
       const validToken = await jwtAccess.verify(bearer);
       if (!validToken) {
         return handleResponse(ErrorMessage.UNAUTHORIZED, () => {

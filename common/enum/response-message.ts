@@ -26,6 +26,7 @@ export enum ErrorMessage {
 		USER_ALREADY_DELETED = "User already deleted",
 		PERMISSION_NOT_FOUND = "Permission not found",
 		PERMISSION_ALREADY_ASSIGNED = "Permission already assigned",
+		USER_PERMISSION_NOT_FOUND = "User permission not found",
 	}
 
 export enum SuccessMessage {
@@ -54,4 +55,5 @@ export enum SuccessMessage {
 		USER_PERMISSIONS_FETCHED = "User permissions fetched successfully",
 		USER_PERMISSION_READ = "User permission read successfully",
 		USER_PERMISSION_UPDATED = "User permission updated successfully",
+		USER_PERMISSION_REVOKED = "User permission revoked successfully",
 	}
