@@ -16,7 +16,7 @@ import {
 } from "@/common/enum/response-status";
 import { handleResponse } from "@/utils/handle-response";
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
-
+import { getUser } from "@/src/general/usecase/get-user";
 export const deleteUser = new Elysia()
 	.use(deleteUserModel)
 	.use(jwtAccessSetup)
@@ -44,27 +44,26 @@ export const deleteUser = new Elysia()
 				});
 			}
 
-			const existingUser = await db.query.users.findFirst({
-				where: (table, { eq }) => {
-					return eq(table.id, params.id);
-				},
+			const existingUser = await getUser({
+				identifier: params.id,
+				type: "id",
 			});
 
-			if (!existingUser) {
+			if (!existingUser.user) {
 				return handleResponse(ErrorMessage.USER_NOT_FOUND, () => {
 					set.status = ResponseErrorStatus.NOT_FOUND;
 				});
 			}
 
-			if (existingUser.deletedAt) {
+			if (existingUser.user.deletedAt) {
 				return handleResponse(ErrorMessage.USER_ALREADY_DELETED, () => {
 					set.status = ResponseErrorStatus.BAD_REQUEST;
 				});
 			}
 
-			const { id } = existingUser;
+			const { user } = existingUser;
 
-			await verrou.createLock(`user:${id}`).run(async () => {
+			await verrou.createLock(`user:${user.id}`).run(async () => {
 				try {
 					// await 15s
 					await new Promise((resolve) => setTimeout(resolve, 15000));
@@ -74,7 +73,7 @@ export const deleteUser = new Elysia()
 						.set({
 							deletedAt: new Date(),
 						})
-						.where(eq(users.id, id));
+						.where(eq(users.id, user.id));
 				} catch (error) {
 					console.error(error);
 					return handleResponse(ErrorMessage.FAILED_TO_DELETE_USER, () => {

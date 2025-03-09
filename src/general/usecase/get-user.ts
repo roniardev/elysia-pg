@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import type { User } from "@/db/schema";
+import type { User, Permission } from "@/db/schema";
 
 type GetUser = {
 	identifier: string;
@@ -16,7 +16,7 @@ type GetUser = {
 type GetUserResponse = {
 	valid: boolean;
 	message: string;
-	user?: User;
+	user: (User & { permissions?: Permission[] }) | null;
 };
 
 export const getUser = async ({
@@ -47,12 +47,13 @@ export const getUser = async ({
 		with: {
 			permissions: withPermissions,
 		},
-	});
+	}) as unknown as User & { permissions?: Permission[] };
 
 	if (!user) {
 		return {
 			valid: false,
 			message: "User not found",
+			user: null,
 		};
 	}
 
