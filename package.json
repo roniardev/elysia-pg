@@ -21,6 +21,7 @@
         "@elysiajs/jwt": "^1.2.0",
         "@elysiajs/server-timing": "^1.2.0",
         "@elysiajs/swagger": "^1.2.0",
+        "@otherguy/elysia-logging": "^0.0.17",
         "@verrou/core": "^0.5.1",
         "dayjs": "^1.11.13",
         "drizzle-dbml-generator": "^0.10.0",
@@ -35,7 +36,9 @@
         "logestic": "^1.2.4",
         "postgres": "^3.4.5",
         "resend": "^4.1.2",
-        "ulid": "^2.3.0"
+        "ulid": "^2.3.0",
+        "winston": "^3.17.0",
+        "winston-daily-rotate-file": "^5.0.0"
     },
     "devDependencies": {
         "@biomejs/biome": "^1.9.4",
