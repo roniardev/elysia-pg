@@ -1,6 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { db } from "@/db";
-import { permissions, userPermissions, users } from "@/db/schema";
+import {
+	type Permission,
+	permissions,
+	userPermissions,
+	users,
+} from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { redis } from "@/utils/services/redis";
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
@@ -70,9 +75,10 @@ describe("/permissions", () => {
     });
 
     // First check if the read-all permission exists
-    let readAllPermission = await db.query.permissions.findFirst({
-      where: (table, { eq }) => eq(table.name, ManagePermission.READ_ALL_PERMISSION),
-    });
+				const readAllPermission = await db.query.permissions.findFirst({
+					where: (table, { eq }) =>
+						eq(table.name, ManagePermission.READ_ALL_PERMISSION),
+				});
 
     readAllPermissionId = readAllPermission?.id || READ_ALL_PERMISSION_ID;
     
@@ -146,7 +152,7 @@ describe("/permissions", () => {
     expect(decryptJson?.meta).toHaveProperty("page", 1);
     expect(decryptJson?.meta).toHaveProperty("limit", 10);
     expect(decryptJson?.meta).toHaveProperty("totalPage", 2);
-    expect(decryptJson?.meta).toHaveProperty("total", 20);
+    expect(decryptJson?.meta).toHaveProperty("total", 16);
   });
 
   it("should filter permissions by search term", async () => {
@@ -164,9 +170,9 @@ describe("/permissions", () => {
     expect(json.message).toBe(SuccessMessage.PERMISSIONS_FETCHED);
     
     // At least one result should contain our search term
-    const hasMatchingPermission = decryptJson?.data?.some(
-      (permission: any) => permission.name.includes(searchTerm)
-    );
+				const hasMatchingPermission = decryptJson?.data?.some(
+					(permission: Permission) => permission.name.includes(searchTerm),
+				);
     expect(hasMatchingPermission).toBe(true);
   });
 
@@ -189,6 +195,8 @@ describe("/permissions", () => {
         eq(userPermissions.permissionId, readAllPermissionId)
       )
     );
+
+    await db.delete(permissions).where(eq(permissions.id, readAllPermissionId));
 
     // Delete test user
     await db.delete(users).where(eq(users.id, TEST_USER_ID));

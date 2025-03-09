@@ -143,14 +143,19 @@ describe("/permission", () => {
     if (testPermission) {
       await db.delete(permissions).where(eq(permissions.id, testPermission.id));
     }
-    
+
     // Delete user permission
-    await db.delete(userPermissions).where(
-      and(
-        eq(userPermissions.userId, TEST_USER_ID),
-        eq(userPermissions.permissionId, createPermissionId)
-      )
-    );
+				await db
+					.delete(userPermissions)
+					.where(
+						and(
+							eq(userPermissions.userId, TEST_USER_ID),
+							eq(userPermissions.permissionId, createPermissionId),
+						),
+					);
+
+    await db.delete(permissions).where(eq(permissions.id, createPermissionId));
+
     
     // Delete test user
     await db.delete(users).where(eq(users.id, TEST_USER_ID));

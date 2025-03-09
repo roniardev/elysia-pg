@@ -57,9 +57,10 @@ describe("/permission/:id (PUT)", () => {
     });
 
     // First ensure the update permission exists
-    let updatePermission = await db.query.permissions.findFirst({
-      where: (table, { eq }) => eq(table.name, ManagePermission.UPDATE_PERMISSION),
-    });
+				const updatePermission = await db.query.permissions.findFirst({
+					where: (table, { eq }) =>
+						eq(table.name, ManagePermission.UPDATE_PERMISSION),
+				});
 
     if (!updatePermission) {
       // Create the permission if it doesn't exist
@@ -175,6 +176,8 @@ describe("/permission/:id (PUT)", () => {
         eq(userPermissions.permissionId, updatePermissionId)
       )
     );
+
+    await db.delete(permissions).where(eq(permissions.id, updatePermissionId));
 
     // Delete test user
     await db.delete(users).where(eq(users.id, TEST_USER_ID));
