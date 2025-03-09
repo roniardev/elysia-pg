@@ -3,12 +3,6 @@ import { Logestic } from "logestic";
 import { cors } from "@elysiajs/cors";
 import { serverTiming } from "@elysiajs/server-timing";
 import { swagger } from "@elysiajs/swagger";
-import {
-	ElysiaLogging,
-	type Logger,
-	LogFormat,
-} from "@otherguy/elysia-logging";
-import { createLogger, transports, format } from "winston";
 
 import { config } from "./config";
 
