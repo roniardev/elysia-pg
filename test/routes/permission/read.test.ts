@@ -56,9 +56,10 @@ describe("/permission/:id", () => {
     });
 
     // First ensure the read permission exists
-    let readPermission = await db.query.permissions.findFirst({
-      where: (table, { eq }) => eq(table.name, ManagePermission.READ_PERMISSION),
-    });
+				const readPermission = await db.query.permissions.findFirst({
+					where: (table, { eq }) =>
+						eq(table.name, ManagePermission.READ_PERMISSION),
+				});
 
     if (!readPermission) {
       // Create the permission if it doesn't exist
@@ -157,6 +158,8 @@ describe("/permission/:id", () => {
         eq(userPermissions.permissionId, readPermissionId)
       )
     );
+
+    await db.delete(permissions).where(eq(permissions.id, readPermissionId));
 
     // Delete test user
     await db.delete(users).where(eq(users.id, TEST_USER_ID));

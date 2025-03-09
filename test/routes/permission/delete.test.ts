@@ -154,6 +154,8 @@ describe("/permission/:id (DELETE)", () => {
       )
     );
 
+    await db.delete(permissions).where(eq(permissions.id, deletePermissionId));
+
     // Delete test user
     await db.delete(users).where(eq(users.id, TEST_USER_ID));
   });
