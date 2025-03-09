@@ -12,6 +12,7 @@ import {
 	ResponseSuccessStatus,
 } from "@/common/enum/response-status";
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
+import { getUser } from "@/src/general/usecase/get-user";
 
 import { createUserModel } from "../data/users.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
@@ -46,13 +47,12 @@ export const createUser = new Elysia()
 			}
 
 			// CHECK EXISTING USER
-			const existingUser = await db.query.users.findFirst({
-				where: (table, { eq }) => {
-					return eq(table.email, body.email);
-				},
+			const existingUser = await getUser({
+				identifier: body.email,
+				type: "email",
 			});
 
-			if (existingUser) {
+			if (existingUser.user) {
 				return handleResponse(ErrorMessage.USER_ALREADY_EXISTS, () => {
 					set.status = ResponseErrorStatus.BAD_REQUEST;
 				});

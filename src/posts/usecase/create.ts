@@ -12,11 +12,10 @@ import {
 	ResponseSuccessStatus,
 } from "@/common/enum/response-status";
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
-
+import { getUser } from "@/src/general/usecase/get-user";
 
 import { createPostModel } from "../data/posts.model";
 import { jwtAccessSetup } from "@/src/auth/setup/auth";
-
 
 export const createPost = new Elysia()
 	.use(createPostModel)
@@ -34,13 +33,15 @@ export const createPost = new Elysia()
 			}
 
 			// CHECK EXISTING USER
-			const existingUser = await db.query.users.findFirst({
-				where: (table, { eq, and, isNull }) => {
-					return and(eq(table.id, validToken.id), isNull(table.deletedAt));
+			const existingUser = await getUser({
+				identifier: validToken.id,
+				type: "id",
+				condition: {
+					deleted: false,
 				},
-			});
+			});	
 
-			if (!existingUser) {
+			if (!existingUser.user) {
 				return handleResponse(ErrorMessage.INVALID_USER, () => {
 					set.status = ResponseErrorStatus.BAD_REQUEST;
 				});
@@ -48,7 +49,7 @@ export const createPost = new Elysia()
 
 			const { valid } = await verifyPermission(
 				PostPermission.CREATE_POST,
-				existingUser.id,
+				existingUser.user?.id,
 			);
 
 			if (!valid) {
@@ -63,7 +64,7 @@ export const createPost = new Elysia()
 			try {
 				await db.insert(posts).values({
 					id: postId,
-					userId: existingUser.id,
+					userId: existingUser.user?.id,
 					title: body.title,
 					excerpt: body.excerpt,
 					content: body.content,

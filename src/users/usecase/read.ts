@@ -11,6 +11,7 @@ import {
 	ResponseSuccessStatus,
 } from "@/common/enum/response-status";
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
+import { getUser } from "@/src/general/usecase/get-user";
 
 import { readUserModel } from "../data/users.model";
 
@@ -40,26 +41,25 @@ export const readUser = new Elysia()
 				});
 			}
 
-			const user = await db.query.users.findFirst({
-				where: (table, { eq }) => {
-					return eq(table.id, params.id);
-				},
-				with: {
+			const user = await getUser({
+				identifier: params.id,
+				type: "id",
+				extend: {
 					permissions: true,
 				},
 			});
 
-			if (!user) {
+			if (!user.user) {
 				return handleResponse(ErrorMessage.USER_NOT_FOUND, () => {
 					set.status = ResponseErrorStatus.NOT_FOUND;
 				});
 			}
 
 			const data = {
-				id: user.id,
-				email: user.email,
-				emailVerified: user.emailVerified,
-				permissions: user.permissions,
+				id: user.user.id,
+				email: user.user.email,
+				emailVerified: user.user.emailVerified,
+				permissions: user.user.permissions,
 			};
 
 			return handleResponse(
