@@ -21,12 +21,10 @@ export const emailVerificationTokens = pgTable(
 		hashedToken: varchar("hashed_token", { length: 255 }).unique().notNull(),
 		revoked: boolean("revoked").default(false).notNull(),
 		expiresAt: timestamp("expires_at", {
-			withTimezone: true,
 			mode: "date",
 		}).notNull(),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		verifiedAt: timestamp("verified_at", {
-			withTimezone: true,
 			mode: "date",
 		}),
 	},
@@ -47,7 +45,6 @@ export const passwordResetTokens = pgTable(
 		revoked: boolean("revoked").default(false).notNull(),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		expiresAt: timestamp("expires_at", {
-			withTimezone: true,
 			mode: "date",
 		}).notNull(),
 	},
