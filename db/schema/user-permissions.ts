@@ -4,12 +4,12 @@ import {
 	primaryKey,
 	timestamp,
 	boolean,
-} from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+} from "drizzle-orm/pg-core"
+import { relations } from "drizzle-orm"
 
-import { users } from "./user";
-import { permissions } from "./permission";
-import { scopeUserPermissions } from "./scope-user-permissions";
+import { users } from "./user"
+import { permissions } from "./permission"
+import { scopeUserPermissions } from "./scope-user-permissions"
 
 export const userPermissions = pgTable("user_permissions", {
 	id: varchar("id", { length: 26 }).primaryKey(),
@@ -24,7 +24,7 @@ export const userPermissions = pgTable("user_permissions", {
 		() => new Date(),
 	),
 	revoked: boolean("revoked").default(false).notNull(),
-});
+})
 
 export const userPermissionsRelations = relations(
 	userPermissions,
@@ -39,4 +39,7 @@ export const userPermissionsRelations = relations(
 		}),
 		scopeUserPermissions: many(scopeUserPermissions),
 	}),
-);
+)
+
+export type UserPermission = typeof userPermissions.$inferSelect
+export type NewUserPermission = typeof userPermissions.$inferInsert

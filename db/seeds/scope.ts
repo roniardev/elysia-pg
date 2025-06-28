@@ -1,16 +1,16 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js"
+import postgres from "postgres"
 
-import { config } from "@/app/config";
-import * as schema from "@/db/schema";
+import { config } from "@/app/config"
+import * as schema from "@/db/schema"
 
 export async function runScopesSeed() {
-	const connection = postgres(config.DATABASE_URL);
-	const db = drizzle(connection, { schema, logger: true });
+	const connection = postgres(config.DATABASE_URL)
+	const db = drizzle(connection, { schema, logger: true })
 
-	console.log("⏳ Running scopes seeder...");
+	console.log("⏳ Running scopes seeder...")
 
-	const start = Date.now();
+	const start = Date.now()
 	const data: (typeof schema.scopes.$inferInsert)[] = [
 		{
 			id: "01JMBBHZS5Q8X48788FCKFZGGJ",
@@ -27,18 +27,18 @@ export async function runScopesSeed() {
 			name: "super-admin",
 			description: "Super admin scope",
 		},
-	];
+	]
 
 	try {
-		const end = Date.now();
+		const end = Date.now()
 
-		await db.insert(schema.scopes).values(data);
-		console.log(`✅ Scopes Seeding completed in ${end - start}ms`);
+		await db.insert(schema.scopes).values(data)
+		console.log(`✅ Scopes Seeding completed in ${end - start}ms`)
 	} catch (err) {
-		const end = Date.now();
+		const end = Date.now()
 		console.error(`
         ❌ Scopes Seeding failed in ${end - start}ms
         ${err}
-        `);
+        `)
 	}
 }

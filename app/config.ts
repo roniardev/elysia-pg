@@ -1,4 +1,4 @@
-import env from "env-var";
+import env from "env-var"
 
 export const config = {
 	NODE_ENV: env
@@ -31,4 +31,4 @@ export const config = {
 		.default(60 * 30)
 		.asInt(),
 	CORS_ORIGIN: env.get("CORS_ORIGIN").required().asString(),
-};
+}

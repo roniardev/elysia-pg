@@ -1,13 +1,13 @@
-import { relations } from "drizzle-orm";
+import { relations } from "drizzle-orm"
 import {
 	boolean,
 	index,
 	timestamp,
 	varchar,
 	pgTable,
-} from "drizzle-orm/pg-core";
+} from "drizzle-orm/pg-core"
 
-import { userPermissions } from "./user-permissions";
+import { userPermissions } from "./user-permissions"
 
 export const users = pgTable(
 	"users",
@@ -24,11 +24,11 @@ export const users = pgTable(
 		deletedAt: timestamp("deleted_at", { mode: "date" }),
 	},
 	(t) => [index("user_email_idx").on(t.email)],
-);
+)
 
-export type User = typeof users.$inferSelect;
-export type NewUser = typeof users.$inferInsert;
+export type User = typeof users.$inferSelect
+export type NewUser = typeof users.$inferInsert
 
 export const userRelations = relations(users, ({ many }) => ({
 	permissions: many(userPermissions),
-}));
+}))

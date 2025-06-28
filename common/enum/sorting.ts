@@ -3,4 +3,4 @@ enum Sorting {
 	DESC = "desc",
 }
 
-export default Sorting;
+export default Sorting

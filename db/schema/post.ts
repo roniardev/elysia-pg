@@ -1,7 +1,7 @@
-import { relations } from "drizzle-orm";
-import { index, text, timestamp, varchar, pgTable } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm"
+import { index, text, timestamp, varchar, pgTable } from "drizzle-orm/pg-core"
 
-import { users } from "./user";
+import { users } from "./user"
 
 export const posts = pgTable(
 	"posts",
@@ -33,14 +33,14 @@ export const posts = pgTable(
 		index("post_user_idx").on(t.userId),
 		index("post_created_at_idx").on(t.createdAt),
 	],
-);
+)
 
-export type Post = typeof posts.$inferSelect;
-export type NewPost = typeof posts.$inferInsert;
+export type Post = typeof posts.$inferSelect
+export type NewPost = typeof posts.$inferInsert
 
 export const postRelations = relations(posts, ({ one }) => ({
 	user: one(users, {
 		fields: [posts.userId],
 		references: [users.id],
 	}),
-}));
+}))

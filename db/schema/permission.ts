@@ -1,4 +1,4 @@
-import { pgTable, varchar, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, varchar, timestamp } from "drizzle-orm/pg-core"
 
 export const permissions = pgTable("permissions", {
 	id: varchar("id", { length: 26 }).primaryKey(),
@@ -9,7 +9,7 @@ export const permissions = pgTable("permissions", {
 		() => new Date(),
 	),
 	deletedAt: timestamp("deleted_at", { mode: "date" }),
-});
+})
 
-export type Permission = typeof permissions.$inferSelect;
-export type NewPermission = typeof permissions.$inferInsert;
+export type Permission = typeof permissions.$inferSelect
+export type NewPermission = typeof permissions.$inferInsert

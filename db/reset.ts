@@ -1,4 +1,4 @@
-import { db } from "./index";
+import { db } from "./index"
 import {
 	userPermissions,
 	permissions,
@@ -8,8 +8,8 @@ import {
 	users,
 	scopes,
 	scopeUserPermissions,
-} from "./schema";
-import { getTableName } from "drizzle-orm";
+} from "./schema"
+import { getTableName } from "drizzle-orm"
 
 const tables = [
 	scopeUserPermissions,
@@ -20,17 +20,17 @@ const tables = [
 	emailVerificationTokens,
 	passwordResetTokens,
 	users,
-];
+]
 
 for (const table of tables) {
-	const name = getTableName(table);
-	console.log(`Resetting ${name}`);
-	await db.delete(table);
-	console.log(`Resetted ${name}`);
-	const tableResult = await db.select().from(table);
-	console.log(`${name} result: `, tableResult);
+	const name = getTableName(table)
+	console.log(`Resetting ${name}`)
+	await db.delete(table)
+	console.log(`Resetted ${name}`)
+	const tableResult = await db.select().from(table)
+	console.log(`${name} result: `, tableResult)
 }
 
-console.log("Database resetted");
+console.log("Database resetted")
 
-process.exit(0);
+process.exit(0)

@@ -1,6 +1,6 @@
-import { mkdir, writeFile } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
+import { mkdir, writeFile } from 'fs/promises'
+import { join } from 'path'
+import { existsSync } from 'fs'
 
 /**
  * Creates a directory if it doesn't exist
@@ -9,8 +9,8 @@ import { existsSync } from 'fs';
  */
 export async function createDirectoryIfNotExists(dirPath: string): Promise<void> {
   if (!existsSync(dirPath)) {
-    await mkdir(dirPath, { recursive: true });
-    console.log(`Created directory: ${dirPath}`);
+    await mkdir(dirPath, { recursive: true })
+    console.log(`Created directory: ${dirPath}`)
   }
 }
 
@@ -21,8 +21,8 @@ export async function createDirectoryIfNotExists(dirPath: string): Promise<void>
  * @returns A promise that resolves when the file is generated
  */
 export async function generateFile(filePath: string, content: string): Promise<void> {
-  await writeFile(filePath, content);
-  console.log(`Generated file: ${filePath}`);
+  await writeFile(filePath, content)
+  console.log(`Generated file: ${filePath}`)
 }
 
 /**
@@ -31,5 +31,5 @@ export async function generateFile(filePath: string, content: string): Promise<v
  * @returns The capitalized string
  */
 export function capitalizeFirstLetter(str: string): string {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-} 
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}

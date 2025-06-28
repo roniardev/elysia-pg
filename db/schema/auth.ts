@@ -4,10 +4,10 @@ import {
 	timestamp,
 	varchar,
 	pgTable,
-} from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+} from "drizzle-orm/pg-core"
+import { relations } from "drizzle-orm"
 
-import { users } from "./user";
+import { users } from "./user"
 
 export const emailVerificationTokens = pgTable(
 	"email_verification_tokens",
@@ -32,7 +32,7 @@ export const emailVerificationTokens = pgTable(
 		index("verification_code_user_idx").on(t.userId),
 		index("verification_code_email_idx").on(t.email),
 	],
-);
+)
 
 export const passwordResetTokens = pgTable(
 	"password_reset_tokens",
@@ -49,7 +49,7 @@ export const passwordResetTokens = pgTable(
 		}).notNull(),
 	},
 	(t) => [index("password_token_user_idx").on(t.userId)],
-);
+)
 
 export const emailVerificationTokenRelations = relations(
 	emailVerificationTokens,
@@ -59,7 +59,7 @@ export const emailVerificationTokenRelations = relations(
 			references: [users.id],
 		}),
 	}),
-);
+)
 
 export const passwordResetTokenRelations = relations(
 	passwordResetTokens,
@@ -69,4 +69,4 @@ export const passwordResetTokenRelations = relations(
 			references: [users.id],
 		}),
 	}),
-);
+)
