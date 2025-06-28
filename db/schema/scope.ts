@@ -1,4 +1,4 @@
-import { pgTable, varchar, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, varchar, timestamp } from "drizzle-orm/pg-core"
 
 export const scopes = pgTable("scopes", {
 	id: varchar("id", { length: 26 }).primaryKey(),
@@ -9,7 +9,7 @@ export const scopes = pgTable("scopes", {
 		() => new Date(),
 	),
 	deletedAt: timestamp("deleted_at", { mode: "date" }),
-});
+})
 
-export type Scope = typeof scopes.$inferSelect;
-export type NewScope = typeof scopes.$inferInsert;
+export type Scope = typeof scopes.$inferSelect
+export type NewScope = typeof scopes.$inferInsert

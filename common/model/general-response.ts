@@ -1,4 +1,4 @@
-import { t } from "elysia";
+import { t } from "elysia"
 
 export const generalResponse = t.Object({
 	status: t.Boolean(),
@@ -8,6 +8,6 @@ export const generalResponse = t.Object({
 	totalPage: t.Optional(t.Number()),
 	page: t.Optional(t.Number()),
 	limit: t.Optional(t.Number()),
-});
+})
 
-export type GeneralResponse = typeof generalResponse.static;
+export type GeneralResponse = typeof generalResponse.static

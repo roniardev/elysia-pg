@@ -3,12 +3,12 @@
  */
 export const schemaTemplate = (sourceName: string) => {
   // Capitalize first letter of source name
-  const capitalizedSourceName = sourceName.charAt(0).toUpperCase() + sourceName.slice(1);
+  const capitalizedSourceName = sourceName.charAt(0).toUpperCase() + sourceName.slice(1)
   
-  return `import { relations } from "drizzle-orm";
-import { index, text, timestamp, varchar, pgTable } from "drizzle-orm/pg-core";
+  return `import { relations } from "drizzle-orm"
+import { index, text, timestamp, varchar, pgTable } from "drizzle-orm/pg-core"
 
-import { users } from "./user";
+import { users } from "./user"
 
 export const ${sourceName.toLowerCase()} = pgTable(
   "${sourceName.toLowerCase()}",
@@ -29,16 +29,16 @@ export const ${sourceName.toLowerCase()} = pgTable(
     index("${sourceName.toLowerCase()}_user_idx").on(t.userId),
     index("${sourceName.toLowerCase()}_created_at_idx").on(t.createdAt),
   ],
-);
+)
 
-export type ${capitalizedSourceName} = typeof ${sourceName.toLowerCase()}.$inferSelect;
-export type New${capitalizedSourceName} = typeof ${sourceName.toLowerCase()}.$inferInsert;
+export type ${capitalizedSourceName} = typeof ${sourceName.toLowerCase()}.$inferSelect
+export type New${capitalizedSourceName} = typeof ${sourceName.toLowerCase()}.$inferInsert
 
 export const ${sourceName.toLowerCase()}Relations = relations(${sourceName.toLowerCase()}, ({ one }) => ({
   user: one(users, {
     fields: [${sourceName.toLowerCase()}.userId],
     references: [users.id],
   }),
-}));
-`;
-};
+}))
+`
+}

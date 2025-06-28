@@ -1,16 +1,16 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js"
+import postgres from "postgres"
 
-import { config } from "@/app/config";
-import * as schema from "@/db/schema";
+import { config } from "@/app/config"
+import * as schema from "@/db/schema"
 
 export async function runPermissionsSeed() {
-	const connection = postgres(config.DATABASE_URL);
-	const db = drizzle(connection, { schema, logger: true });
+	const connection = postgres(config.DATABASE_URL)
+	const db = drizzle(connection, { schema, logger: true })
 
-	console.log("⏳ Running permissions seeder...");
+	console.log("⏳ Running permissions seeder...")
 
-	const start = Date.now();
+	const start = Date.now()
 	const data: (typeof schema.permissions.$inferInsert)[] = [
 		{
 			id: "01JM71SE4T1709CSXCF4W3J3XR",
@@ -62,18 +62,18 @@ export async function runPermissionsSeed() {
 			name: "delete:user",
 			description: "Delete a user",
 		},
-	];
+	]
 
 	try {
-		const end = Date.now();
+		const end = Date.now()
 
-		await db.insert(schema.permissions).values(data);
-		console.log(`✅ Permissions Seeding completed in ${end - start}ms`);
+		await db.insert(schema.permissions).values(data)
+		console.log(`✅ Permissions Seeding completed in ${end - start}ms`)
 	} catch (err) {
-		const end = Date.now();
+		const end = Date.now()
 		console.error(`
         ❌ Permissions Seeding failed in ${end - start}ms
         ${err}
-        `);
+        `)
 	}
 }
