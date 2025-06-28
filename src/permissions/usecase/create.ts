@@ -43,7 +43,7 @@ export const createPermission = new Elysia()
         });
       }
 
-      // Verify if user has permission to create permissions
+      // VERIFY IF USER HAS PERMISSION TO CREATE PERMISSIONS
       const { valid } = await verifyPermission(
         ManagePermission.CREATE_PERMISSION,
         existingUser.id,
@@ -88,4 +88,4 @@ export const createPermission = new Elysia()
     {
       body: "createPermissionModel",
     },
-  ); 
+  );

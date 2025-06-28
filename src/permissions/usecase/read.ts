@@ -42,7 +42,7 @@ export const readPermission = new Elysia()
         });
       }
 
-      // Verify if user has permission to read permissions
+      // VERIFY IF USER HAS PERMISSION TO READ PERMISSIONS
       const { valid } = await verifyPermission(
         ManagePermission.READ_PERMISSION,
         existingUser.id,
@@ -54,7 +54,7 @@ export const readPermission = new Elysia()
         });
       }
 
-      // READ PERMISSION
+      // READ PERMISSIONS
       try {
         const permission = await db.query.permissions.findFirst({
           where: (table, { eq, and, isNull }) => {
@@ -97,4 +97,4 @@ export const readPermission = new Elysia()
     {
       params: "readPermissionModel",
     },
-  ); 
+  );

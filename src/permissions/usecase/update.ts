@@ -44,7 +44,7 @@ export const updatePermission = new Elysia()
         });
       }
 
-      // Verify if user has permission to update permissions
+      // VERIFY IF USER HAS PERMISSION TO UPDATE PERMISSIONS
       const { valid } = await verifyPermission(
         ManagePermission.UPDATE_PERMISSION,
         existingUser.id,
@@ -56,7 +56,7 @@ export const updatePermission = new Elysia()
         });
       }
 
-      // Check if permission exists
+      // CHECK IF PERMISSION EXISTS
       const existingPermission = await db.query.permissions.findFirst({
         where: (table, { eq, and, isNull }) => {
           return and(eq(table.id, params.id), isNull(table.deletedAt));
@@ -116,4 +116,4 @@ export const updatePermission = new Elysia()
       params: "readPermissionModel",
       body: "updatePermissionModel",
     },
-  ); 
+  );
