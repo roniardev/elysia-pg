@@ -26,12 +26,17 @@ export const createUser = new Elysia()
     .post(
         "/user",
         async ({ body, bearer, set, jwtAccess }) => {
+            const path = "users.create.usecase"
             // CHECK VALID TOKEN
             const validToken = await jwtAccess.verify(bearer)
 
             if (!validToken) {
-                return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
@@ -41,12 +46,13 @@ export const createUser = new Elysia()
             )
 
             if (!valid) {
-                return handleResponse(
-                    ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
+                    callback: () => {
                         set.status = ResponseErrorStatus.FORBIDDEN
                     },
-                )
+                    path,
+                })
             }
 
             // CHECK EXISTING USER
@@ -56,8 +62,12 @@ export const createUser = new Elysia()
             })
 
             if (existingUser.user) {
-                return handleResponse(ErrorMessage.USER_ALREADY_EXISTS, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.USER_ALREADY_EXISTS,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
                 })
             }
 
@@ -73,12 +83,13 @@ export const createUser = new Elysia()
             })
 
             if (!newUser) {
-                return handleResponse(
-                    ErrorMessage.FAILED_TO_CREATE_USER,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.FAILED_TO_CREATE_USER,
+                    callback: () => {
                         set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
                     },
-                )
+                    path,
+                })
             }
 
             const emailToken = await jwtAccess.sign({
@@ -99,13 +110,15 @@ export const createUser = new Elysia()
                     })
                 } catch (error) {
                     console.error(error)
-                    return handleResponse(
-                        ErrorMessage.FAILED_TO_CREATE_EMAIL_VERIFICATION_TOKEN,
-                        () => {
-                            set.status =
-                                ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                        },
-                    )
+                        return handleResponse({
+                            message:
+                                ErrorMessage.FAILED_TO_CREATE_EMAIL_VERIFICATION_TOKEN,
+                            callback: () => {
+                                set.status =
+                                    ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                            },
+                            path,
+                        })
                 }
 
                 const emailResponse = await sendEmail(
@@ -115,13 +128,14 @@ export const createUser = new Elysia()
                 )
 
                 if (!emailResponse) {
-                    return handleResponse(
-                        ErrorMessage.FAILED_TO_SEND_EMAIL,
-                        () => {
+                    return handleResponse({
+                        message: ErrorMessage.FAILED_TO_SEND_EMAIL,
+                        callback: () => {
                             set.status =
                                 ResponseErrorStatus.INTERNAL_SERVER_ERROR
                         },
-                    )
+                        path,
+                    })
                 }
             }
 
@@ -136,8 +150,12 @@ export const createUser = new Elysia()
                 }
             }
 
-            return handleResponse(SuccessMessage.USER_CREATED, () => {
-                set.status = ResponseSuccessStatus.CREATED
+            return handleResponse({
+                message: SuccessMessage.USER_CREATED,
+                callback: () => {
+                    set.status = ResponseSuccessStatus.CREATED
+                },
+                path,
             })
         },
         {

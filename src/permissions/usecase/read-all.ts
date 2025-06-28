@@ -24,10 +24,15 @@ export const readAllPermission = new Elysia()
     .get(
         "/permissions",
         async ({ query, bearer, set, jwtAccess }) => {
+            const path = "permissions.read-all.usecase"
             const validToken = await jwtAccess.verify(bearer)
             if (!validToken) {
-                return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
@@ -42,8 +47,12 @@ export const readAllPermission = new Elysia()
             })
 
             if (!existingUser) {
-                return handleResponse(ErrorMessage.INVALID_USER, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.INVALID_USER,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
                 })
             }
 
@@ -54,12 +63,13 @@ export const readAllPermission = new Elysia()
             )
 
             if (!valid) {
-                return handleResponse(
-                    ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
+                    callback: () => {
                         set.status = ResponseErrorStatus.FORBIDDEN
                     },
-                )
+                    path,
+                })
             }
 
             // READ ALL PERMISSIONS
@@ -91,12 +101,13 @@ export const readAllPermission = new Elysia()
 
                 const permissionsList = await baseQuery
                 if (permissionsList.length === 0) {
-                    return handleResponse(
-                        ErrorMessage.PERMISSION_NOT_FOUND,
-                        () => {
+                    return handleResponse({
+                        message: ErrorMessage.PERMISSION_NOT_FOUND,
+                        callback: () => {
                             set.status = ResponseErrorStatus.NOT_FOUND
                         },
-                    )
+                        path,
+                    })
                 }
 
                 const totalPermissions = await db
@@ -108,29 +119,28 @@ export const readAllPermission = new Elysia()
                     (totalPermissions[0]?.count || 0) / limit,
                 )
 
-                return handleResponse(
-                    SuccessMessage.PERMISSIONS_FETCHED,
-                    () => {
+                return handleResponse({
+                    message: SuccessMessage.PERMISSIONS_FETCHED,
+                    callback: () => {
                         set.status = ResponseSuccessStatus.OK
                     },
-                    {
-                        data: permissionsList,
-                    },
-                    {
+                    data: permissionsList,
+                    attributes: {
                         page: Number(page),
                         limit: Number(limit),
                         totalPage: Number(totalPage),
                         total: Number(totalPermissions[0]?.count || 0),
                     },
-                )
+                })
             } catch (error) {
                 console.error(error)
-                return handleResponse(
-                    ErrorMessage.INTERNAL_SERVER_ERROR,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                    callback: () => {
                         set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
                     },
-                )
+                    path,
+                })
             }
         },
         {

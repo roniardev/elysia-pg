@@ -24,12 +24,17 @@ export const deleteUser = new Elysia()
     .delete(
         "/user/:id",
         async ({ bearer, set, jwtAccess, params }) => {
+            const path = "users.delete.usecase"
             // CHECK VALID TOKEN
             const validToken = await jwtAccess.verify(bearer)
 
             if (!validToken) {
-                return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
@@ -39,12 +44,13 @@ export const deleteUser = new Elysia()
             )
 
             if (!valid) {
-                return handleResponse(
-                    ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
+                    callback: () => {
                         set.status = ResponseErrorStatus.FORBIDDEN
                     },
-                )
+                    path,
+                })
             }
 
             const existingUser = await getUser({
@@ -53,14 +59,22 @@ export const deleteUser = new Elysia()
             })
 
             if (!existingUser.user) {
-                return handleResponse(ErrorMessage.USER_NOT_FOUND, () => {
-                    set.status = ResponseErrorStatus.NOT_FOUND
+                return handleResponse({
+                    message: ErrorMessage.USER_NOT_FOUND,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.NOT_FOUND
+                    },
+                    path,
                 })
             }
 
             if (existingUser.user.deletedAt) {
-                return handleResponse(ErrorMessage.USER_ALREADY_DELETED, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.USER_ALREADY_DELETED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
                 })
             }
 
@@ -79,18 +93,23 @@ export const deleteUser = new Elysia()
                         .where(eq(users.id, user.id))
                 } catch (error) {
                     console.error(error)
-                    return handleResponse(
-                        ErrorMessage.FAILED_TO_DELETE_USER,
-                        () => {
+                    return handleResponse({
+                        message: ErrorMessage.FAILED_TO_DELETE_USER,
+                        callback: () => {
                             set.status =
                                 ResponseErrorStatus.INTERNAL_SERVER_ERROR
                         },
-                    )
+                        path,
+                    })
                 }
             })
 
-            return handleResponse(SuccessMessage.USER_DELETED, () => {
-                set.status = ResponseSuccessStatus.OK
+            return handleResponse({
+                message: SuccessMessage.USER_DELETED,
+                callback: () => {
+                    set.status = ResponseSuccessStatus.OK
+                },
+                path,
             })
         },
         {

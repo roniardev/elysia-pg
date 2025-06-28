@@ -23,12 +23,17 @@ export const readPost = new Elysia()
     .get(
         "/post/:id",
         async ({ params, bearer, set, jwtAccess }) => {
+            const path = "posts.read.usecase"
             // CHECK VALID TOKEN
             const validToken = await jwtAccess.verify(bearer)
 
             if (!validToken) {
-                return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
@@ -39,12 +44,13 @@ export const readPost = new Elysia()
             )
 
             if (!valid || !permission) {
-                return handleResponse(
-                    ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
+                    callback: () => {
                         set.status = ResponseErrorStatus.FORBIDDEN
                     },
-                )
+                    path,
+                })
             }
 
             const scope = await getScope(permission)
@@ -64,8 +70,12 @@ export const readPost = new Elysia()
             })
 
             if (!post) {
-                return handleResponse(ErrorMessage.POST_NOT_FOUND, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.POST_NOT_FOUND,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
                 })
             }
 
@@ -76,18 +86,23 @@ export const readPost = new Elysia()
             })
 
             if (!readPost) {
-                return handleResponse(ErrorMessage.FAILED_TO_READ_POST, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.FAILED_TO_READ_POST,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
                 })
             }
 
-            return handleResponse(
-                SuccessMessage.POST_READ,
-                () => {
+            return handleResponse({
+                message: SuccessMessage.POST_READ,
+                callback: () => {
                     set.status = ResponseSuccessStatus.OK
                 },
-                readPost,
-            )
+                data: readPost,
+                path,
+            })
         },
         {
             params: "readPostModel",

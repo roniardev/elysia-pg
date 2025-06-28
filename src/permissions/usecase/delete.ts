@@ -23,10 +23,15 @@ export const deletePermission = new Elysia()
     .delete(
         "/permission/:id",
         async ({ params, bearer, set, jwtAccess }) => {
+            const path = "permissions.delete.usecase"
             const validToken = await jwtAccess.verify(bearer)
             if (!validToken) {
-                return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
@@ -41,8 +46,12 @@ export const deletePermission = new Elysia()
             })
 
             if (!existingUser) {
-                return handleResponse(ErrorMessage.INVALID_USER, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.INVALID_USER,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
                 })
             }
 
@@ -53,12 +62,13 @@ export const deletePermission = new Elysia()
             )
 
             if (!valid) {
-                return handleResponse(
-                    ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
+                    callback: () => {
                         set.status = ResponseErrorStatus.FORBIDDEN
                     },
-                )
+                    path,
+                })
             }
 
             // CHECK IF PERMISSION EXISTS
@@ -69,8 +79,12 @@ export const deletePermission = new Elysia()
             })
 
             if (!existingPermission) {
-                return handleResponse(ErrorMessage.PERMISSION_NOT_FOUND, () => {
-                    set.status = ResponseErrorStatus.NOT_FOUND
+                return handleResponse({
+                    message: ErrorMessage.PERMISSION_NOT_FOUND,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.NOT_FOUND
+                    },
+                    path,
                 })
             }
 
@@ -83,17 +97,22 @@ export const deletePermission = new Elysia()
                     })
                     .where(eq(permissions.id, params.id))
 
-                return handleResponse(SuccessMessage.PERMISSION_DELETED, () => {
-                    set.status = ResponseSuccessStatus.OK
+                return handleResponse({
+                    message: SuccessMessage.PERMISSION_DELETED,
+                    callback: () => {
+                        set.status = ResponseSuccessStatus.OK
+                    },
+                    path,
                 })
             } catch (error) {
                 console.error(error)
-                return handleResponse(
-                    ErrorMessage.INTERNAL_SERVER_ERROR,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                    callback: () => {
                         set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
                     },
-                )
+                    path,
+                })
             }
         },
         {

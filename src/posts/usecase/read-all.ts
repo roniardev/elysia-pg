@@ -26,13 +26,18 @@ export const readAllPost = new Elysia()
     .get(
         "/post",
         async ({ bearer, set, jwtAccess, query }) => {
+            const path = "posts.read-all.usecase"
             // CHECK VALID TOKEN
             const validToken = await jwtAccess.verify(bearer)
             const { page, limit, sort, search } = query
 
             if (!validToken) {
-                return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
@@ -43,12 +48,13 @@ export const readAllPost = new Elysia()
             )
 
             if (!valid || !permission) {
-                return handleResponse(
-                    ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
+                    callback: () => {
                         set.status = ResponseErrorStatus.FORBIDDEN
                     },
-                )
+                    path,
+                })
             }
 
             const scope = await getScope(permission)
@@ -61,8 +67,12 @@ export const readAllPost = new Elysia()
             })
 
             if (!existingUser) {
-                return handleResponse(ErrorMessage.INVALID_USER, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.INVALID_USER,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
                 })
             }
 
@@ -119,26 +129,29 @@ export const readAllPost = new Elysia()
             const totalPage = Math.ceil(total / Number(limit))
 
             if (page > totalPage) {
-                return handleResponse(ErrorMessage.PAGE_NOT_FOUND, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.PAGE_NOT_FOUND,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
                 })
             }
 
-            return handleResponse(
-                SuccessMessage.POSTS_FETCHED,
-                () => {
+            return handleResponse({
+                message: SuccessMessage.POSTS_FETCHED,
+                callback: () => {
                     set.status = ResponseSuccessStatus.OK
                 },
-                {
-                    data: postsRes,
-                },
-                {
+                data: postsRes,
+                attributes: {
                     total,
                     page: Number(page),
                     limit: Number(limit),
                     totalPage,
                 },
-            )
+                path,
+            })
         },
         {
             query: "readAllPostModel",

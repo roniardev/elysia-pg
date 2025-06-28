@@ -23,10 +23,15 @@ export const createPermission = new Elysia()
     .post(
         "/permission",
         async ({ body, bearer, set, jwtAccess }) => {
+            const path = "permissions.create.usecase"
             const validToken = await jwtAccess.verify(bearer)
             if (!validToken) {
-                return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
@@ -41,8 +46,12 @@ export const createPermission = new Elysia()
             })
 
             if (!existingUser) {
-                return handleResponse(ErrorMessage.INVALID_USER, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.INVALID_USER,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
                 })
             }
 
@@ -53,12 +62,13 @@ export const createPermission = new Elysia()
             )
 
             if (!valid) {
-                return handleResponse(
-                    ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
+                    callback: () => {
                         set.status = ResponseErrorStatus.FORBIDDEN
                     },
-                )
+                    path,
+                })
             }
 
             // CREATE PERMISSION
@@ -72,12 +82,13 @@ export const createPermission = new Elysia()
                 })
             } catch (error) {
                 console.error(error)
-                return handleResponse(
-                    ErrorMessage.INTERNAL_SERVER_ERROR,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                    callback: () => {
                         set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
                     },
-                )
+                    path,
+                })
             }
 
             const response = {
@@ -86,13 +97,14 @@ export const createPermission = new Elysia()
                 description: body.description,
             }
 
-            return handleResponse(
-                SuccessMessage.PERMISSION_CREATED,
-                () => {
+            return handleResponse({
+                message: SuccessMessage.PERMISSION_CREATED,
+                callback: () => {
                     set.status = ResponseSuccessStatus.CREATED
                 },
-                response,
-            )
+                data: response,
+                path,
+            })
         },
         {
             body: "createPermissionModel",

@@ -1,7 +1,9 @@
 import Crypto from "@/utils/crypto"
 import type { GeneralResponse } from "@/common/model/general-response"
+import { config } from "@/app/config"
 
 export const encryptResponse = (response: GeneralResponse) => {
+    if (config.NODE_ENV === "development") return response
     if (!response.data) return
     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     const responseData: any = {

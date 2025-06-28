@@ -22,11 +22,16 @@ export const readUser = new Elysia()
     .get(
         "/user/:id",
         async ({ params, bearer, set, jwtAccess }) => {
+            const path = "users.read.usecase"
             const validToken = await jwtAccess.verify(bearer)
 
             if (!validToken) {
-                return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
@@ -36,12 +41,13 @@ export const readUser = new Elysia()
             )
 
             if (!valid) {
-                return handleResponse(
-                    ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
+                    callback: () => {
                         set.status = ResponseErrorStatus.FORBIDDEN
                     },
-                )
+                    path,
+                })
             }
 
             const user = await getUser({
@@ -53,8 +59,12 @@ export const readUser = new Elysia()
             })
 
             if (!user.user) {
-                return handleResponse(ErrorMessage.USER_NOT_FOUND, () => {
-                    set.status = ResponseErrorStatus.NOT_FOUND
+                return handleResponse({
+                    message: ErrorMessage.USER_NOT_FOUND,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.NOT_FOUND
+                    },
+                    path,
                 })
             }
 
@@ -65,15 +75,14 @@ export const readUser = new Elysia()
                 permissions: user.user.permissions,
             }
 
-            return handleResponse(
-                SuccessMessage.USER_FOUND,
-                () => {
+            return handleResponse({
+                message: SuccessMessage.USER_FOUND,
+                callback: () => {
                     set.status = ResponseSuccessStatus.OK
                 },
-                {
-                    data: data,
-                },
-            )
+                data: data,
+                path,
+            })
         },
         {
             params: "readUserModel",

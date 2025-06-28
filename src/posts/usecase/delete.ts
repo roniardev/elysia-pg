@@ -26,11 +26,16 @@ export const deletePost = new Elysia()
     .delete(
         "/post/:id",
         async ({ bearer, set, jwtAccess, params }) => {
+            const path = "posts.delete.usecase"
             const validToken = await jwtAccess.verify(bearer)
 
             if (!validToken) {
-                return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
@@ -41,12 +46,13 @@ export const deletePost = new Elysia()
             )
 
             if (!valid || !permission) {
-                return handleResponse(
-                    ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
+                    callback: () => {
                         set.status = ResponseErrorStatus.FORBIDDEN
                     },
-                )
+                    path,
+                })
             }
 
             const scope = await getScope(permission)
@@ -62,14 +68,22 @@ export const deletePost = new Elysia()
             })
 
             if (!existingPost) {
-                return handleResponse(ErrorMessage.POST_NOT_FOUND, () => {
-                    set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                return handleResponse({
+                    message: ErrorMessage.POST_NOT_FOUND,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                    },
+                    path,
                 })
             }
 
             if (existingPost.userId !== validToken.id) {
-                return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
@@ -83,18 +97,23 @@ export const deletePost = new Elysia()
                             .where(eq(posts.id, existingPost.id))
                     } catch (error) {
                         console.error(error)
-                        return handleResponse(
-                            ErrorMessage.INTERNAL_SERVER_ERROR,
-                            () => {
+                        return handleResponse({
+                            message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                            callback: () => {
                                 set.status =
                                     ResponseErrorStatus.INTERNAL_SERVER_ERROR
                             },
-                        )
+                            path,
+                        })
                     }
                 })
 
-            return handleResponse(SuccessMessage.POST_DELETED, () => {
-                set.status = ResponseSuccessStatus.OK
+            return handleResponse({
+                message: SuccessMessage.POST_DELETED,
+                callback: () => {
+                    set.status = ResponseSuccessStatus.OK
+                },
+                path,
             })
         },
         // {

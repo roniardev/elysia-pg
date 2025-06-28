@@ -21,10 +21,15 @@ export const readUserPermission = new Elysia()
     .get(
         "/user-permission/:id",
         async ({ params, bearer, set, jwtAccess }) => {
+            const path = "user-permissions.read.usecase"
             const validToken = await jwtAccess.verify(bearer)
             if (!validToken) {
-                return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
@@ -39,8 +44,12 @@ export const readUserPermission = new Elysia()
             })
 
             if (!existingUser) {
-                return handleResponse(ErrorMessage.INVALID_USER, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.INVALID_USER,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
                 })
             }
 
@@ -51,12 +60,13 @@ export const readUserPermission = new Elysia()
             )
 
             if (!valid) {
-                return handleResponse(
-                    ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
+                    callback: () => {
                         set.status = ResponseErrorStatus.FORBIDDEN
                     },
-                )
+                    path,
+                })
             }
 
             // READ USER PERMISSION
@@ -68,12 +78,13 @@ export const readUserPermission = new Elysia()
             })
 
             if (!userPermission) {
-                return handleResponse(
-                    ErrorMessage.USER_PERMISSION_NOT_FOUND,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.USER_PERMISSION_NOT_FOUND,
+                    callback: () => {
                         set.status = ResponseErrorStatus.NOT_FOUND
                     },
-                )
+                    path,
+                })
             }
 
             const response = {
@@ -90,13 +101,14 @@ export const readUserPermission = new Elysia()
                 },
             }
 
-            return handleResponse(
-                SuccessMessage.USER_PERMISSION_READ,
-                () => {
+            return handleResponse({
+                message: SuccessMessage.USER_PERMISSION_READ,
+                callback: () => {
                     set.status = ResponseSuccessStatus.OK
                 },
-                response,
-            )
+                data: response,
+                path,
+            })
         },
         {
             params: "readUserPermissionModel",

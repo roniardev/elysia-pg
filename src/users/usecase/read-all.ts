@@ -7,6 +7,12 @@ import { verifyPermission } from "@/src/general/usecase/verify-permission"
 
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { readAllUserModel } from "../data/users.model"
+import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
+import { handleResponse } from "@/utils/handle-response"
+import {
+    ResponseErrorStatus,
+    ResponseSuccessStatus,
+} from "@/common/enum/response-status"
 
 export const readAllUser = new Elysia()
     .use(readAllUserModel)
@@ -15,15 +21,18 @@ export const readAllUser = new Elysia()
     .get(
         "/user",
         async ({ bearer, set, jwtAccess, query }) => {
+            const path = "users.read-all.usecase"
             // CHECK VALID TOKEN
             const validToken = await jwtAccess.verify(bearer)
 
             if (!validToken) {
-                set.status = 403
-                return {
-                    status: false,
-                    message: "Unauthorized",
-                }
+                return handleResponse({
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    message: ErrorMessage.UNAUTHORIZED,
+                    path,
+                })
             }
 
             const { limit, page } = query
@@ -34,11 +43,13 @@ export const readAllUser = new Elysia()
             )
 
             if (!valid) {
-                set.status = 403
-                return {
-                    status: false,
-                    message: "Invalid Permission",
-                }
+                return handleResponse({
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
+                    path,
+                })
             }
 
             const users = await db.query.users.findMany({
@@ -48,34 +59,37 @@ export const readAllUser = new Elysia()
             })
 
             if (!users) {
-                set.status = 404
-                return {
-                    status: false,
-                    message: "Users not found",
-                }
+                return handleResponse({
+                    callback: () => {
+                        set.status = ResponseErrorStatus.NOT_FOUND
+                    },
+                    message: ErrorMessage.USER_NOT_FOUND,
+                    path,
+                })
             }
 
             const totalPage = Math.ceil(users.length / Number(limit))
 
             if (page > totalPage) {
-                set.status = 400
-                return {
-                    status: false,
-                    message: "Page not found",
-                }
+                return handleResponse({
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    message: ErrorMessage.PAGE_NOT_FOUND,
+                    path,
+                })
             }
 
             const total = users.length
 
-            return {
-                status: true,
-                message: "Users fetched successfully",
+            return handleResponse({
+                message: SuccessMessage.USER_FETCHED,
+                callback: () => {
+                    set.status = ResponseSuccessStatus.OK
+                },
                 data: users,
-                total: total,
-                page: Number(page),
-                limit: Number(limit),
-                totalPage: totalPage,
-            }
+                path,
+            })
         },
         {
             query: "readAllUserModel",
