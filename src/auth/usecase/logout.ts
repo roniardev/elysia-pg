@@ -21,12 +21,17 @@ export const logout = new Elysia()
     .post(
         "/logout",
         async function handler({ bearer, set, jwtAccess, jwtRefresh }) {
+            const path = "auth.logout.usecase"
             // CHECK VALID TOKEN
             const validToken = await jwtAccess.verify(bearer)
 
             if (!validToken) {
-                return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-                    set.status = ResponseErrorStatus.UNAUTHORIZED
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.UNAUTHORIZED
+                    },
+                    path,
                 })
             }
 
@@ -40,20 +45,32 @@ export const logout = new Elysia()
             )
 
             if (validToken?.exp && validToken.exp < dayjs().unix()) {
-                return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-                    set.status = ResponseErrorStatus.UNAUTHORIZED
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.UNAUTHORIZED
+                    },
+                    path,
                 })
             }
 
             if (bearer !== existingAccessToken) {
-                return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-                    set.status = ResponseErrorStatus.UNAUTHORIZED
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.UNAUTHORIZED
+                    },
+                    path,
                 })
             }
 
             if (!existingRefreshToken || !existingAccessToken) {
-                return handleResponse(ErrorMessage.FORBIDDEN, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.FORBIDDEN,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
@@ -64,16 +81,21 @@ export const logout = new Elysia()
             } catch (error) {
                 console.error(error)
 
-                return handleResponse(
-                    ErrorMessage.INTERNAL_SERVER_ERROR,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                    callback: () => {
                         set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
                     },
-                )
+                    path,
+                })
             }
 
-            return handleResponse(SuccessMessage.LOGOUT_SUCCESS, () => {
-                set.status = ResponseSuccessStatus.ACCEPTED
+            return handleResponse({
+                message: SuccessMessage.LOGOUT_SUCCESS,
+                callback: () => {
+                    set.status = ResponseSuccessStatus.ACCEPTED
+                },
+                path,
             })
         },
     )

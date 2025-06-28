@@ -22,12 +22,17 @@ export const regenerateAccessToken = new Elysia()
     .get(
         "/regenerate-access-token",
         async ({ set, jwtRefresh, bearer, jwtAccess }) => {
+            const path = "auth.regenerate-access-token.usecase"
             // CHECK VALID TOKEN
             const validToken = await jwtRefresh.verify(bearer)
 
             if (!validToken) {
-                return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-                    set.status = ResponseErrorStatus.UNAUTHORIZED
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.UNAUTHORIZED
+                    },
+                    path,
                 })
             }
 
@@ -59,23 +64,25 @@ export const regenerateAccessToken = new Elysia()
             } catch (error) {
                 console.error(error)
 
-                return handleResponse(
-                    ErrorMessage.INTERNAL_SERVER_ERROR,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                    callback: () => {
                         set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
                     },
-                )
+                    path,
+                })
             }
 
-            return handleResponse(
-                SuccessMessage.ACCESS_TOKEN_REGENERATED,
-                () => {
+            return handleResponse({
+                message: SuccessMessage.ACCESS_TOKEN_REGENERATED,
+                callback: () => {
                     set.status = ResponseSuccessStatus.OK
                 },
-                {
+                data: {
                     accessToken,
                     refreshToken,
                 },
-            )
+                path,
+            })
         },
     )

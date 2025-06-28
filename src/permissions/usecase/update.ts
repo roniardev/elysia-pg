@@ -27,10 +27,15 @@ export const updatePermission = new Elysia()
     .put(
         "/permission/:id",
         async ({ params, body, bearer, set, jwtAccess }) => {
+            const path = "permissions.update.usecase"
             const validToken = await jwtAccess.verify(bearer)
             if (!validToken) {
-                return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
@@ -45,8 +50,12 @@ export const updatePermission = new Elysia()
             })
 
             if (!existingUser) {
-                return handleResponse(ErrorMessage.INVALID_USER, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.INVALID_USER,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
                 })
             }
 
@@ -57,12 +66,13 @@ export const updatePermission = new Elysia()
             )
 
             if (!valid) {
-                return handleResponse(
-                    ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
+                    callback: () => {
                         set.status = ResponseErrorStatus.FORBIDDEN
                     },
-                )
+                    path,
+                })
             }
 
             // CHECK IF PERMISSION EXISTS
@@ -73,8 +83,12 @@ export const updatePermission = new Elysia()
             })
 
             if (!existingPermission) {
-                return handleResponse(ErrorMessage.PERMISSION_NOT_FOUND, () => {
-                    set.status = ResponseErrorStatus.NOT_FOUND
+                return handleResponse({
+                    message: ErrorMessage.PERMISSION_NOT_FOUND,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.NOT_FOUND
+                    },
+                    path,
                 })
             }
 
@@ -97,12 +111,13 @@ export const updatePermission = new Elysia()
                 })
 
                 if (!updatedPermission) {
-                    return handleResponse(
-                        ErrorMessage.PERMISSION_NOT_FOUND,
-                        () => {
+                    return handleResponse({
+                        message: ErrorMessage.PERMISSION_NOT_FOUND,
+                        callback: () => {
                             set.status = ResponseErrorStatus.NOT_FOUND
                         },
-                    )
+                        path,
+                    })
                 }
 
                 const response = {
@@ -114,21 +129,23 @@ export const updatePermission = new Elysia()
                         updatedPermission.updatedAt?.toISOString() || null,
                 }
 
-                return handleResponse(
-                    SuccessMessage.PERMISSION_UPDATED,
-                    () => {
+                return handleResponse({
+                    message: SuccessMessage.PERMISSION_UPDATED,
+                    callback: () => {
                         set.status = ResponseSuccessStatus.OK
                     },
-                    response,
-                )
+                    data: response,
+                    path,
+                })
             } catch (error) {
                 console.error(error)
-                return handleResponse(
-                    ErrorMessage.INTERNAL_SERVER_ERROR,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                    callback: () => {
                         set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
                     },
-                )
+                    path,
+                })
             }
         },
         {

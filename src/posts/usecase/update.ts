@@ -26,12 +26,17 @@ export const updatePost = new Elysia()
     .put(
         "/post/:id",
         async ({ body, params, bearer, set, jwtAccess }) => {
+            const path = "posts.update.usecase"
             // CHECK VALID TOKEN
             const validToken = await jwtAccess.verify(bearer)
 
             if (!validToken) {
-                return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
@@ -49,19 +54,24 @@ export const updatePost = new Elysia()
             )
 
             if (!valid || !permission) {
-                return handleResponse(
-                    ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
+                    callback: () => {
                         set.status = ResponseErrorStatus.FORBIDDEN
                     },
-                )
+                    path,
+                })
             }
 
             const scope = await getScope(permission)
 
             if (!existingUser) {
-                return handleResponse(ErrorMessage.INVALID_USER, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.INVALID_USER,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
                 })
             }
 
@@ -79,15 +89,23 @@ export const updatePost = new Elysia()
             })
 
             if (!existingPost) {
-                return handleResponse(ErrorMessage.POST_NOT_FOUND, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.POST_NOT_FOUND,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
                 })
             }
 
             if (existingPost.userId !== existingUser.id) {
-                return handleResponse(ErrorMessage.INVALID_USER, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
-                })
+                    return handleResponse({
+                        message: ErrorMessage.INVALID_USER,
+                        callback: () => {
+                            set.status = ResponseErrorStatus.BAD_REQUEST
+                        },
+                        path,
+                    })
             }
 
             await verrou
@@ -117,18 +135,23 @@ export const updatePost = new Elysia()
                             .where(eq(posts.id, existingPost.id))
                     } catch (error) {
                         console.error(error)
-                        return handleResponse(
-                            ErrorMessage.FAILED_TO_UPDATE_POST,
-                            () => {
+                        return handleResponse({
+                            message: ErrorMessage.FAILED_TO_UPDATE_POST,
+                            callback: () => {
                                 set.status =
                                     ResponseErrorStatus.INTERNAL_SERVER_ERROR
                             },
-                        )
+                            path,
+                        })
                     }
                 })
 
-            return handleResponse(SuccessMessage.POST_UPDATED, () => {
-                set.status = ResponseSuccessStatus.OK
+            return handleResponse({
+                message: SuccessMessage.POST_UPDATED,
+                callback: () => {
+                    set.status = ResponseSuccessStatus.OK
+                },
+                path,
             })
         },
         {

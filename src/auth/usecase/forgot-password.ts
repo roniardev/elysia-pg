@@ -23,6 +23,7 @@ export const forgotPassword = new Elysia()
     .post(
         "/forgot-password",
         async ({ body, set, jwtEmail }) => {
+            const path = "auth.forgot-password.usecase"
             const { email } = body
 
             const isValidEmail = email.match(
@@ -30,8 +31,12 @@ export const forgotPassword = new Elysia()
             )
 
             if (!isValidEmail) {
-                return handleResponse(ErrorMessage.INVALID_EMAIL, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.INVALID_EMAIL,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
                 })
             }
 
@@ -46,8 +51,12 @@ export const forgotPassword = new Elysia()
             })
 
             if (!existingUser.valid) {
-                return handleResponse(ErrorMessage.USER_NOT_FOUND, () => {
-                    set.status = ResponseErrorStatus.NOT_FOUND
+                return handleResponse({
+                    message: ErrorMessage.USER_NOT_FOUND,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.NOT_FOUND
+                    },
+                    path,
                 })
             }
 
@@ -66,12 +75,13 @@ export const forgotPassword = new Elysia()
                 })
             } catch (error) {
                 console.error(error)
-                return handleResponse(
-                    ErrorMessage.INTERNAL_SERVER_ERROR,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                    callback: () => {
                         set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
                     },
-                )
+                    path,
+                })
             }
 
             // SEND EMAIL
@@ -82,16 +92,21 @@ export const forgotPassword = new Elysia()
             )
 
             if (!emailResponse) {
-                return handleResponse(
-                    ErrorMessage.INTERNAL_SERVER_ERROR,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                    callback: () => {
                         set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
                     },
-                )
+                    path,
+                })
             }
 
-            return handleResponse(SuccessMessage.EMAIL_SENT, () => {
-                set.status = ResponseSuccessStatus.OK
+            return handleResponse({
+                message: SuccessMessage.EMAIL_SENT,
+                callback: () => {
+                    set.status = ResponseSuccessStatus.OK
+                },
+                path,
             })
         },
         {

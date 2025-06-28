@@ -4,7 +4,6 @@ import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import bearer from "@elysiajs/bearer"
 
 import { ErrorMessage } from "@/common/enum/response-message"
-import { encryptResponse } from "@/utils/encrypt-response"
 import { verifyAuth } from "../general/usecase/verify-auth"
 import { createPermission } from "./usecase/create"
 import { deletePermission } from "./usecase/delete"
@@ -36,14 +35,6 @@ export const permissions = new Elysia()
                         message: ErrorMessage.UNAUTHORIZED,
                     }
                 }
-            },
-            afterHandle: ({ response, request }) => {
-                console.log({
-                    from: "permissions",
-                    response,
-                    request,
-                })
-                return encryptResponse(response)
             },
         },
         (app) =>

@@ -25,13 +25,18 @@ export const login = new Elysia()
     .post(
         "/login",
         async function handler({ body, set, jwtAccess, jwtRefresh }) {
+            const path = "auth.login.usecase"
             const isValidEmail = body.email.match(
                 /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
             )
 
             if (!isValidEmail) {
-                return handleResponse(ErrorMessage.INVALID_EMAIL, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.INVALID_EMAIL,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
                 })
             }
 
@@ -46,14 +51,22 @@ export const login = new Elysia()
             })
 
             if (!existingUser.valid) {
-                return handleResponse(ErrorMessage.INVALID_CREDENTIALS, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.INVALID_CREDENTIALS,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
             if (!existingUser.user?.emailVerified) {
-                return handleResponse(ErrorMessage.EMAIL_NOT_VERIFIED, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.EMAIL_NOT_VERIFIED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
             // CHECK VALID PASSWORD
@@ -63,8 +76,12 @@ export const login = new Elysia()
             )
 
             if (!validPassword) {
-                return handleResponse(ErrorMessage.INVALID_CREDENTIALS, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.INVALID_CREDENTIALS,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
@@ -78,12 +95,13 @@ export const login = new Elysia()
             )
 
             if (existingRefreshToken) {
-                return handleResponse(
-                    ErrorMessage.SESSION_ALREADY_EXISTS,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.SESSION_ALREADY_EXISTS,
+                    callback: () => {
                         set.status = ResponseErrorStatus.FORBIDDEN
                     },
-                )
+                    path,
+                })
             }
 
             // GENERATE REFRESH TOKEN & ACCESS TOKEN
@@ -123,26 +141,28 @@ export const login = new Elysia()
                         )
                     } catch (error) {
                         console.error(error)
-                        return handleResponse(
-                            ErrorMessage.INTERNAL_SERVER_ERROR,
-                            () => {
+                        return handleResponse({
+                            message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                            callback: () => {
                                 set.status =
                                     ResponseErrorStatus.INTERNAL_SERVER_ERROR
                             },
-                        )
+                            path,
+                        })
                     }
                 })
 
-            return handleResponse(
-                SuccessMessage.LOGIN_SUCCESS,
-                () => {
+            return handleResponse({
+                message: SuccessMessage.LOGIN_SUCCESS,
+                callback: () => {
                     set.status = ResponseSuccessStatus.OK
                 },
-                {
+                data: {
                     accessToken,
                     refreshToken,
                 },
-            )
+                path,
+            })
         },
         {
             body: "basicAuthModel",

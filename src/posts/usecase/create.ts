@@ -24,11 +24,16 @@ export const createPost = new Elysia()
     .post(
         "/post",
         async ({ body, bearer, set, jwtAccess }) => {
+            const path = "posts.create.usecase"
             const validToken = await jwtAccess.verify(bearer)
 
             if (!validToken) {
-                return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
@@ -42,8 +47,12 @@ export const createPost = new Elysia()
             })
 
             if (!existingUser.user) {
-                return handleResponse(ErrorMessage.INVALID_USER, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.INVALID_USER,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
                 })
             }
 
@@ -53,12 +62,13 @@ export const createPost = new Elysia()
             )
 
             if (!valid) {
-                return handleResponse(
-                    ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
+                    callback: () => {
                         set.status = ResponseErrorStatus.FORBIDDEN
                     },
-                )
+                    path,
+                })
             }
 
             // CREATE POST
@@ -74,12 +84,13 @@ export const createPost = new Elysia()
                 })
             } catch (error) {
                 console.error(error)
-                return handleResponse(
-                    ErrorMessage.INTERNAL_SERVER_ERROR,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                    callback: () => {
                         set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
                     },
-                )
+                    path,
+                })
             }
 
             const response = {
@@ -89,13 +100,14 @@ export const createPost = new Elysia()
                 content: body.content,
             }
 
-            return handleResponse(
-                SuccessMessage.POST_CREATED,
-                () => {
+            return handleResponse({
+                message: SuccessMessage.POST_CREATED,
+                callback: () => {
                     set.status = ResponseSuccessStatus.CREATED
                 },
-                response,
-            )
+                data: response,
+                path,
+            })
         },
         {
             body: "createPostModel",

@@ -37,14 +37,6 @@ export const posts = new Elysia()
                     }
                 }
             },
-            afterHandle: ({ response, request }) => {
-                console.log({
-                    from: "posts",
-                    response,
-                    request,
-                })
-                return encryptResponse(response)
-            },
         },
         (app) =>
             app

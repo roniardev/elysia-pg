@@ -22,6 +22,7 @@ export const register = new Elysia()
     .post(
         "/register",
         async function handler({ body, set, jwtAccess }) {
+            const path = "auth.register.usecase"
             const { email, password, confirmPassword } = body
 
             const isValidEmail = email.match(
@@ -29,18 +30,23 @@ export const register = new Elysia()
             )
 
             if (!isValidEmail) {
-                return handleResponse(ErrorMessage.INVALID_EMAIL, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.INVALID_EMAIL,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
                 })
             }
 
             if (password !== confirmPassword) {
-                return handleResponse(
-                    ErrorMessage.PASSWORD_DO_NOT_MATCH,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.PASSWORD_DO_NOT_MATCH,
+                    callback: () => {
                         set.status = ResponseErrorStatus.BAD_REQUEST
                     },
-                )
+                    path,
+                })
             }
 
             // CHECK EXISTING USER
@@ -50,8 +56,11 @@ export const register = new Elysia()
             })
 
             if (existingUser.valid) {
-                return handleResponse(ErrorMessage.USER_ALREADY_EXISTS, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.USER_ALREADY_EXISTS,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
                 })
             }
 
@@ -66,12 +75,13 @@ export const register = new Elysia()
             })
 
             if (!user) {
-                return handleResponse(
-                    ErrorMessage.INTERNAL_SERVER_ERROR,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                    callback: () => {
                         set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
                     },
-                )
+                    path,
+                })
             }
 
             const emailToken = await jwtAccess.sign({
@@ -96,6 +106,7 @@ export const register = new Elysia()
                 return {
                     status: false,
                     message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                    path,
                 }
             }
 
@@ -106,16 +117,24 @@ export const register = new Elysia()
             )
 
             if (!emailResponse) {
-                return handleResponse(
-                    ErrorMessage.INTERNAL_SERVER_ERROR,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                    callback: () => {
                         set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
                     },
-                )
+                    path,
+                })
             }
 
-            return handleResponse(SuccessMessage.USER_REGISTERED, () => {
-                set.status = ResponseSuccessStatus.CREATED
+            return handleResponse({
+                message: SuccessMessage.USER_REGISTERED,
+                callback: () => {
+                    set.status = ResponseSuccessStatus.CREATED
+                },
+                path,
+                data: {
+                    emailToken,
+                },
             })
         },
         {

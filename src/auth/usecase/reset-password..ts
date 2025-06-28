@@ -20,13 +20,18 @@ export const resetPassword = new Elysia()
     .post(
         "/reset-password",
         async ({ body, set, jwtAccess }) => {
+            const path = "auth.reset-password.usecase"
             // CHECK VALID TOKEN
             const { password, confirmPassword } = body
             const emailToken = await jwtAccess.verify(body.token)
 
             if (!emailToken) {
-                return handleResponse(ErrorMessage.INVALID_EMAIL_TOKEN, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.INVALID_EMAIL_TOKEN,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
                 })
             }
 
@@ -40,8 +45,12 @@ export const resetPassword = new Elysia()
             })
 
             if (!existingUser?.user) {
-                return handleResponse(ErrorMessage.USER_NOT_FOUND, () => {
-                    set.status = ResponseErrorStatus.NOT_FOUND
+                return handleResponse({
+                    message: ErrorMessage.USER_NOT_FOUND,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.NOT_FOUND
+                    },
+                    path,
                 })
             }
 
@@ -56,8 +65,12 @@ export const resetPassword = new Elysia()
             })
 
             if (!existingToken) {
-                return handleResponse(ErrorMessage.INVALID_EMAIL_TOKEN, () => {
-                    set.status = ResponseErrorStatus.NOT_FOUND
+                return handleResponse({
+                    message: ErrorMessage.INVALID_EMAIL_TOKEN,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.NOT_FOUND
+                    },
+                    path,
                 })
             }
 
@@ -68,33 +81,44 @@ export const resetPassword = new Elysia()
             )
 
             if (!existingToken || !validToken) {
-                return handleResponse(ErrorMessage.INVALID_EMAIL_TOKEN, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.INVALID_EMAIL_TOKEN,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
                 })
             }
             const isExpired = existingToken.expiresAt < new Date()
 
             if (isExpired) {
-                return handleResponse(ErrorMessage.EMAIL_TOKEN_EXPIRED, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.EMAIL_TOKEN_EXPIRED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
             const isRevoked = existingToken.revoked
 
             if (isRevoked) {
-                return handleResponse(ErrorMessage.INVALID_EMAIL_TOKEN, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.INVALID_EMAIL_TOKEN,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
                 })
             }
 
             if (password !== confirmPassword) {
-                return handleResponse(
-                    ErrorMessage.PASSWORD_DO_NOT_MATCH,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.PASSWORD_DO_NOT_MATCH,
+                    callback: () => {
                         set.status = ResponseErrorStatus.BAD_REQUEST
                     },
-                )
+                    path,
+                })
             }
 
             const hashedPassword = await Bun.password.hash(body.password)
@@ -109,16 +133,21 @@ export const resetPassword = new Elysia()
                     .where(eq(users.id, existingUser.user?.id))
             } catch (error) {
                 console.error(error)
-                return handleResponse(
-                    ErrorMessage.INTERNAL_SERVER_ERROR,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                    callback: () => {
                         set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
                     },
-                )
+                    path,
+                })
             }
 
-            return handleResponse(SuccessMessage.PASSWORD_RESET_SUCCESS, () => {
-                set.status = ResponseSuccessStatus.OK
+            return handleResponse({
+                message: SuccessMessage.PASSWORD_RESET_SUCCESS,
+                callback: () => {
+                    set.status = ResponseSuccessStatus.OK
+                },
+                path,
             })
         },
         {

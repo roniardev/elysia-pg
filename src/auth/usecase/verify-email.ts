@@ -20,12 +20,17 @@ export const verifyEmail = new Elysia()
     .post(
         "/verify-email",
         async ({ body, set, jwtEmail }) => {
+            const path = "auth.verify-email.usecase"
             // CHECK VALID TOKEN
             const emailToken = await jwtEmail.verify(body.token)
 
             if (!emailToken) {
-                return handleResponse(ErrorMessage.INVALID_EMAIL_TOKEN, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.INVALID_EMAIL_TOKEN,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
@@ -39,12 +44,13 @@ export const verifyEmail = new Elysia()
             })
 
             if (existingUser?.user?.emailVerified) {
-                return handleResponse(
-                    ErrorMessage.EMAIL_ALREADY_VERIFIED,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.EMAIL_ALREADY_VERIFIED,
+                    callback: () => {
                         set.status = ResponseErrorStatus.FORBIDDEN
                     },
-                )
+                    path,
+                })
             }
 
             // CHECK EXISTING EMAIL VERIFICATION TOKEN
@@ -63,22 +69,34 @@ export const verifyEmail = new Elysia()
             )
 
             if (!userToken || !validToken) {
-                return handleResponse(ErrorMessage.INVALID_EMAIL_TOKEN, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.INVALID_EMAIL_TOKEN,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
             const isExpired = userToken.expiresAt < new Date()
 
             if (isExpired) {
-                return handleResponse(ErrorMessage.EMAIL_TOKEN_EXPIRED, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.EMAIL_TOKEN_EXPIRED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
             if (!validToken) {
-                return handleResponse(ErrorMessage.INVALID_EMAIL_TOKEN, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.INVALID_EMAIL_TOKEN,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
@@ -91,12 +109,13 @@ export const verifyEmail = new Elysia()
                 .where(eq(emailVerificationTokens.id, userToken.id))
 
             if (!emailVerificationTokenUpdate) {
-                return handleResponse(
-                    ErrorMessage.INTERNAL_SERVER_ERROR,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                    callback: () => {
                         set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
                     },
-                )
+                    path,
+                })
             }
 
             // UPDATE USER EMAIL VERIFICATION
@@ -109,16 +128,21 @@ export const verifyEmail = new Elysia()
                     .where(eq(users.id, userToken.userId))
             } catch (error) {
                 console.error(error)
-                return handleResponse(
-                    ErrorMessage.INTERNAL_SERVER_ERROR,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                    callback: () => {
                         set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
                     },
-                )
+                    path,
+                })
             }
 
-            return handleResponse(SuccessMessage.EMAIL_VERIFIED, () => {
-                set.status = ResponseSuccessStatus.OK
+            return handleResponse({
+                message: SuccessMessage.EMAIL_VERIFIED,
+                callback: () => {
+                    set.status = ResponseSuccessStatus.OK
+                },
+                path,
             })
         },
         {

@@ -23,10 +23,16 @@ export const createUserPermission = new Elysia()
     .post(
         "/user-permission",
         async ({ body, bearer, set, jwtAccess }) => {
+            const path = "user-permissions.create.usecase"
             const validToken = await jwtAccess.verify(bearer)
+
             if (!validToken) {
-                return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
@@ -41,8 +47,12 @@ export const createUserPermission = new Elysia()
             })
 
             if (!existingUser) {
-                return handleResponse(ErrorMessage.INVALID_USER, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.INVALID_USER,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
                 })
             }
 
@@ -53,12 +63,13 @@ export const createUserPermission = new Elysia()
             )
 
             if (!valid) {
-                return handleResponse(
-                    ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
+                    callback: () => {
                         set.status = ResponseErrorStatus.FORBIDDEN
                     },
-                )
+                    path,
+                })
             }
 
             // Check if permission already exists and not revoked
@@ -74,12 +85,13 @@ export const createUserPermission = new Elysia()
             )
 
             if (existingPermission) {
-                return handleResponse(
-                    ErrorMessage.PERMISSION_ALREADY_ASSIGNED,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.PERMISSION_ALREADY_ASSIGNED,
+                    callback: () => {
                         set.status = ResponseErrorStatus.BAD_REQUEST
                     },
-                )
+                    path,
+                })
             }
 
             // CREATE USER PERMISSION
@@ -93,12 +105,13 @@ export const createUserPermission = new Elysia()
                 })
             } catch (error) {
                 console.error(error)
-                return handleResponse(
-                    ErrorMessage.INTERNAL_SERVER_ERROR,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                    callback: () => {
                         set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
                     },
-                )
+                    path,
+                })
             }
 
             const response = {
@@ -108,13 +121,14 @@ export const createUserPermission = new Elysia()
                 revoked: false,
             }
 
-            return handleResponse(
-                SuccessMessage.USER_PERMISSION_CREATED,
-                () => {
+            return handleResponse({
+                message: SuccessMessage.USER_PERMISSION_CREATED,
+                callback: () => {
                     set.status = ResponseSuccessStatus.CREATED
                 },
-                response,
-            )
+                data: response,
+                path,
+            })
         },
         {
             body: "createUserPermissionModel",

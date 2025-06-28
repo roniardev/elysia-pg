@@ -23,10 +23,15 @@ export const readAllUserPermission = new Elysia()
     .get(
         "/user-permission",
         async ({ query, bearer, set, jwtAccess }) => {
+            const path = "user-permissions.read-all.usecase"
             const validToken = await jwtAccess.verify(bearer)
             if (!validToken) {
-                return handleResponse(ErrorMessage.UNAUTHORIZED, () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
                 })
             }
 
@@ -41,8 +46,12 @@ export const readAllUserPermission = new Elysia()
             })
 
             if (!existingUser) {
-                return handleResponse(ErrorMessage.INVALID_USER, () => {
-                    set.status = ResponseErrorStatus.BAD_REQUEST
+                return handleResponse({
+                    message: ErrorMessage.INVALID_USER,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
                 })
             }
 
@@ -53,12 +62,13 @@ export const readAllUserPermission = new Elysia()
             )
 
             if (!valid) {
-                return handleResponse(
-                    ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    () => {
+                return handleResponse({
+                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
+                    callback: () => {
                         set.status = ResponseErrorStatus.FORBIDDEN
                     },
-                )
+                    path,
+                })
             }
 
             // READ ALL USER PERMISSIONS
@@ -120,13 +130,15 @@ export const readAllUserPermission = new Elysia()
                 },
             }
 
-            return handleResponse(
-                SuccessMessage.USER_PERMISSIONS_FETCHED,
-                () => {
+            return handleResponse({
+                message: SuccessMessage.USER_PERMISSIONS_FETCHED,
+                callback: () => {
                     set.status = ResponseSuccessStatus.OK
                 },
-                response,
-            )
+                data: response.data,
+                attributes: response.pagination,
+                path,
+            })
         },
         {
             query: "readAllUserPermissionModel",
