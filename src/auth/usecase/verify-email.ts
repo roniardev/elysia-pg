@@ -13,6 +13,7 @@ import { getUser } from "@/src/general/usecase/get-user"
 import { handleResponse } from "@/utils/handle-response"
 import { verifyEmailModel } from "../data/auth.model"
 import { jwtEmailSetup } from "../setup/auth"
+import { verrou } from "@/utils/services/locks"
 
 export const verifyEmail = new Elysia()
     .use(verifyEmailModel)
@@ -118,24 +119,29 @@ export const verifyEmail = new Elysia()
                 })
             }
 
-            // UPDATE USER EMAIL VERIFICATION
-            try {
-                await db
-                    .update(users)
-                    .set({
-                        emailVerified: true,
-                    })
-                    .where(eq(users.id, userToken.userId))
-            } catch (error) {
-                console.error(error)
-                return handleResponse({
-                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                    },
-                    path,
+            await verrou
+                .createLock(`${existingUser.user?.id}:verify-email`)
+                .run(async () => {
+                    // UPDATE USER EMAIL VERIFICATION
+                    try {
+                        await db
+                            .update(users)
+                            .set({
+                                emailVerified: true,
+                            })
+                            .where(eq(users.id, userToken.userId))
+                    } catch (error) {
+                        console.error(error)
+                        return handleResponse({
+                            message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                            callback: () => {
+                                set.status =
+                                    ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                            },
+                            path,
+                        })
+                    }
                 })
-            }
 
             return handleResponse({
                 message: SuccessMessage.EMAIL_VERIFIED,

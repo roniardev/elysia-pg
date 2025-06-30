@@ -13,6 +13,7 @@ import { getUser } from "@/src/general/usecase/get-user"
 import { handleResponse } from "@/utils/handle-response"
 import { resetPasswordModel } from "../data/auth.model"
 import { jwtAccessSetup } from "../setup/auth"
+import { verrou } from "@/utils/services/locks"
 
 export const resetPassword = new Elysia()
     .use(jwtAccessSetup)
@@ -123,24 +124,28 @@ export const resetPassword = new Elysia()
 
             const hashedPassword = await Bun.password.hash(body.password)
 
-            // UPDATE USER PASSWORD
-            try {
-                await db
-                    .update(users)
-                    .set({
-                        hashedPassword,
-                    })
-                    .where(eq(users.id, existingUser.user?.id))
-            } catch (error) {
-                console.error(error)
-                return handleResponse({
-                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                    },
-                    path,
+            await verrou
+                .createLock(`${existingUser.user?.id}:reset-password`)
+                .run(async () => {
+                    try {
+                        await db
+                            .update(users)
+                            .set({
+                                hashedPassword,
+                            })
+                            .where(eq(users.id, String(existingUser.user?.id)))
+                    } catch (error) {
+                        console.error(error)
+                        return handleResponse({
+                            message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                            callback: () => {
+                                set.status =
+                                    ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                            },
+                            path,
+                        })
+                    }
                 })
-            }
 
             return handleResponse({
                 message: SuccessMessage.PASSWORD_RESET_SUCCESS,

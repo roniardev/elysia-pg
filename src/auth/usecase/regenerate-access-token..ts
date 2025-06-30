@@ -13,6 +13,7 @@ import {
 import { handleResponse } from "@/utils/handle-response"
 import { regenerateAccessTokenModel } from "../data/auth.model"
 import { jwtAccessSetup, jwtRefreshSetup } from "../setup/auth"
+import { verrou } from "@/utils/services/locks"
 
 export const regenerateAccessToken = new Elysia()
     .use(jwtRefreshSetup)
@@ -46,32 +47,41 @@ export const regenerateAccessToken = new Elysia()
                 exp: dayjs().unix() + config.ACCESS_TOKEN_EXPIRE_TIME,
             })
 
-            // SET REFRESH & ACCESS TOKEN TO REDIS
-            try {
-                await redis.set(`${validToken.id}:refreshToken`, refreshToken)
+            await verrou
+                .createLock(`${validToken.id}:regenerate-access-token`)
+                .run(async () => {
+                    try {
+                        await redis.set(
+                            `${validToken.id}:refreshToken`,
+                            refreshToken,
+                        )
 
-                await redis.expire(
-                    `${validToken.id}:refreshToken`,
-                    config.REFRESH_TOKEN_EXPIRE_TIME,
-                )
+                        await redis.expire(
+                            `${validToken.id}:refreshToken`,
+                            config.REFRESH_TOKEN_EXPIRE_TIME,
+                        )
 
-                await redis.set(`${validToken.id}:accessToken`, accessToken)
+                        await redis.set(
+                            `${validToken.id}:accessToken`,
+                            accessToken,
+                        )
 
-                await redis.expire(
-                    `${validToken.id}:accessToken`,
-                    config.ACCESS_TOKEN_EXPIRE_TIME,
-                )
-            } catch (error) {
-                console.error(error)
-
-                return handleResponse({
-                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                    },
-                    path,
+                        await redis.expire(
+                            `${validToken.id}:accessToken`,
+                            config.ACCESS_TOKEN_EXPIRE_TIME,
+                        )
+                    } catch (error) {
+                        console.error(error)
+                        return handleResponse({
+                            message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                            callback: () => {
+                                set.status =
+                                    ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                            },
+                            path,
+                        })
+                    }
                 })
-            }
 
             return handleResponse({
                 message: SuccessMessage.ACCESS_TOKEN_REGENERATED,
