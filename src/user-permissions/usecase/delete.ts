@@ -15,6 +15,7 @@ import { handleResponse } from "@/utils/handle-response"
 import { getUser } from "@/src/general/usecase/get-user"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { deleteUserPermissionModel } from "../data/user-permissions.model"
+import { verrou } from "@/utils/services/locks"
 
 export const deleteUserPermission = new Elysia()
     .use(deleteUserPermissionModel)
@@ -88,28 +89,33 @@ export const deleteUserPermission = new Elysia()
             }
 
             // DELETE USER PERMISSION
-            try {
-                await db
-                    .delete(userPermissions)
-                    .where(eq(userPermissions.id, params.id))
+            await verrou
+                .createLock(`${existingUser.user?.id}:delete-user-permission`)
+                .run(async () => {
+                    try {
+                        await db
+                            .delete(userPermissions)
+                            .where(eq(userPermissions.id, params.id))
+                    } catch (error) {
+                        console.error(error)
+                        return handleResponse({
+                            message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                            callback: () => {
+                                set.status =
+                                    ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                            },
+                            path,
+                        })
+                    }
+                })
 
-                return handleResponse({
-                    message: SuccessMessage.USER_PERMISSION_DELETED,
-                    callback: () => {
-                        set.status = ResponseSuccessStatus.OK
-                    },
-                    path,
-                })
-            } catch (error) {
-                console.error(error)
-                return handleResponse({
-                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                    },
-                    path,
-                })
-            }
+            return handleResponse({
+                message: SuccessMessage.USER_PERMISSION_DELETED,
+                callback: () => {
+                    set.status = ResponseSuccessStatus.OK
+                },
+                path,
+            })
         },
         {
             params: "deleteUserPermissionModel",

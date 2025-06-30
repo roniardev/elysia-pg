@@ -4,7 +4,6 @@ import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import bearer from "@elysiajs/bearer"
 
 import { ErrorMessage } from "@/common/enum/response-message"
-import { encryptResponse } from "@/utils/encrypt-response"
 import { verifyAuth } from "../general/usecase/verify-auth"
 import { createPost } from "./usecase/create"
 import { deletePost } from "./usecase/delete"
