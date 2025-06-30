@@ -13,7 +13,7 @@ import { db } from "@/db"
 import { permissions } from "@/db/schema/permission"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
 import { handleResponse } from "@/utils/handle-response"
-
+import { getUser } from "@/src/general/usecase/get-user"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { readAllPermissionModel } from "../data/permissions.model"
 
@@ -37,16 +37,15 @@ export const readAllPermission = new Elysia()
             }
 
             // CHECK EXISTING USER
-            const existingUser = await db.query.users.findFirst({
-                where: (table, { eq, and, isNull }) => {
-                    return and(
-                        eq(table.id, validToken.id),
-                        isNull(table.deletedAt),
-                    )
+            const existingUser = await getUser({
+                identifier: validToken.id,
+                type: "id",
+                condition: {
+                    deleted: false,
                 },
             })
 
-            if (!existingUser) {
+            if (!existingUser.user) {
                 return handleResponse({
                     message: ErrorMessage.INVALID_USER,
                     callback: () => {
@@ -59,7 +58,7 @@ export const readAllPermission = new Elysia()
             // VERIFY IF USER HAS PERMISSION TO READ ALL PERMISSIONS
             const { valid } = await verifyPermission(
                 ManagePermission.READ_ALL_PERMISSION,
-                existingUser.id,
+                existingUser.user.id,
             )
 
             if (!valid) {

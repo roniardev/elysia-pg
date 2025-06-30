@@ -11,7 +11,7 @@ import Sorting from "@/common/enum/sorting"
 import { db } from "@/db"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
 import { handleResponse } from "@/utils/handle-response"
-
+import { getUser } from "@/src/general/usecase/get-user"
 import { Scope } from "@/common/enum/scopes"
 import { posts } from "@/db/schema"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
@@ -60,13 +60,15 @@ export const readAllPost = new Elysia()
             const scope = await getScope(permission)
 
             // CHECK EXISTING USER
-            const existingUser = await db.query.users.findFirst({
-                where: (table, { eq }) => {
-                    return eq(table.id, validToken.id)
+            const existingUser = await getUser({
+                identifier: validToken.id,
+                type: "id",
+                condition: {
+                    deleted: false,
                 },
             })
 
-            if (!existingUser) {
+            if (!existingUser.user) {
                 return handleResponse({
                     message: ErrorMessage.INVALID_USER,
                     callback: () => {
@@ -81,7 +83,10 @@ export const readAllPost = new Elysia()
                 where: (table, { eq, like, and }) => {
                     if (scope === Scope.PERSONAL) {
                         return and(
-                            eq(table.userId, validToken.id),
+                            eq(
+                                table.userId,
+                                existingUser.user?.id || validToken.id,
+                            ),
                             search
                                 ? like(table.title, `%${search}%`)
                                 : undefined,
@@ -110,7 +115,7 @@ export const readAllPost = new Elysia()
             // Get total count based on scope and search
             const whereConditions = []
             if (scope === Scope.PERSONAL) {
-                whereConditions.push(eq(posts.userId, validToken.id))
+                whereConditions.push(eq(posts.userId, existingUser.user.id))
             }
             if (search) {
                 whereConditions.push(like(posts.title, `%${search}%`))

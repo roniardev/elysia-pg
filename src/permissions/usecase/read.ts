@@ -14,6 +14,7 @@ import { handleResponse } from "@/utils/handle-response"
 
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { readPermissionModel } from "../data/permissions.model"
+import { getUser } from "@/src/general/usecase/get-user"
 
 export const readPermission = new Elysia()
     .use(readPermissionModel)
@@ -35,16 +36,15 @@ export const readPermission = new Elysia()
             }
 
             // CHECK EXISTING USER
-            const existingUser = await db.query.users.findFirst({
-                where: (table, { eq, and, isNull }) => {
-                    return and(
-                        eq(table.id, validToken.id),
-                        isNull(table.deletedAt),
-                    )
+            const existingUser = await getUser({
+                identifier: validToken.id,
+                type: "id",
+                condition: {
+                    deleted: false,
                 },
             })
 
-            if (!existingUser) {
+            if (!existingUser.user) {
                 return handleResponse({
                     message: ErrorMessage.INVALID_USER,
                     callback: () => {
@@ -57,7 +57,7 @@ export const readPermission = new Elysia()
             // VERIFY IF USER HAS PERMISSION TO READ PERMISSIONS
             const { valid } = await verifyPermission(
                 ManagePermission.READ_PERMISSION,
-                existingUser.id,
+                existingUser.user.id,
             )
 
             if (!valid) {
@@ -73,12 +73,7 @@ export const readPermission = new Elysia()
             // READ PERMISSIONS
             try {
                 const permission = await db.query.permissions.findFirst({
-                    where: (table, { eq, and, isNull }) => {
-                        return and(
-                            eq(table.id, params.id),
-                            isNull(table.deletedAt),
-                        )
-                    },
+                    where: (table, { eq }) => eq(table.id, params.id),
                 })
 
                 if (!permission) {

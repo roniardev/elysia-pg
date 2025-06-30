@@ -10,6 +10,7 @@ import {
 } from "@/common/enum/response-status"
 import { db } from "@/db"
 import { permissions } from "@/db/schema/permission"
+import { getUser } from "@/src/general/usecase/get-user"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
 import { handleResponse } from "@/utils/handle-response"
 
@@ -36,16 +37,15 @@ export const createPermission = new Elysia()
             }
 
             // CHECK EXISTING USER
-            const existingUser = await db.query.users.findFirst({
-                where: (table, { eq, and, isNull }) => {
-                    return and(
-                        eq(table.id, validToken.id),
-                        isNull(table.deletedAt),
-                    )
+            const existingUser = await getUser({
+                identifier: validToken.id,
+                type: "id",
+                condition: {
+                    deleted: false,
                 },
             })
 
-            if (!existingUser) {
+            if (!existingUser.user) {
                 return handleResponse({
                     message: ErrorMessage.INVALID_USER,
                     callback: () => {
@@ -58,7 +58,7 @@ export const createPermission = new Elysia()
             // VERIFY IF USER HAS PERMISSION TO CREATE PERMISSIONS
             const { valid } = await verifyPermission(
                 ManagePermission.CREATE_PERMISSION,
-                existingUser.id,
+                existingUser.user.id,
             )
 
             if (!valid) {

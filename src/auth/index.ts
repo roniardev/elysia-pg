@@ -13,7 +13,10 @@ import { config } from "@/app/config"
 export const auth = new Elysia()
     .use(
         rateLimit({
-            max: config.NODE_ENV === "test" ? 10000 : 100,
+            max:
+                config.NODE_ENV === "test" || config.NODE_ENV === "development"
+                    ? 10000
+                    : 100,
             duration: 60000,
             scoping: "scoped",
         }),
