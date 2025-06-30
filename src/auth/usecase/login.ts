@@ -17,6 +17,7 @@ import { getUser } from "@/src/general/usecase/get-user"
 import { handleResponse } from "@/utils/handle-response"
 import { basicAuthModel } from "../data/auth.model"
 import { jwtAccessSetup, jwtRefreshSetup } from "../setup/auth"
+import RegexPattern from "@/common/regex-pattern"
 
 export const login = new Elysia()
     .use(basicAuthModel)
@@ -26,9 +27,7 @@ export const login = new Elysia()
         "/login",
         async function handler({ body, set, jwtAccess, jwtRefresh }) {
             const path = "auth.login.usecase"
-            const isValidEmail = body.email.match(
-                /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-            )
+            const isValidEmail = body.email.match(RegexPattern.EMAIL)
 
             if (!isValidEmail) {
                 return handleResponse({

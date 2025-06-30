@@ -16,6 +16,7 @@ import {
 import { handleResponse } from "@/utils/handle-response"
 import { forgotPasswordModel } from "../data/auth.model"
 import { jwtEmailSetup } from "../setup/auth"
+import RegexPattern from "@/common/regex-pattern"
 
 export const forgotPassword = new Elysia()
     .use(jwtEmailSetup)
@@ -26,9 +27,7 @@ export const forgotPassword = new Elysia()
             const path = "auth.forgot-password.usecase"
             const { email } = body
 
-            const isValidEmail = email.match(
-                /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-            )
+            const isValidEmail = email.match(RegexPattern.EMAIL)
 
             if (!isValidEmail) {
                 return handleResponse({
