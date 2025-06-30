@@ -18,6 +18,7 @@ import {
     readUserPermissionModel,
     updateUserPermissionModel,
 } from "../data/user-permissions.model"
+import { verrou } from "@/utils/services/locks"
 
 export const updateUserPermission = new Elysia()
     .use(updateUserPermissionModel)
@@ -91,54 +92,61 @@ export const updateUserPermission = new Elysia()
             }
 
             // UPDATE USER PERMISSION
-            try {
-                const [updatedUserPermission] = await db
-                    .update(userPermissions)
-                    .set({
-                        revoked: body.revoked,
-                        updatedAt: new Date(),
-                    })
-                    .where(eq(userPermissions.id, params.id))
-                    .returning()
+            await verrou
+                .createLock(`${existingUser.user?.id}:update-user-permission`)
+                .run(async () => {
+                    try {
+                        const [updatedUserPermission] = await db
+                            .update(userPermissions)
+                            .set({
+                                revoked: body.revoked,
+                                updatedAt: new Date(),
+                            })
+                            .where(eq(userPermissions.id, params.id))
+                            .returning()
 
-                if (!updatedUserPermission) {
-                    return handleResponse({
-                        message: ErrorMessage.USER_PERMISSION_NOT_FOUND,
-                        callback: () => {
-                            set.status = ResponseErrorStatus.NOT_FOUND
-                        },
-                        path,
-                    })
-                }
+                        if (!updatedUserPermission) {
+                            return handleResponse({
+                                message: ErrorMessage.USER_PERMISSION_NOT_FOUND,
+                                callback: () => {
+                                    set.status = ResponseErrorStatus.NOT_FOUND
+                                },
+                                path,
+                            })
+                        }
 
-                const response = {
-                    id: updatedUserPermission.id,
-                    userId: updatedUserPermission.userId,
-                    permissionId: updatedUserPermission.permissionId,
-                    revoked: updatedUserPermission.revoked,
-                    createdAt: updatedUserPermission.createdAt.toISOString(),
-                    updatedAt:
-                        updatedUserPermission.updatedAt?.toISOString() ?? null,
-                }
+                        const response = {
+                            id: updatedUserPermission.id,
+                            userId: updatedUserPermission.userId,
+                            permissionId: updatedUserPermission.permissionId,
+                            revoked: updatedUserPermission.revoked,
+                            createdAt:
+                                updatedUserPermission.createdAt.toISOString(),
+                            updatedAt:
+                                updatedUserPermission.updatedAt?.toISOString() ??
+                                null,
+                        }
 
-                return handleResponse({
-                    message: SuccessMessage.USER_PERMISSION_UPDATED,
-                    callback: () => {
-                        set.status = ResponseSuccessStatus.OK
-                    },
-                    data: response,
-                    path,
+                        return handleResponse({
+                            message: SuccessMessage.USER_PERMISSION_UPDATED,
+                            callback: () => {
+                                set.status = ResponseSuccessStatus.OK
+                            },
+                            data: response,
+                            path,
+                        })
+                    } catch (error) {
+                        console.error(error)
+                        return handleResponse({
+                            message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                            callback: () => {
+                                set.status =
+                                    ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                            },
+                            path,
+                        })
+                    }
                 })
-            } catch (error) {
-                console.error(error)
-                return handleResponse({
-                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                    },
-                    path,
-                })
-            }
         },
         {
             params: "readUserPermissionModel",

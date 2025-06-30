@@ -18,6 +18,7 @@ import {
     readPermissionModel,
     updatePermissionModel,
 } from "../data/permissions.model"
+import { verrou } from "@/utils/services/locks"
 
 export const updatePermission = new Elysia()
     .use(updatePermissionModel)
@@ -92,60 +93,69 @@ export const updatePermission = new Elysia()
             }
 
             // UPDATE PERMISSION
-            try {
-                await db
-                    .update(permissions)
-                    .set({
-                        name: body.name || existingPermission.name,
-                        description:
-                            body.description !== undefined
-                                ? body.description
-                                : existingPermission.description,
-                        updatedAt: new Date(),
-                    })
-                    .where(eq(permissions.id, params.id))
+            await verrou
+                .createLock(`${existingUser.user?.id}:update-permission`)
+                .run(async () => {
+                    try {
+                        await db
+                            .update(permissions)
+                            .set({
+                                name: body.name || existingPermission.name,
+                                description:
+                                    body.description !== undefined
+                                        ? body.description
+                                        : existingPermission.description,
+                                updatedAt: new Date(),
+                            })
+                            .where(eq(permissions.id, params.id))
 
-                const updatedPermission = await db.query.permissions.findFirst({
-                    where: (table, { eq }) => eq(table.id, params.id),
+                        const updatedPermission =
+                            await db.query.permissions.findFirst({
+                                where: (table, { eq }) =>
+                                    eq(table.id, params.id),
+                            })
+
+                        if (!updatedPermission) {
+                            return handleResponse({
+                                message: ErrorMessage.PERMISSION_NOT_FOUND,
+                                callback: () => {
+                                    set.status = ResponseErrorStatus.NOT_FOUND
+                                },
+                                path,
+                            })
+                        }
+
+                        const response = {
+                            id: updatedPermission.id,
+                            name: updatedPermission.name,
+                            description: updatedPermission.description,
+                            createdAt:
+                                updatedPermission.createdAt.toISOString(),
+                            updatedAt:
+                                updatedPermission.updatedAt?.toISOString() ||
+                                null,
+                        }
+
+                        return handleResponse({
+                            message: SuccessMessage.PERMISSION_UPDATED,
+                            callback: () => {
+                                set.status = ResponseSuccessStatus.OK
+                            },
+                            data: response,
+                            path,
+                        })
+                    } catch (error) {
+                        console.error(error)
+                        return handleResponse({
+                            message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                            callback: () => {
+                                set.status =
+                                    ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                            },
+                            path,
+                        })
+                    }
                 })
-
-                if (!updatedPermission) {
-                    return handleResponse({
-                        message: ErrorMessage.PERMISSION_NOT_FOUND,
-                        callback: () => {
-                            set.status = ResponseErrorStatus.NOT_FOUND
-                        },
-                        path,
-                    })
-                }
-
-                const response = {
-                    id: updatedPermission.id,
-                    name: updatedPermission.name,
-                    description: updatedPermission.description,
-                    createdAt: updatedPermission.createdAt.toISOString(),
-                    updatedAt:
-                        updatedPermission.updatedAt?.toISOString() || null,
-                }
-
-                return handleResponse({
-                    message: SuccessMessage.PERMISSION_UPDATED,
-                    callback: () => {
-                        set.status = ResponseSuccessStatus.OK
-                    },
-                    data: response,
-                    path,
-                })
-            } catch (error) {
-                console.error(error)
-                return handleResponse({
-                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                    },
-                    path,
-                })
-            }
         },
         {
             params: "readPermissionModel",

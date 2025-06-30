@@ -16,6 +16,7 @@ import { getUser } from "@/src/general/usecase/get-user"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { eq } from "drizzle-orm"
 import { deletePermissionModel } from "../data/permissions.model"
+import { verrou } from "@/utils/services/locks"
 
 export const deletePermission = new Elysia()
     .use(deletePermissionModel)
@@ -89,31 +90,36 @@ export const deletePermission = new Elysia()
             }
 
             // SOFT DELETE PERMISSION
-            try {
-                await db
-                    .update(permissions)
-                    .set({
-                        deletedAt: new Date(),
-                    })
-                    .where(eq(permissions.id, params.id))
+            await verrou
+                .createLock(`${existingUser.user?.id}:delete-permission`)
+                .run(async () => {
+                    try {
+                        await db
+                            .update(permissions)
+                            .set({
+                                deletedAt: new Date(),
+                            })
+                            .where(eq(permissions.id, params.id))
+                    } catch (error) {
+                        console.error(error)
+                        return handleResponse({
+                            message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                            callback: () => {
+                                set.status =
+                                    ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                            },
+                            path,
+                        })
+                    }
+                })
 
-                return handleResponse({
-                    message: SuccessMessage.PERMISSION_DELETED,
-                    callback: () => {
-                        set.status = ResponseSuccessStatus.OK
-                    },
-                    path,
-                })
-            } catch (error) {
-                console.error(error)
-                return handleResponse({
-                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                    },
-                    path,
-                })
-            }
+            return handleResponse({
+                message: SuccessMessage.PERMISSION_DELETED,
+                callback: () => {
+                    set.status = ResponseSuccessStatus.OK
+                },
+                path,
+            })
         },
         {
             params: "deletePermissionModel",
