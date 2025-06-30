@@ -12,6 +12,7 @@ import {
 import { handleResponse } from "@/utils/handle-response"
 import { basicAuthModel } from "../data/auth.model"
 import { jwtAccessSetup, jwtRefreshSetup } from "../setup/auth"
+import { verrou } from "@/utils/services/locks"
 
 export const logout = new Elysia()
     .use(basicAuthModel)
@@ -75,20 +76,23 @@ export const logout = new Elysia()
             }
 
             // DELETE REFRESH & ACCESS TOKEN FROM REDIS
-            try {
-                await redis.del(`${validToken.id}:refreshToken`)
-                await redis.del(`${validToken.id}:accessToken`)
-            } catch (error) {
-                console.error(error)
-
-                return handleResponse({
-                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                    },
-                    path,
-                })
-            }
+            await verrou.createLock(`${validToken.id}:logout`).run(async () => {
+                // DELETE REFRESH & ACCESS TOKEN FROM REDIS
+                try {
+                    await redis.del(`${validToken.id}:refreshToken`)
+                    await redis.del(`${validToken.id}:accessToken`)
+                } catch (error) {
+                    console.error(error)
+                    return handleResponse({
+                        message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                        callback: () => {
+                            set.status =
+                                ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                        },
+                        path,
+                    })
+                }
+            })
 
             return handleResponse({
                 message: SuccessMessage.LOGOUT_SUCCESS,

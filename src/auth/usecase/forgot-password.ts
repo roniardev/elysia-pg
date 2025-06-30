@@ -17,6 +17,7 @@ import { handleResponse } from "@/utils/handle-response"
 import { forgotPasswordModel } from "../data/auth.model"
 import { jwtEmailSetup } from "../setup/auth"
 import RegexPattern from "@/common/regex-pattern"
+import { verrou } from "@/utils/services/locks"
 
 export const forgotPassword = new Elysia()
     .use(jwtEmailSetup)
@@ -65,40 +66,55 @@ export const forgotPassword = new Elysia()
 
             const hashedToken = await Bun.password.hash(emailToken)
 
-            try {
-                await db.insert(passwordResetTokens).values({
-                    id: ulid(),
-                    userId: String(existingUser.user?.id),
-                    hashedToken,
-                    expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 HOUR,
+            await verrou
+                .createLock(
+                    `${email}:forgot-password:${existingUser.user?.id}:generateToken`,
+                )
+                .run(async () => {
+                    try {
+                        await db.insert(passwordResetTokens).values({
+                            id: ulid(),
+                            userId: String(existingUser.user?.id),
+                            hashedToken,
+                            expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 HOUR,
+                        })
+                    } catch (error) {
+                        console.error(error)
+                        return handleResponse({
+                            message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                            callback: () => {
+                                set.status =
+                                    ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                            },
+                            path,
+                        })
+                    }
                 })
-            } catch (error) {
-                console.error(error)
-                return handleResponse({
-                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                    },
-                    path,
-                })
-            }
 
-            // SEND EMAIL
-            const emailResponse = await sendEmail(
-                email,
-                "Reset your password",
-                resetPasswordTemplate(emailToken),
-            )
-
-            if (!emailResponse) {
-                return handleResponse({
-                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                    },
-                    path,
+            await verrou
+                .createLock(
+                    `${email}:forgot-password:${existingUser.user?.id}:sendEmail`,
+                )
+                .run(async () => {
+                    // SEND EMAIL
+                    try {
+                        await sendEmail(
+                            email,
+                            "Reset your password",
+                            resetPasswordTemplate(emailToken),
+                        )
+                    } catch (error) {
+                        console.error(error)
+                        return handleResponse({
+                            message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                            callback: () => {
+                                set.status =
+                                    ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                            },
+                            path,
+                        })
+                    }
                 })
-            }
 
             return handleResponse({
                 message: SuccessMessage.EMAIL_SENT,

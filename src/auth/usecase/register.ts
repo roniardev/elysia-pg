@@ -6,6 +6,7 @@ import { db } from "@/db"
 import { emailVerificationTokens, users } from "@/db/schema"
 import { getUser } from "@/src/general/usecase/get-user"
 import { sendEmail } from "@/utils/send-email"
+import { verrou } from "@/utils/services/locks"
 
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
 import {
@@ -16,6 +17,7 @@ import { handleResponse } from "@/utils/handle-response"
 import { registerModel } from "../data/auth.model"
 import { jwtAccessSetup } from "../setup/auth"
 import RegexPattern from "@/common/regex-pattern"
+import { config } from "@/app/config"
 
 export const register = new Elysia()
     .use(registerModel)
@@ -63,25 +65,30 @@ export const register = new Elysia()
                 })
             }
 
-            // CREATE USER
-            const hashedPassword = await Bun.password.hash(password)
             const userId = ulid()
-            const user = await db.insert(users).values({
-                id: userId,
-                email,
-                emailVerified: false,
-                hashedPassword,
-            })
 
-            if (!user) {
-                return handleResponse({
-                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                    },
-                    path,
-                })
-            }
+            await verrou.createLock(`${email}:register`).run(async () => {
+                try {
+                    // CREATE USER
+                    const hashedPassword = await Bun.password.hash(password)
+                    await db.insert(users).values({
+                        id: userId,
+                        email,
+                        emailVerified: false,
+                        hashedPassword,
+                    })
+                } catch (error) {
+                    console.error(error)
+                    return handleResponse({
+                        message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                        callback: () => {
+                            set.status =
+                                ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                        },
+                        path,
+                    })
+                }
+            })
 
             const emailToken = await jwtAccess.sign({
                 id: userId,
