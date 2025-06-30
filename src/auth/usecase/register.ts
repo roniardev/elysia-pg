@@ -15,6 +15,7 @@ import {
 import { handleResponse } from "@/utils/handle-response"
 import { registerModel } from "../data/auth.model"
 import { jwtAccessSetup } from "../setup/auth"
+import RegexPattern from "@/common/regex-pattern"
 
 export const register = new Elysia()
     .use(registerModel)
@@ -25,9 +26,7 @@ export const register = new Elysia()
             const path = "auth.register.usecase"
             const { email, password, confirmPassword } = body
 
-            const isValidEmail = email.match(
-                /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-            )
+            const isValidEmail = email.match(RegexPattern.EMAIL)
 
             if (!isValidEmail) {
                 return handleResponse({
