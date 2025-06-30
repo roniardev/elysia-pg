@@ -89,6 +89,8 @@ describe("/register", () => {
 			headers: { "Content-Type": "application/json" },
 		});
 
+		console.log(response)
+
 		const json = (await response.json()) as {
 			status: boolean;
 			message: string;

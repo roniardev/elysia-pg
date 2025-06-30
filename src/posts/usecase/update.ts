@@ -13,7 +13,7 @@ import { getScope } from "@/src/general/usecase/get-scope"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
 import { handleResponse } from "@/utils/handle-response"
 import { verrou } from "@/utils/services/locks"
-
+import { getUser } from "@/src/general/usecase/get-user"
 import { PostPermission } from "@/common/enum/permissions"
 import { Scope } from "@/common/enum/scopes"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
@@ -41,9 +41,11 @@ export const updatePost = new Elysia()
             }
 
             // CHECK EXISTING USER
-            const existingUser = await db.query.users.findFirst({
-                where: (table, { eq }) => {
-                    return eq(table.id, validToken.id)
+            const existingUser = await getUser({
+                identifier: validToken.id,
+                type: "id",
+                condition: {
+                    deleted: false,
                 },
             })
 
@@ -81,7 +83,10 @@ export const updatePost = new Elysia()
                     if (scope === Scope.PERSONAL) {
                         return and(
                             eq(table.id, params.id),
-                            eq(table.userId, validToken.id),
+                            eq(
+                                table.userId,
+                                existingUser.user?.id || validToken.id,
+                            ),
                         )
                     }
                     return eq(table.id, params.id)
@@ -98,14 +103,14 @@ export const updatePost = new Elysia()
                 })
             }
 
-            if (existingPost.userId !== existingUser.id) {
-                    return handleResponse({
-                        message: ErrorMessage.INVALID_USER,
-                        callback: () => {
-                            set.status = ResponseErrorStatus.BAD_REQUEST
-                        },
-                        path,
-                    })
+            if (existingPost.userId !== (existingUser.user?.id || validToken.id)) {
+                return handleResponse({
+                    message: ErrorMessage.INVALID_USER,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
+                })
             }
 
             await verrou

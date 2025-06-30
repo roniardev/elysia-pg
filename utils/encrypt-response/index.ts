@@ -3,7 +3,7 @@ import type { GeneralResponse } from "@/common/model/general-response"
 import { config } from "@/app/config"
 
 export const encryptResponse = (response: GeneralResponse) => {
-    if (config.NODE_ENV === "development") return response
+    if (!config.IS_ENCRYPT_RESPONSE) return response
     if (!response.data) return
     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     const responseData: any = {
