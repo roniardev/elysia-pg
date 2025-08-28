@@ -377,4 +377,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-**Maintained by [@roniardev](https://github.com/roniardev) - Senior Software Engineer specializing in modern web technologies, DevOps automation, and security-first development practices.**
+**Maintained by [@roniardev](https://github.com/roniardev)

@@ -22,3 +22,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 ### Security
 
+## [vv0.0.2]
+
+- chore: bump version to v0.0.2
+## [vv0.0.1]
+
+- chore: bump version to v0.0.1
+## [v0.1.0]
+
+- chore: bump version to v0.1.0
+## [v0.0.3]
+
+- chore: bump version to v0.0.3
