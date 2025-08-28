@@ -62,6 +62,17 @@ help: ## Show this help message
 	@echo "  make status         - Show service status"
 	@echo "  make backup         - Backup database"
 	@echo "  make restore        - Restore database from backup"
+	@echo ""
+	@echo "$(YELLOW)Release Management:$(NC)"
+	@echo "  make release-patch  - Create patch release (0.0.x)"
+	@echo "  make release-minor  - Create minor release (0.x.0)"
+	@echo "  make release-major  - Create major release (x.0.0)"
+	@echo "  make release-custom - Create custom version release"
+	@echo "  make changelog      - Generate changelog from git commits"
+	@echo "  make changelog-preview - Preview changelog without writing"
+	@echo "  make release-notes - Generate release notes for latest version"
+	@echo "  make release-push   - Push release tags to remote"
+	@echo "  make release-clean  - Clean up release artifacts"
 
 # Docker Commands
 .PHONY: build
@@ -225,6 +236,164 @@ setup-prod: build up install ## Setup production environment
 
 .PHONY: full-setup
 full-setup: clean setup-dev db-migrate db-seed ## Full development setup with database
+
+# Release Management Commands
+.PHONY: release-patch
+release-patch: ## Create patch release (0.0.x)
+	@echo "$(GREEN)Creating patch release...$(NC)"
+	@$(eval NEW_VERSION := $(shell npm version patch --no-git-tag-version))
+	@echo "$(BLUE)New version: $(NEW_VERSION)$(NC)"
+	@git add package.json
+	@git commit -m "chore: bump version to $(NEW_VERSION)"
+	@git tag -a v$(NEW_VERSION) -m "Release $(NEW_VERSION)"
+	@echo "$(GREEN)Release tag v$(NEW_VERSION) created successfully!$(NC)"
+	@echo "$(YELLOW)Run 'make changelog' to generate changelog$(NC)"
+
+.PHONY: release-minor
+release-minor: ## Create minor release (0.x.0)
+	@echo "$(GREEN)Creating minor release...$(NC)"
+	@$(eval NEW_VERSION := $(shell npm version minor --no-git-tag-version))
+	@echo "$(BLUE)New version: $(NEW_VERSION)$(NC)"
+	@git add package.json
+	@git commit -m "chore: bump version to $(NEW_VERSION)"
+	@git tag -a v$(NEW_VERSION) -m "Release $(NEW_VERSION)"
+	@echo "$(GREEN)Release tag v$(NEW_VERSION) created successfully!$(NC)"
+	@echo "$(YELLOW)Run 'make changelog' to generate changelog$(NC)"
+
+.PHONY: release-major
+release-major: ## Create major release (x.0.0)
+	@echo "$(RED)Creating major release...$(NC)"
+	@echo "$(YELLOW)Warning: Major releases may include breaking changes!$(NC)"
+	@$(eval NEW_VERSION := $(shell npm version major --no-git-tag-version))
+	@echo "$(BLUE)New version: $(NEW_VERSION)$(NC)"
+	@git add package.json
+	@git commit -m "chore: bump version to $(NEW_VERSION)"
+	@git tag -a v$(NEW_VERSION) -m "Release $(NEW_VERSION)"
+	@echo "$(GREEN)Release tag v$(NEW_VERSION) created successfully!$(NC)"
+	@echo "$(YELLOW)Run 'make changelog' to generate changelog$(NC)"
+
+.PHONY: release-custom
+release-custom: ## Create custom version release
+	@echo "$(YELLOW)Enter version number (e.g., 1.2.3):$(NC)"
+	@read -p "Version: " version; \
+	npm version $$version --no-git-tag-version; \
+	git add package.json; \
+	git commit -m "chore: bump version to $$version"; \
+	git tag -a v$$version -m "Release $$version"; \
+	echo "$(GREEN)Release tag v$$version created successfully!$(NC)"; \
+	echo "$(YELLOW)Run 'make changelog' to generate changelog$(NC)"
+
+.PHONY: changelog
+changelog: ## Generate changelog from git commits
+	@echo "$(GREEN)Generating changelog...$(NC)"
+	@mkdir -p docs
+	@echo "# Changelog" > docs/CHANGELOG.md
+	@echo "" >> docs/CHANGELOG.md
+	@echo "All notable changes to this project will be documented in this file." >> docs/CHANGELOG.md
+	@echo "" >> docs/CHANGELOG.md
+	@echo "The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)," >> docs/CHANGELOG.md
+	@echo "and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)." >> docs/CHANGELOG.md
+	@echo "" >> docs/CHANGELOG.md
+	@echo "## [Unreleased]" >> docs/CHANGELOG.md
+	@echo "" >> docs/CHANGELOG.md
+	@echo "### Added" >> docs/CHANGELOG.md
+	@echo "- Initial project setup" >> docs/CHANGELOG.md
+	@echo "- Docker containerization" >> docs/CHANGELOG.md
+	@echo "- Database migrations with Drizzle ORM" >> docs/CHANGELOG.md
+	@echo "- User authentication system" >> docs/CHANGELOG.md
+	@echo "- Permission management system" >> docs/CHANGELOG.md
+	@echo "- Comprehensive Makefile automation" >> docs/CHANGELOG.md
+	@echo "- Release management and changelog generation" >> docs/CHANGELOG.md
+	@echo "" >> docs/CHANGELOG.md
+	@echo "### Changed" >> docs/CHANGELOG.md
+	@echo "### Deprecated" >> docs/CHANGELOG.md
+	@echo "### Removed" >> docs/CHANGELOG.md
+	@echo "### Fixed" >> docs/CHANGELOG.md
+	@echo "### Security" >> docs/CHANGELOG.md
+	@echo "" >> docs/CHANGELOG.md
+	@if [ "$$(git tag --sort=-version:refname | wc -l)" -gt 0 ]; then \
+		git tag --sort=-version:refname | head -20 | while read tag; do \
+			if [ "$$tag" != "" ]; then \
+				echo "## [$$tag]" >> docs/CHANGELOG.md; \
+				echo "" >> docs/CHANGELOG.md; \
+				git log --pretty=format:"- %s" $$tag^..$$tag >> docs/CHANGELOG.md; \
+				echo "" >> docs/CHANGELOG.md; \
+			fi; \
+		done; \
+	else \
+		echo "$(YELLOW)No git tags found. Initial changelog created with unreleased changes.$(NC)"; \
+		echo "$(YELLOW)Create your first release with: make release-patch$(NC)"; \
+	fi
+	@echo "$(GREEN)Changelog generated at docs/CHANGELOG.md$(NC)"
+
+.PHONY: changelog-preview
+changelog-preview: ## Preview changelog without writing to file
+	@echo "$(BLUE)Preview of changelog generation:$(NC)"
+	@echo ""
+	@echo "## [Unreleased]"
+	@echo ""
+	@echo "### Added"
+	@echo "- Initial project setup"
+	@echo "- Docker containerization"
+	@echo "- Database migrations with Drizzle ORM"
+	@echo "- User authentication system"
+	@echo "- Permission management system"
+	@echo "- Comprehensive Makefile automation"
+	@echo "- Release management and changelog generation"
+	@echo ""
+	@echo "### Changed"
+	@echo "### Deprecated"
+	@echo "### Removed"
+	@echo "### Fixed"
+	@echo "### Security"
+	@echo ""
+	@if [ "$$(git tag --sort=-version:refname | wc -l)" -gt 0 ]; then \
+		git tag --sort=-version:refname | head -10 | while read tag; do \
+			if [ "$$tag" != "" ]; then \
+				echo "## [$$tag]"; \
+				echo ""; \
+				git log --pretty=format:"- %s" $$tag^..$$tag; \
+				echo ""; \
+			fi; \
+		done; \
+	else \
+		echo "$(YELLOW)No git tags found. This preview shows initial changelog structure.$(NC)"; \
+		echo "$(YELLOW)Create your first release with: make release-patch$(NC)"; \
+	fi
+
+.PHONY: release-notes
+release-notes: ## Generate release notes for the latest version
+	@echo "$(GREEN)Generating release notes for latest version...$(NC)"
+	@$(eval LATEST_TAG := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "No tags found"))
+	@if [ "$(LATEST_TAG)" != "No tags found" ]; then \
+		echo "# Release Notes - $(LATEST_TAG)" > docs/RELEASE_NOTES_$(LATEST_TAG).md; \
+		echo "" >> docs/RELEASE_NOTES_$(LATEST_TAG).md; \
+		echo "Release Date: $$(date +%Y-%m-%d)" >> docs/RELEASE_NOTES_$(LATEST_TAG).md; \
+		echo "" >> docs/RELEASE_NOTES_$(LATEST_TAG).md; \
+		echo "## Changes" >> docs/RELEASE_NOTES_$(LATEST_TAG).md; \
+		echo "" >> docs/RELEASE_NOTES_$(LATEST_TAG).md; \
+		git log --pretty=format:"- %s" $(LATEST_TAG)^..$(LATEST_TAG) >> docs/RELEASE_NOTES_$(LATEST_TAG).md; \
+		echo "$(GREEN)Release notes generated at docs/RELEASE_NOTES_$(LATEST_TAG).md$(NC)"; \
+	else \
+		echo "$(RED)No tags found. Create a release first with make release-patch/minor/major$(NC)"; \
+		echo "$(YELLOW)Available commands:$(NC)"; \
+		echo "  make release-patch  - Create patch release (0.0.x)"; \
+		echo "  make release-minor  - Create minor release (0.x.0)"; \
+		echo "  make release-major  - Create major release (x.0.0)"; \
+	fi
+
+.PHONY: release-push
+release-push: ## Push release tags to remote repository
+	@echo "$(GREEN)Pushing release tags to remote...$(NC)"
+	@git push --tags
+	@git push origin main
+	@echo "$(GREEN)Release tags pushed successfully!$(NC)"
+
+.PHONY: release-clean
+release-clean: ## Clean up release artifacts
+	@echo "$(YELLOW)Cleaning up release artifacts...$(NC)"
+	@rm -f docs/RELEASE_NOTES_*.md
+	@echo "$(GREEN)Release artifacts cleaned up!$(NC)"
 
 # Monitoring and debugging
 .PHONY: monitor
