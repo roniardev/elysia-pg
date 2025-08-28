@@ -12,6 +12,10 @@ import { users } from "@/src/users"
 import { permissions } from "@/src/permissions"
 import logger from "@/utils/logger"
 import { encryptResponse } from "@/utils/encrypt-response"
+import { opentelemetry } from '@elysiajs/opentelemetry'
+
+import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-node'
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
 
     export const app = new Elysia({
         serve: {
@@ -20,6 +24,21 @@ import { encryptResponse } from "@/utils/encrypt-response"
             development: config.NODE_ENV === "development",
         },
     })
+        .use(
+    		opentelemetry({
+    			spanProcessors: [
+    				new BatchSpanProcessor(
+    					new OTLPTraceExporter({
+                            url: 'https://api.axiom.co/v1/traces',
+                            headers: {
+                                Authorization: `Bearer xaat-17a69791-efa0-4aa0-a14d-48ddf6fc1648`,
+                                'X-Axiom-Dataset': 'elysia_pg'
+                            }
+                        })
+    				)
+    			]
+    		})
+    	)
         .use(Logestic.preset("fancy"))
         .use(swagger())
         .use(
