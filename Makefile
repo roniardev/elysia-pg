@@ -242,22 +242,24 @@ full-setup: clean setup-dev db-migrate db-seed ## Full development setup with da
 release-patch: ## Create patch release (0.0.x)
 	@echo "$(GREEN)Creating patch release...$(NC)"
 	@$(eval NEW_VERSION := $(shell npm version patch --no-git-tag-version))
+	@$(eval VERSION_NUMBER := $(subst v,,$(NEW_VERSION)))
 	@echo "$(BLUE)New version: $(NEW_VERSION)$(NC)"
 	@git add package.json
 	@git commit -m "chore: bump version to $(NEW_VERSION)"
-	@git tag -a v$(NEW_VERSION) -m "Release $(NEW_VERSION)"
-	@echo "$(GREEN)Release tag v$(NEW_VERSION) created successfully!$(NC)"
+	@git tag -a v$(VERSION_NUMBER) -m "Release v$(VERSION_NUMBER)"
+	@echo "$(GREEN)Release tag v$(VERSION_NUMBER) created successfully!$(NC)"
 	@echo "$(YELLOW)Run 'make changelog' to generate changelog$(NC)"
 
 .PHONY: release-minor
 release-minor: ## Create minor release (0.x.0)
 	@echo "$(GREEN)Creating minor release...$(NC)"
 	@$(eval NEW_VERSION := $(shell npm version minor --no-git-tag-version))
+	@$(eval VERSION_NUMBER := $(subst v,,$(NEW_VERSION)))
 	@echo "$(BLUE)New version: $(NEW_VERSION)$(NC)"
 	@git add package.json
 	@git commit -m "chore: bump version to $(NEW_VERSION)"
-	@git tag -a v$(NEW_VERSION) -m "Release $(NEW_VERSION)"
-	@echo "$(GREEN)Release tag v$(NEW_VERSION) created successfully!$(NC)"
+	@git tag -a v$(VERSION_NUMBER) -m "Release v$(VERSION_NUMBER)"
+	@echo "$(GREEN)Release tag v$(VERSION_NUMBER) created successfully!$(NC)"
 	@echo "$(YELLOW)Run 'make changelog' to generate changelog$(NC)"
 
 .PHONY: release-major
@@ -265,10 +267,11 @@ release-major: ## Create major release (x.0.0)
 	@echo "$(RED)Creating major release...$(NC)"
 	@echo "$(YELLOW)Warning: Major releases may include breaking changes!$(NC)"
 	@$(eval NEW_VERSION := $(shell npm version major --no-git-tag-version))
+	@$(eval VERSION_NUMBER := $(subst v,,$(NEW_VERSION)))
 	@echo "$(BLUE)New version: $(NEW_VERSION)$(NC)"
 	@git add package.json
 	@git commit -m "chore: bump version to $(NEW_VERSION)"
-	@git tag -a v$(NEW_VERSION) -m "Release $(NEW_VERSION)"
+	@git tag -a v$(VERSION_NUMBER) -m "Release v$(VERSION_NUMBER)"
 	@echo "$(GREEN)Release tag v$(NEW_VERSION) created successfully!$(NC)"
 	@echo "$(YELLOW)Run 'make changelog' to generate changelog$(NC)"
 
@@ -279,7 +282,7 @@ release-custom: ## Create custom version release
 	npm version $$version --no-git-tag-version; \
 	git add package.json; \
 	git commit -m "chore: bump version to $$version"; \
-	git tag -a v$$version -m "Release $$version"; \
+	git tag -a v$$version -m "Release v$$version"; \
 	echo "$(GREEN)Release tag v$$version created successfully!$(NC)"; \
 	echo "$(YELLOW)Run 'make changelog' to generate changelog$(NC)"
 
