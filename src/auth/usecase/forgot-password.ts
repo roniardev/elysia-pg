@@ -32,7 +32,7 @@ export const forgotPassword = new Elysia()
 
             if (!isValidEmail) {
                 return handleResponse({
-                    message: ErrorMessage.INVALID_EMAIL,
+                    message: ErrorMessage.INVALID_CREDENTIALS,
                     callback: () => {
                         set.status = ResponseErrorStatus.BAD_REQUEST
                     },

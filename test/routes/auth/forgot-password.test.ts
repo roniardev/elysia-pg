@@ -47,7 +47,7 @@ describe("/forgot-password", () => {
 		};
 
 		expect(json.status).toBe(false);
-		expect(json.message).toBe(ErrorMessage.INVALID_EMAIL);
+		expect(json.message).toBe(ErrorMessage.INVALID_CREDENTIALS);
 	});
 
 	it("return a Email sent successfully", async () => {
