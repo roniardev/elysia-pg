@@ -66,6 +66,17 @@ export const updatePost = new Elysia()
             }
 
             const scope = await getScope(permission)
+            const organizationId = validToken.organizationId
+
+            if (!organizationId) {
+                return handleResponse({
+                    message: "Organization context required",
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
+                })
+            }
 
             if (!existingUser) {
                 return handleResponse({
@@ -80,16 +91,21 @@ export const updatePost = new Elysia()
             // CHECK EXISTING POST
             const existingPost = await db.query.posts.findFirst({
                 where: (table, { eq, and }) => {
+                    const conditions = [
+                        eq(table.id, params.id),
+                        eq(table.organizationId, organizationId),
+                    ]
+
                     if (scope === Scope.PERSONAL) {
-                        return and(
-                            eq(table.id, params.id),
+                        conditions.push(
                             eq(
                                 table.userId,
                                 existingUser.user?.id || validToken.id,
                             ),
                         )
                     }
-                    return eq(table.id, params.id)
+
+                    return and(...conditions)
                 },
             })
 

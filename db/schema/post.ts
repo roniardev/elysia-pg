@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm"
 import { index, text, timestamp, varchar, pgTable } from "drizzle-orm/pg-core"
 
 import { users } from "./user"
+import { organizations } from "./organization"
 
 export const posts = pgTable(
 	"posts",
@@ -10,6 +11,9 @@ export const posts = pgTable(
 		userId: varchar("user_id", { length: 26 })
 			.notNull()
 			.references(() => users.id),
+		organizationId: varchar("organization_id", { length: 26 })
+			.notNull()
+			.references(() => organizations.id),
 		title: varchar("title", { length: 255 }).notNull(),
 		excerpt: varchar("excerpt", { length: 255 }).notNull(),
 		content: text("content").notNull(),
@@ -31,6 +35,7 @@ export const posts = pgTable(
 	},
 	(t) => [
 		index("post_user_idx").on(t.userId),
+		index("post_org_idx").on(t.organizationId),
 		index("post_created_at_idx").on(t.createdAt),
 	],
 )
@@ -42,5 +47,9 @@ export const postRelations = relations(posts, ({ one }) => ({
 	user: one(users, {
 		fields: [posts.userId],
 		references: [users.id],
+	}),
+	organization: one(organizations, {
+		fields: [posts.organizationId],
+		references: [organizations.id],
 	}),
 }))

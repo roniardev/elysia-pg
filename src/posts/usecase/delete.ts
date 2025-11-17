@@ -56,12 +56,24 @@ export const deletePost = new Elysia()
             }
 
             const scope = await getScope(permission)
+            const organizationId = validToken.organizationId
+
+            if (!organizationId) {
+                return handleResponse({
+                    message: "Organization context required",
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
+                })
+            }
 
             // CHECK EXISTING POST
             const existingPost = await db.query.posts.findFirst({
                 where: (table, { eq, and }) => {
                     return and(
                         eq(table.id, params.id),
+                        eq(table.organizationId, organizationId),
                         eq(table.userId, validToken.id),
                     )
                 },

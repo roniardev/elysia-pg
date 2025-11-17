@@ -1,5 +1,6 @@
 import { and, eq, isNull } from "drizzle-orm"
 import { Elysia } from "elysia"
+import { ulid } from "ulid"
 
 import dayjs from "dayjs"
 
@@ -13,6 +14,8 @@ import {
     ResponseErrorStatus,
     ResponseSuccessStatus,
 } from "@/common/enum/response-status"
+import { db } from "@/db"
+import { organizations, userOrganizations } from "@/db/schema"
 import { getUser } from "@/src/general/usecase/get-user"
 import { handleResponse } from "@/utils/handle-response"
 import { basicAuthModel } from "../data/auth.model"
@@ -103,14 +106,45 @@ export const login = new Elysia()
                 })
             }
 
+            // GET OR CREATE DEFAULT ORGANIZATION
+            const userOrgs = await db
+                .select()
+                .from(userOrganizations)
+                .where(eq(userOrganizations.userId, existingUser.user?.id))
+                .limit(1)
+
+            let organizationId = userOrgs[0]?.organizationId
+
+            if (!organizationId) {
+                const newOrgId = ulid()
+                const slug = `${existingUser.user?.email.split("@")[0]}-${newOrgId.slice(-6)}`
+
+                await db.insert(organizations).values({
+                    id: newOrgId,
+                    name: `${existingUser.user?.email}'s Organization`,
+                    slug: slug,
+                    ownerId: existingUser.user?.id,
+                })
+
+                await db.insert(userOrganizations).values({
+                    userId: existingUser.user?.id,
+                    organizationId: newOrgId,
+                    role: "owner",
+                })
+
+                organizationId = newOrgId
+            }
+
             // GENERATE REFRESH TOKEN & ACCESS TOKEN
             const refreshToken = await jwtRefresh.sign({
                 id: existingUser.user?.id,
+                organizationId: organizationId,
                 exp: ExpiredTime.getExpiredRefreshToken(),
             })
 
             const accessToken = await jwtAccess.sign({
                 id: String(existingUser.user?.id),
+                organizationId: organizationId,
                 exp: dayjs().unix() + config.ACCESS_TOKEN_EXPIRE_TIME,
             })
 

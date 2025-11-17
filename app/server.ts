@@ -10,6 +10,7 @@ import { posts } from "@/src/posts"
 import { auth } from "@/src/auth"
 import { users } from "@/src/users"
 import { permissions } from "@/src/permissions"
+import { organizations } from "@/src/organizations"
 import logger from "@/utils/logger"
 import { encryptResponse } from "@/utils/encrypt-response"
 import { opentelemetry } from '@elysiajs/opentelemetry'
@@ -94,5 +95,6 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
         .use(posts)
         .use(users)
         .use(permissions)
+        .use(organizations)
 
 export type ElysiaApp = typeof app

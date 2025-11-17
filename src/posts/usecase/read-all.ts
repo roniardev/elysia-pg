@@ -79,29 +79,43 @@ export const readAllPost = new Elysia()
             }
 
             // GET ALL POSTS
+            const organizationId = validToken.organizationId
+
+            if (!organizationId) {
+                return handleResponse({
+                    message: "Organization context required",
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
+                })
+            }
+
             const postsRes = await db.query.posts.findMany({
                 where: (table, { eq, like, and }) => {
+                    const conditions = [eq(table.organizationId, organizationId)]
+
                     if (scope === Scope.PERSONAL) {
-                        return and(
+                        conditions.push(
                             eq(
                                 table.userId,
                                 existingUser.user?.id || validToken.id,
                             ),
-                            search
-                                ? like(table.title, `%${search}%`)
-                                : undefined,
                         )
                     }
 
-                    return search ? like(table.title, `%${search}%`) : undefined
+                    if (search) {
+                        conditions.push(like(table.title, `%${search}%`))
+                    }
+
+                    return and(...conditions)
                 },
                 limit: Number(limit),
                 offset: (Number(page) - 1) * Number(limit),
                 orderBy: (table, { desc: descFn, asc: ascFn }) => {
-                    if (sort === Sorting.ASC) {
-                        return ascFn(table.createdAt)
-                    }
-                    return descFn(table.createdAt)
+                    return sort === Sorting.ASC
+                        ? ascFn(table.createdAt)
+                        : descFn(table.createdAt)
                 },
                 with: {
                     user: {
@@ -113,10 +127,12 @@ export const readAllPost = new Elysia()
             })
 
             // Get total count based on scope and search
-            const whereConditions = []
+            const whereConditions = [eq(posts.organizationId, organizationId)]
+
             if (scope === Scope.PERSONAL) {
                 whereConditions.push(eq(posts.userId, existingUser.user.id))
             }
+
             if (search) {
                 whereConditions.push(like(posts.title, `%${search}%`))
             }
@@ -124,11 +140,7 @@ export const readAllPost = new Elysia()
             const totalAllData = await db
                 .select({ count: sql<number>`count(*)` })
                 .from(posts)
-                .where(
-                    whereConditions.length > 0
-                        ? and(...whereConditions)
-                        : undefined,
-                )
+                .where(and(...whereConditions))
 
             const total = Number(totalAllData[0]?.count || 0)
             const totalPage = Math.ceil(total / Number(limit))

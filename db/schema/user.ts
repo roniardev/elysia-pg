@@ -8,6 +8,7 @@ import {
 } from "drizzle-orm/pg-core"
 
 import { userPermissions } from "./user-permissions"
+import { userOrganizations } from "./user-organizations"
 
 export const users = pgTable(
 	"users",
@@ -31,4 +32,5 @@ export type NewUser = typeof users.$inferInsert
 
 export const userRelations = relations(users, ({ many }) => ({
 	permissions: many(userPermissions),
+	organizations: many(userOrganizations),
 }))

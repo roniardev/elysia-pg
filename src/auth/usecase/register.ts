@@ -3,7 +3,7 @@ import { ulid } from "ulid"
 
 import { verifyEmailTemplate } from "@/common/email-templates/verify-email"
 import { db } from "@/db"
-import { emailVerificationTokens, users } from "@/db/schema"
+import { emailVerificationTokens, users, organizations, userOrganizations } from "@/db/schema"
 import { getUser } from "@/src/general/usecase/get-user"
 import { sendEmail } from "@/utils/send-email"
 import { verrou } from "@/utils/services/locks"
@@ -66,6 +66,7 @@ export const register = new Elysia()
             }
 
             const userId = ulid()
+            const organizationId = ulid()
 
             await verrou.createLock(`${email}:register`).run(async () => {
                 try {
@@ -76,6 +77,21 @@ export const register = new Elysia()
                         email,
                         emailVerified: false,
                         hashedPassword,
+                    })
+
+                    // CREATE DEFAULT ORGANIZATION
+                    const slug = `${email.split("@")[0]}-${organizationId.slice(-6)}`
+                    await db.insert(organizations).values({
+                        id: organizationId,
+                        name: `${email}'s Organization`,
+                        slug: slug,
+                        ownerId: userId,
+                    })
+
+                    await db.insert(userOrganizations).values({
+                        userId: userId,
+                        organizationId: organizationId,
+                        role: "owner",
                     })
                 } catch (error) {
                     console.error(error)

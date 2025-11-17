@@ -29,3 +29,13 @@ export enum ManageUserPermission {
 	UPDATE_USER_PERMISSION = "update:user-permission",
 	DELETE_USER_PERMISSION = "delete:user-permission",
 }
+
+export enum OrganizationPermission {
+	CREATE_ORGANIZATION = "create:organization",
+	READ_ORGANIZATION = "read:organization",
+	READ_ALL_ORGANIZATION = "read-all:organization",
+	UPDATE_ORGANIZATION = "update:organization",
+	DELETE_ORGANIZATION = "delete:organization",
+	SWITCH_ORGANIZATION = "switch:organization",
+	MANAGE_MEMBERS = "manage:members",
+}

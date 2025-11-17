@@ -73,11 +73,23 @@ export const createPost = new Elysia()
 
             // CREATE POST
             const postId = ulid()
+            const organizationId = validToken.organizationId
+
+            if (!organizationId) {
+                return handleResponse({
+                    message: "Organization context required",
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
+                })
+            }
 
             try {
                 await db.insert(posts).values({
                     id: postId,
                     userId: existingUser.user?.id,
+                    organizationId: organizationId,
                     title: body.title,
                     excerpt: body.excerpt,
                     content: body.content,

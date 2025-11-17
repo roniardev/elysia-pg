@@ -54,18 +54,31 @@ export const readPost = new Elysia()
             }
 
             const scope = await getScope(permission)
+            const organizationId = validToken.organizationId
+
+            if (!organizationId) {
+                return handleResponse({
+                    message: "Organization context required",
+                    callback: () => {
+                        set.status = ResponseErrorStatus.BAD_REQUEST
+                    },
+                    path,
+                })
+            }
 
             // READ POST
             const post = await db.query.posts.findFirst({
                 where: (table, { eq, and }) => {
+                    const conditions = [
+                        eq(table.id, params.id),
+                        eq(table.organizationId, organizationId),
+                    ]
+
                     if (scope === Scope.PERSONAL) {
-                        return and(
-                            eq(table.id, params.id),
-                            eq(table.userId, validToken.id),
-                        )
+                        conditions.push(eq(table.userId, validToken.id))
                     }
 
-                    return eq(table.id, params.id)
+                    return and(...conditions)
                 },
             })
 
@@ -79,21 +92,7 @@ export const readPost = new Elysia()
                 })
             }
 
-            const readPost = await db.query.posts.findFirst({
-                where: (table, { eq }) => {
-                    return eq(table.id, params.id)
-                },
-            })
-
-            if (!readPost) {
-                return handleResponse({
-                    message: ErrorMessage.FAILED_TO_READ_POST,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.BAD_REQUEST
-                    },
-                    path,
-                })
-            }
+            const readPost = post
 
             return handleResponse({
                 message: SuccessMessage.POST_READ,

@@ -39,11 +39,13 @@ export const regenerateAccessToken = new Elysia()
 
             const refreshToken = await jwtRefresh.sign({
                 id: validToken.id,
+                organizationId: validToken.organizationId,
                 exp: dayjs().unix() + config.REFRESH_TOKEN_EXPIRE_TIME,
             })
 
             const accessToken = await jwtAccess.sign({
                 id: String(validToken.id),
+                organizationId: validToken.organizationId,
                 exp: dayjs().unix() + config.ACCESS_TOKEN_EXPIRE_TIME,
             })
 
