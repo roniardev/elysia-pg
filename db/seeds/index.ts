@@ -4,10 +4,13 @@ import { runPermissionsSeed } from "./permission"
 import { runUserPermissionsSeed } from "./user-permissions"
 import { runScopesSeed } from "./scope"
 import { runScopeUserPermissionsSeed } from "./scope-user-permissions"
+import { runOrganizationsSeed } from "./organization"
+
 const tasks = [
 	runUsersSeed,
 	runPermissionsSeed,
 	runUserPermissionsSeed,
+	runOrganizationsSeed,
 	runPostsSeed,
 	runScopesSeed,
 	runScopeUserPermissionsSeed,

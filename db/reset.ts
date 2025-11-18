@@ -8,6 +8,8 @@ import {
 	users,
 	scopes,
 	scopeUserPermissions,
+	userOrganizations,
+	organizations,
 } from "./schema"
 import { getTableName } from "drizzle-orm"
 
@@ -17,6 +19,8 @@ const tables = [
 	userPermissions,
 	permissions,
 	posts,
+	userOrganizations,
+	organizations,
 	emailVerificationTokens,
 	passwordResetTokens,
 	users,

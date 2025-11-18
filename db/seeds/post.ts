@@ -15,10 +15,13 @@ export async function runPostsSeed() {
 	const start = Date.now()
 	const data: (typeof schema.posts.$inferInsert)[] = []
 
+	const organizations = ["01JM71ORG1SHAW7YGS6SWQC2H", "01JM71ORG2SHAW7YGS6SWQC2H", "01JM71ORG3SHAW7YGS6SWQC2H"]
+
 	for (let i = 0; i < 8; i++) {
 		data.push({
 			title: faker.lorem.sentence(10),
 			userId: "01JM71SE4S1SHAW7YGS6SWQC2H",
+			organizationId: faker.helpers.arrayElement(organizations),
 			id: ulid(),
 			status: faker.helpers.arrayElement(["draft", "published"]),
 			tags: "random",
