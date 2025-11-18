@@ -1,7 +1,7 @@
 services:
   postgres:
     container_name: elysia-pg-dev
-    image: postgres:latest
+    image: postgres:18-alpine
     restart: unless-stopped
     environment:
       - POSTGRES_USER=elysia-pg-dev
