@@ -141,6 +141,13 @@
       "when": 1741500054389,
       "tag": "0019_workable_squadron_sinister",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1763434073804,
+      "tag": "0020_white_zuras",
+      "breakpoints": true
     }
   ]
 }
