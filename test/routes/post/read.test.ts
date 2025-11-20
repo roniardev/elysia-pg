@@ -1,22 +1,14 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { db } from "@/db";
-import { permissions, posts, userPermissions, users } from "@/db/schema";
-import { and, eq } from "drizzle-orm";
-import { redis } from "@/utils/services/redis";
+import { posts } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
 import { config } from "@/app/config";
 import { ulid } from "ulid";
 import { decryptResponse } from "@/utils/decrypt-response";
+import { createTestUser, cleanupTestUser, loginTestUser } from "@/test/helpers/test-setup";
 
 const API_URL = `${config.API_URL}:${config.PORT}`;
-
-interface LoginResponse {
-    status: boolean;
-    message: string;
-    data: {
-        accessToken: string;
-    };
-}
 
 interface ErrorResponse {
     status: boolean;
@@ -41,7 +33,8 @@ interface ReadPostResponse {
 describe("/post/:id", () => {
     let accessToken: string;
     let postId: string;
-    const userId = "1";
+    let userId: string;
+    let organizationId: string;
     const postData = {
         title: "Test Post",
         excerpt: "Test Excerpt",
@@ -52,50 +45,33 @@ describe("/post/:id", () => {
     };
 
     beforeAll(async () => {
-        // Create a test user
-        await db.insert(users).values({
-            id: userId,
-            email: "test@test.com",
-            hashedPassword: await Bun.password.hash("password"),
-            emailVerified: true,
-        });
-
-        // First ensure the permission exists
+        // Create test user with read:post permission
         const readPermission = await db.query.permissions.findFirst({
             where: (table, { eq }) => eq(table.name, "read:post")
         });
-        
+
         if (!readPermission) {
             throw new Error("Read permission not found in database");
         }
 
-        // Create user permission
-        await db.insert(userPermissions).values({
-            id: ulid(),
-            userId: userId,
-            permissionId: readPermission.id,
+        const testUser = await createTestUser({
+            permissionIds: [readPermission.id],
         });
+
+        userId = testUser.userId;
+        organizationId = testUser.organizationId;
 
         // Create a test post
         postId = ulid();
         await db.insert(posts).values({
             id: postId,
             userId: userId,
+            organizationId: organizationId,
             ...postData
         });
 
         // Login to get access token
-        const loginResponse = await fetch(`${API_URL}/login`, {
-            method: "POST",
-            body: JSON.stringify({
-                email: "test@test.com",
-                password: "password",
-            }),
-            headers: { "Content-Type": "application/json" },
-        });
-
-        const loginJson = (await loginResponse.json()) as LoginResponse;
-        accessToken = loginJson.data.accessToken;
+        accessToken = await loginTestUser(testUser.email, testUser.password, API_URL);
     });
 
     it("should return unauthorized when no token provided", async () => {
@@ -112,7 +88,7 @@ describe("/post/:id", () => {
         const invalidPostId = ulid();
         const response = await fetch(`${API_URL}/post/${invalidPostId}`, {
             method: "GET",
-            headers: { 
+            headers: {
                 "Authorization": `Bearer ${accessToken}`
             },
         });
@@ -125,7 +101,7 @@ describe("/post/:id", () => {
     it("should read post successfully", async () => {
         const response = await fetch(`${API_URL}/post/${postId}`, {
             method: "GET",
-            headers: { 
+            headers: {
                 "Authorization": `Bearer ${accessToken}`
             },
         });
@@ -142,23 +118,7 @@ describe("/post/:id", () => {
 
     afterAll(async () => {
         // Clean up test data
-        await redis.del(`${userId}:refreshToken`);
-        await redis.del(`${userId}:accessToken`);
-        
-        const readPermission = await db.query.permissions.findFirst({
-            where: (table, { eq }) => eq(table.name, "read:post")
-        });
-        
-        if (readPermission) {
-            await db.delete(userPermissions).where(
-                and(
-                    eq(userPermissions.userId, userId),
-                    eq(userPermissions.permissionId, readPermission.id)
-                )
-            );
-        }
-        
         await db.delete(posts).where(eq(posts.id, postId));
-        await db.delete(users).where(eq(users.id, userId));
+        await cleanupTestUser(userId, organizationId);
     });
-}); 
+});
