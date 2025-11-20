@@ -23,6 +23,11 @@ export async function runScopesSeed() {
 			description: "Personal scope",
 		},
 		{
+			id: "01JMBBHZS7ORG000000000000",
+			name: "organization",
+			description: "Organization scope",
+		},
+		{
 			id: "01JMBBHZS7Q3BW2DS33P97Z0RA",
 			name: "super-admin",
 			description: "Super admin scope",

@@ -58,7 +58,7 @@ export const deletePost = new Elysia()
             const scope = await getScope(permission)
             const organizationId = validToken.organizationId
 
-            if (!organizationId) {
+            if (!organizationId && scope !== Scope.GLOBAL && scope !== Scope.SUPER_ADMIN) {
                 return handleResponse({
                     message: "Organization context required",
                     callback: () => {
@@ -71,11 +71,20 @@ export const deletePost = new Elysia()
             // CHECK EXISTING POST
             const existingPost = await db.query.posts.findFirst({
                 where: (table, { eq, and }) => {
-                    return and(
-                        eq(table.id, params.id),
-                        eq(table.organizationId, organizationId),
-                        eq(table.userId, validToken.id),
-                    )
+                    const conditions = [eq(table.id, params.id)]
+
+                    if (scope === Scope.PERSONAL) {
+                        conditions.push(eq(table.userId, validToken.id))
+                        if (organizationId) {
+                            conditions.push(eq(table.organizationId, organizationId))
+                        }
+                    }
+
+                    if (scope === Scope.ORGANIZATION && organizationId) {
+                        conditions.push(eq(table.organizationId, organizationId))
+                    }
+
+                    return and(...conditions)
                 },
             })
 
@@ -89,7 +98,7 @@ export const deletePost = new Elysia()
                 })
             }
 
-            if (existingPost.userId !== validToken.id) {
+            if (scope === Scope.PERSONAL && existingPost.userId !== validToken.id) {
                 return handleResponse({
                     message: ErrorMessage.UNAUTHORIZED,
                     callback: () => {
