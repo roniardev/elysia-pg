@@ -1,11 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { db } from "@/db";
-import { permissions, posts, userPermissions, users } from "@/db/schema";
-import { and, eq } from "drizzle-orm";
-import { redis } from "@/utils/services/redis";
+import { posts } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
 import { config } from "@/app/config";
 import { ulid } from "ulid";
+import { createTestUser, cleanupTestUser, loginTestUser } from "@/test/helpers/test-setup";
 
 const API_URL = `${config.API_URL}:${config.PORT}`;
 
@@ -30,28 +30,32 @@ interface DeletePostResponse {
 describe("/post/:id", () => {
     let accessToken: string;
     let postId: string;
-    const userId = "1";
+    let userId: string;
+    let organizationId: string;
 
     beforeAll(async () => {
-        // Create a test user
-        await db.insert(users).values({
-            id: userId,
-            email: "test@test.com",
-            hashedPassword: await Bun.password.hash("password"),
-            emailVerified: true,
+        // Create test user with delete:post permission
+        const deletePermission = await db.query.permissions.findFirst({
+            where: (table, { eq }) => eq(table.name, "delete:post")
         });
 
-        await db.insert(userPermissions).values({
-            id: ulid(),
-            userId: userId,
-            permissionId: "01JM71SE4TD9GTGVBZ6TK8GE6A",
+        if (!deletePermission) {
+            throw new Error("Delete permission not found in database");
+        }
+
+        const testUser = await createTestUser({
+            permissionIds: [deletePermission.id],
         });
+
+        userId = testUser.userId;
+        organizationId = testUser.organizationId;
 
         // Create a test post
         postId = ulid();
         await db.insert(posts).values({
             id: postId,
             userId: userId,
+            organizationId: organizationId,
             title: "Test Post",
             excerpt: "Test Excerpt",
             content: "Test Content",
@@ -61,17 +65,7 @@ describe("/post/:id", () => {
         });
 
         // Login to get access token
-        const loginResponse = await fetch(`${API_URL}/login`, {
-            method: "POST",
-            body: JSON.stringify({
-                email: "test@test.com",
-                password: "password",
-            }),
-            headers: { "Content-Type": "application/json" },
-        });
-
-        const loginJson = (await loginResponse.json()) as LoginResponse;
-        accessToken = loginJson.data.accessToken;
+        accessToken = await loginTestUser(testUser.email, testUser.password, API_URL);
     });
 
     it("should return unauthorized when no token provided", async () => {
@@ -119,11 +113,7 @@ describe("/post/:id", () => {
     });
 
     afterAll(async () => {
-        // Clean up test data
-        await redis.del(`${userId}:refreshToken`);
-        await redis.del(`${userId}:accessToken`);
-        await db.delete(userPermissions).where(and(eq(userPermissions.userId, userId), eq(userPermissions.permissionId, "01JM71SE4TD9GTGVBZ6TK8GE6A")));
-        await db.delete(posts).where(eq(posts.id, postId));
-        await db.delete(users).where(eq(users.id, userId));
+        // Clean up test data (post is already deleted by the test)
+        await cleanupTestUser(userId, organizationId);
     });
 }); 

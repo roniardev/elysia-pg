@@ -1,11 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { db } from "@/db";
-import { permissions, posts, userPermissions, users } from "@/db/schema";
-import { and, eq } from "drizzle-orm";
-import { redis } from "@/utils/services/redis";
+import { posts } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message";
 import { config } from "@/app/config";
 import { ulid } from "ulid";
+import { createTestUser, cleanupTestUser, loginTestUser } from "@/test/helpers/test-setup";
 
 const API_URL = `${config.API_URL}:${config.PORT}`;
 
@@ -33,6 +33,7 @@ interface UpdatePostResponse {
 interface PostData {
     id: string;
     userId: string;
+    organizationId: string;
     title: string;
     excerpt: string;
     content: string;
@@ -44,28 +45,32 @@ interface PostData {
 describe("/post/:id", () => {
     let accessToken: string;
     let postId: string;
-    const userId = "1";
+    let userId: string;
+    let organizationId: string;
 
     beforeAll(async () => {
-        // Create a test user
-        await db.insert(users).values({
-            id: userId,
-            email: "test@test.com",
-            hashedPassword: await Bun.password.hash("password"),
-            emailVerified: true,
+        // Create test user with update:post permission
+        const updatePermission = await db.query.permissions.findFirst({
+            where: (table, { eq }) => eq(table.name, "update:post")
         });
 
-        await db.insert(userPermissions).values({
-            id: ulid(),
-            userId: userId,
-            permissionId: "01JM71SE4T4DZGY8H5TKXHCTZE",
+        if (!updatePermission) {
+            throw new Error("Update permission not found in database");
+        }
+
+        const testUser = await createTestUser({
+            permissionIds: [updatePermission.id],
         });
+
+        userId = testUser.userId;
+        organizationId = testUser.organizationId;
 
         // Create a test post
         postId = ulid();
         const initialPost: PostData = {
             id: postId,
             userId: userId,
+            organizationId: organizationId,
             title: "Original Title",
             excerpt: "Original Excerpt",
             content: "Original Content",
@@ -77,17 +82,7 @@ describe("/post/:id", () => {
         await db.insert(posts).values(initialPost);
 
         // Login to get access token
-        const loginResponse = await fetch(`${API_URL}/login`, {
-            method: "POST",
-            body: JSON.stringify({
-                email: "test@test.com",
-                password: "password",
-            }),
-            headers: { "Content-Type": "application/json" },
-        });
-
-        const loginJson = (await loginResponse.json()) as LoginResponse;
-        accessToken = loginJson.data.accessToken;
+        accessToken = await loginTestUser(testUser.email, testUser.password, API_URL);
     });
 
     it("should return unauthorized when no token provided", async () => {
@@ -193,10 +188,7 @@ describe("/post/:id", () => {
 
     afterAll(async () => {
         // Clean up test data
-        await redis.del(`${userId}:refreshToken`);
-        await redis.del(`${userId}:accessToken`);
-        await db.delete(userPermissions).where(and(eq(userPermissions.userId, userId), eq(userPermissions.permissionId, "01JM71SE4T4DZGY8H5TKXHCTZE")));
         await db.delete(posts).where(eq(posts.id, postId));
-        await db.delete(users).where(eq(users.id, userId));
+        await cleanupTestUser(userId, organizationId);
     });
 }); 
