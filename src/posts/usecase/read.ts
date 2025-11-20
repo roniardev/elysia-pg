@@ -1,5 +1,6 @@
 import bearer from "@elysiajs/bearer"
 import { Elysia } from "elysia"
+import { and } from "drizzle-orm"
 
 import { PostPermission } from "@/common/enum/permissions"
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
@@ -12,9 +13,12 @@ import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
 import { handleResponse } from "@/utils/handle-response"
 
-import { Scope } from "@/common/enum/scopes"
 import { getScope } from "@/src/general/usecase/get-scope"
 import { readPostModel } from "../data/posts.model"
+import {
+    isOrganizationContextValid,
+    buildPostQueryConditions
+} from "../utils/scope-helpers"
 
 export const readPost = new Elysia()
     .use(readPostModel)
@@ -56,7 +60,7 @@ export const readPost = new Elysia()
             const scope = await getScope(permission)
             const organizationId = validToken.organizationId
 
-            if (!organizationId && scope !== Scope.GLOBAL && scope !== Scope.SUPER_ADMIN) {
+            if (!isOrganizationContextValid(organizationId, scope)) {
                 return handleResponse({
                     message: "Organization context required",
                     callback: () => {
@@ -67,23 +71,15 @@ export const readPost = new Elysia()
             }
 
             // READ POST
+            const conditions = buildPostQueryConditions({
+                scope,
+                organizationId,
+                userId: validToken.id,
+                postId: params.id,
+            })
+
             const post = await db.query.posts.findFirst({
-                where: (table, { eq, and }) => {
-                    const conditions = [eq(table.id, params.id)]
-
-                    if (scope === Scope.PERSONAL) {
-                        conditions.push(eq(table.userId, validToken.id))
-                        if (organizationId) {
-                            conditions.push(eq(table.organizationId, organizationId))
-                        }
-                    }
-
-                    if (scope === Scope.ORGANIZATION && organizationId) {
-                        conditions.push(eq(table.organizationId, organizationId))
-                    }
-
-                    return and(...conditions)
-                },
+                where: () => and(...conditions),
             })
 
             if (!post) {
@@ -96,14 +92,12 @@ export const readPost = new Elysia()
                 })
             }
 
-            const readPost = post
-
             return handleResponse({
                 message: SuccessMessage.POST_READ,
                 callback: () => {
                     set.status = ResponseSuccessStatus.OK
                 },
-                data: readPost,
+                data: post,
                 path,
             })
         },

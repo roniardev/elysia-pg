@@ -12,12 +12,14 @@ import { db } from "@/db"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
 import { handleResponse } from "@/utils/handle-response"
 import { getUser } from "@/src/general/usecase/get-user"
-import { Scope } from "@/common/enum/scopes"
-import { posts } from "@/db/schema"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { getScope } from "@/src/general/usecase/get-scope"
-import { and, eq, like, sql } from "drizzle-orm"
+import { and, sql } from "drizzle-orm"
 import { readAllPostModel } from "../data/posts.model"
+import {
+    isOrganizationContextValid,
+    buildPostQueryConditions
+} from "../utils/scope-helpers"
 
 export const readAllPost = new Elysia()
     .use(readAllPostModel)
@@ -81,7 +83,7 @@ export const readAllPost = new Elysia()
             // GET ALL POSTS
             const organizationId = validToken.organizationId
 
-            if (!organizationId && scope !== Scope.GLOBAL && scope !== Scope.SUPER_ADMIN) {
+            if (!isOrganizationContextValid(organizationId, scope)) {
                 return handleResponse({
                     message: "Organization context required",
                     callback: () => {
@@ -91,32 +93,15 @@ export const readAllPost = new Elysia()
                 })
             }
 
+            const conditions = buildPostQueryConditions({
+                scope,
+                organizationId,
+                userId: existingUser.user?.id || validToken.id,
+                search,
+            })
+
             const postsRes = await db.query.posts.findMany({
-                where: (table, { eq, like, and }) => {
-                    const conditions = []
-
-                    if (scope === Scope.PERSONAL) {
-                        conditions.push(
-                            eq(
-                                table.userId,
-                                existingUser.user?.id || validToken.id,
-                            ),
-                        )
-                        if (organizationId) {
-                            conditions.push(eq(table.organizationId, organizationId))
-                        }
-                    }
-
-                    if (scope === Scope.ORGANIZATION && organizationId) {
-                        conditions.push(eq(table.organizationId, organizationId))
-                    }
-
-                    if (search) {
-                        conditions.push(like(table.title, `%${search}%`))
-                    }
-
-                    return conditions.length > 0 ? and(...conditions) : undefined
-                },
+                where: () => conditions.length > 0 ? and(...conditions) : undefined,
                 limit: Number(limit),
                 offset: (Number(page) - 1) * Number(limit),
                 orderBy: (table, { desc: descFn, asc: ascFn }) => {
@@ -133,28 +118,12 @@ export const readAllPost = new Elysia()
                 },
             })
 
-            // Get total count based on scope and search
-            const whereConditions = []
-
-            if (scope === Scope.PERSONAL) {
-                whereConditions.push(eq(posts.userId, existingUser.user.id))
-                if (organizationId) {
-                    whereConditions.push(eq(posts.organizationId, organizationId))
-                }
-            }
-
-            if (scope === Scope.ORGANIZATION && organizationId) {
-                whereConditions.push(eq(posts.organizationId, organizationId))
-            }
-
-            if (search) {
-                whereConditions.push(like(posts.title, `%${search}%`))
-            }
-
+            // Get total count using same conditions
+            const { posts: postsTable } = await import("@/db/schema")
             const totalAllData = await db
                 .select({ count: sql<number>`count(*)` })
-                .from(posts)
-                .where(whereConditions.length > 0 ? and(...whereConditions) : undefined)
+                .from(postsTable)
+                .where(conditions.length > 0 ? and(...conditions) : undefined)
 
             const total = Number(totalAllData[0]?.count || 0)
             const totalPage = Math.ceil(total / Number(limit))

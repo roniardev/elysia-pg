@@ -1,5 +1,5 @@
 import bearer from "@elysiajs/bearer"
-import { eq } from "drizzle-orm"
+import { eq, and } from "drizzle-orm"
 import { Elysia } from "elysia"
 
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
@@ -15,9 +15,13 @@ import { handleResponse } from "@/utils/handle-response"
 import { verrou } from "@/utils/services/locks"
 import { getUser } from "@/src/general/usecase/get-user"
 import { PostPermission } from "@/common/enum/permissions"
-import { Scope } from "@/common/enum/scopes"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { updatePostModel } from "../data/posts.model"
+import {
+    isOrganizationContextValid,
+    buildPostQueryConditions,
+    validatePostOwnership
+} from "../utils/scope-helpers"
 
 export const updatePost = new Elysia()
     .use(updatePostModel)
@@ -68,7 +72,7 @@ export const updatePost = new Elysia()
             const scope = await getScope(permission)
             const organizationId = validToken.organizationId
 
-            if (!organizationId && scope !== Scope.GLOBAL && scope !== Scope.SUPER_ADMIN) {
+            if (!isOrganizationContextValid(organizationId, scope)) {
                 return handleResponse({
                     message: "Organization context required",
                     callback: () => {
@@ -89,28 +93,15 @@ export const updatePost = new Elysia()
             }
 
             // CHECK EXISTING POST
+            const conditions = buildPostQueryConditions({
+                scope,
+                organizationId,
+                userId: existingUser.user?.id || validToken.id,
+                postId: params.id,
+            })
+
             const existingPost = await db.query.posts.findFirst({
-                where: (table, { eq, and }) => {
-                    const conditions = [eq(table.id, params.id)]
-
-                    if (scope === Scope.PERSONAL) {
-                        conditions.push(
-                            eq(
-                                table.userId,
-                                existingUser.user?.id || validToken.id,
-                            ),
-                        )
-                        if (organizationId) {
-                            conditions.push(eq(table.organizationId, organizationId))
-                        }
-                    }
-
-                    if (scope === Scope.ORGANIZATION && organizationId) {
-                        conditions.push(eq(table.organizationId, organizationId))
-                    }
-
-                    return and(...conditions)
-                },
+                where: () => and(...conditions),
             })
 
             if (!existingPost) {
@@ -123,7 +114,7 @@ export const updatePost = new Elysia()
                 })
             }
 
-            if (scope === Scope.PERSONAL && existingPost.userId !== (existingUser.user?.id || validToken.id)) {
+            if (!validatePostOwnership(scope, existingPost.userId, existingUser.user?.id || validToken.id)) {
                 return handleResponse({
                     message: ErrorMessage.INVALID_USER,
                     callback: () => {
