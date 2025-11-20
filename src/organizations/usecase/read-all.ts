@@ -1,6 +1,6 @@
 import bearer from "@elysiajs/bearer"
 import { Elysia } from "elysia"
-import { eq, sql } from "drizzle-orm"
+import { eq, sql, inArray } from "drizzle-orm"
 
 import { OrganizationPermission } from "@/common/enum/permissions"
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
@@ -60,7 +60,7 @@ export const readAllOrganization = new Elysia()
 			const orgIds = userOrgIds.map((o) => o.organizationId)
 
 			const orgs = await db.query.organizations.findMany({
-				where: (table, { inArray }) => inArray(table.id, orgIds),
+				where: inArray(organizations.id, orgIds),
 				limit: Number(limit),
 				offset: (Number(page) - 1) * Number(limit),
 				orderBy: (table, { desc: descFn, asc: ascFn }) => {
@@ -73,7 +73,7 @@ export const readAllOrganization = new Elysia()
 			const totalAllData = await db
 				.select({ count: sql<number>`count(*)` })
 				.from(organizations)
-				.where((table, { inArray }) => inArray(table.id, orgIds))
+				.where(inArray(organizations.id, orgIds))
 
 			const total = Number(totalAllData[0]?.count || 0)
 			const totalPage = Math.ceil(total / Number(limit))
@@ -89,7 +89,7 @@ export const readAllOrganization = new Elysia()
 			}
 
 			return handleResponse({
-				message: SuccessMessage.SUCCESS,
+				message: SuccessMessage.ORGANIZATIONS_READ,
 				callback: () => {
 					set.status = ResponseSuccessStatus.OK
 				},

@@ -27,7 +27,11 @@ export enum ErrorMessage {
 		PERMISSION_NOT_FOUND = "Permission not found",
 		PERMISSION_ALREADY_ASSIGNED = "Permission already assigned",
 		USER_PERMISSION_NOT_FOUND = "User permission not found",
-	}
+		NOT_A_MEMBER_OF_ORGANIZATION = "Not a member of organization",
+		ORGANIZATION_SLUG_ALREADY_EXISTS = "Organization slug already exists",
+		ORGANIZATION_NOT_FOUND = "Organization not found",
+		ONLY_OWNER_CAN_DELETE_ORGANIZATION = "Only owner can delete organization",
+}
 
 export enum SuccessMessage {
     EMAIL_SENT = "Email sent, please check your email for the reset password link",
@@ -57,4 +61,7 @@ export enum SuccessMessage {
     USER_PERMISSION_UPDATED = "User permission updated successfully",
     USER_PERMISSION_REVOKED = "User permission revoked successfully",
     USER_FETCHED = "User fetched successfully",
+    ORGANIZATION_CREATED = "Organization created successfully",
+	ORGANIZATION_DELETED = "Organization deleted successfully",
+	ORGANIZATIONS_READ = "Organizations read successfully",
 }

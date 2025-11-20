@@ -1,6 +1,7 @@
 import type {
     ManagePermission,
     ManageUserPermission,
+    OrganizationPermission,
     PostPermission,
     UserPermission,
 } from "@/common/enum/permissions"
@@ -11,7 +12,8 @@ export const verifyPermission = async (
         | PostPermission
         | UserPermission
         | ManagePermission
-        | ManageUserPermission,
+        | ManageUserPermission
+        | OrganizationPermission,
     userId: string,
 ) => {
     const existingUser = await db.query.users.findFirst({

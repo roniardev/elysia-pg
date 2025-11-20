@@ -85,7 +85,7 @@ export const readAllPost = new Elysia()
 
             if (!isOrganizationContextValid(organizationId, scope)) {
                 return handleResponse({
-                    message: "Organization context required",
+                    message: ErrorMessage.ORGANIZATION_NOT_FOUND,
                     callback: () => {
                         set.status = ResponseErrorStatus.BAD_REQUEST
                     },

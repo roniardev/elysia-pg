@@ -9,7 +9,7 @@ export const getScope = async (userPermissionId: string) => {
     })
 
     if (!scope) {
-        return null
+        return ""
     }
 
     return scope.scope.name

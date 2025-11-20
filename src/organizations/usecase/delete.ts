@@ -64,7 +64,7 @@ export const deleteOrganization = new Elysia()
 
 			if (membership.length === 0) {
 				return handleResponse({
-					message: "Not a member of this organization",
+					message: ErrorMessage.NOT_A_MEMBER_OF_ORGANIZATION,
 					callback: () => {
 						set.status = ResponseErrorStatus.FORBIDDEN
 					},
@@ -72,11 +72,11 @@ export const deleteOrganization = new Elysia()
 				})
 			}
 
-			const role = membership[0].role
+			const role = membership[0]?.role
 
 			if (role !== "owner") {
 				return handleResponse({
-					message: "Only owner can delete organization",
+					message: ErrorMessage.ONLY_OWNER_CAN_DELETE_ORGANIZATION,
 					callback: () => {
 						set.status = ResponseErrorStatus.FORBIDDEN
 					},
@@ -101,7 +101,7 @@ export const deleteOrganization = new Elysia()
 			}
 
 			return handleResponse({
-				message: SuccessMessage.SUCCESS,
+				message: SuccessMessage.ORGANIZATION_DELETED,
 				callback: () => {
 					set.status = ResponseSuccessStatus.OK
 				},

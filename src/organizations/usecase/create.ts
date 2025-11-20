@@ -79,7 +79,7 @@ export const createOrganization = new Elysia()
 
 			if (existingOrg.length > 0) {
 				return handleResponse({
-					message: "Organization slug already exists",
+					message: ErrorMessage.ORGANIZATION_SLUG_ALREADY_EXISTS,
 					callback: () => {
 						set.status = ResponseErrorStatus.BAD_REQUEST
 					},
@@ -120,7 +120,7 @@ export const createOrganization = new Elysia()
 			}
 
 			return handleResponse({
-				message: SuccessMessage.SUCCESS,
+				message: SuccessMessage.ORGANIZATION_CREATED,
 				callback: () => {
 					set.status = ResponseSuccessStatus.CREATED
 				},
