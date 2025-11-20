@@ -62,6 +62,42 @@ export async function runPermissionsSeed() {
 			name: "delete:user",
 			description: "Delete a user",
 		},
+		// Organization Permissions
+		{
+			id: "01JMORG1CREATE000000000001",
+			name: "create:organization",
+			description: "Create an organization",
+		},
+		{
+			id: "01JMORG2READ0000000000002",
+			name: "read:organization",
+			description: "Read an organization",
+		},
+		{
+			id: "01JMORG3READALL00000000003",
+			name: "read-all:organization",
+			description: "Read all organizations",
+		},
+		{
+			id: "01JMORG4UPDATE000000000004",
+			name: "update:organization",
+			description: "Update an organization",
+		},
+		{
+			id: "01JMORG5DELETE000000000005",
+			name: "delete:organization",
+			description: "Delete an organization",
+		},
+		{
+			id: "01JMORG6SWITCH000000000006",
+			name: "switch:organization",
+			description: "Switch active organization",
+		},
+		{
+			id: "01JMORG7MEMBERS00000000007",
+			name: "manage:members",
+			description: "Manage organization members",
+		},
 	]
 
 	try {

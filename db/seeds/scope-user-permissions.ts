@@ -82,7 +82,7 @@ export async function runScopeUserPermissionsSeed() {
 			userPermissionId: "01JMBB83W4T1Q2NMZWKQ704YCZ",
 		},
 		{
-			id: "1JMBCCANBYVC2WCCE9VSZN02V",
+			id: "01JMBCCANBYVC2WCCE9VSZN02V",
 			scopeId: "01JMBBHZS7Q3BW2DS33P97Z0RA",
 			userPermissionId: "01JMBB83W46SYQFD3BS4TGD1CW",
 		},
@@ -98,7 +98,7 @@ export async function runScopeUserPermissionsSeed() {
 	} catch (err) {
 		const end = Date.now()
 		console.error(`
-        ❌ User Permissions Seeding failed in ${end - start}ms
+        ❌ Scope User Permissions Seeding failed in ${end - start}ms
         ${err}
         `)
 	}
