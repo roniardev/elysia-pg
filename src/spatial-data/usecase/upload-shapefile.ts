@@ -42,7 +42,7 @@ export const uploadShapefile = new Elysia()
 				})
 			}
 
-			// CHECK EXISTING USER
+			// CHORE: Check existing user
 			const existingUser = await getUser({
 				identifier: validToken.id,
 				type: "id",
@@ -88,7 +88,7 @@ export const uploadShapefile = new Elysia()
 				})
 			}
 
-			// Validate file
+			// CHORE: Validate file
 			if (!body.file) {
 				return handleResponse({
 					message: "File is required",
@@ -100,11 +100,11 @@ export const uploadShapefile = new Elysia()
 			}
 
 			try {
-				// Convert file to buffer
+				// CHORE: Convert file to buffer
 				const fileBuffer = Buffer.from(await body.file.arrayBuffer())
 				const fileName = body.file.name
 
-				// Parse shapefile
+				// CHORE: Parse shapefile
 				console.log(`📂 Parsing shapefile: ${fileName}`)
 				const parsedData = await parseShapefile(fileBuffer, fileName)
 
@@ -112,7 +112,7 @@ export const uploadShapefile = new Elysia()
 					`✅ Found ${parsedData.totalFeatures} features in shapefile`,
 				)
 
-				// Prepare bulk insert data
+				// CHORE: Prepare bulk insert data
 				const spatialDataRecords = []
 				let successCount = 0
 				let skipCount = 0
@@ -137,7 +137,7 @@ export const uploadShapefile = new Elysia()
 							continue
 						}
 
-						// Generate name from properties or use default
+						// NOTE: Generate name from properties or use default
 						const name =
 							feature.properties?.name ||
 							feature.properties?.NAME ||
@@ -174,7 +174,7 @@ export const uploadShapefile = new Elysia()
 					}
 				}
 
-				// Bulk insert to database
+				// CHORE: Bulk insert to database
 				if (spatialDataRecords.length > 0) {
 					console.log(`💾 Inserting ${spatialDataRecords.length} records...`)
 					await db.insert(spatialData).values(spatialDataRecords)
@@ -213,7 +213,7 @@ export const uploadShapefile = new Elysia()
 			body: t.Object({
 				file: t.File({
 					type: ["application/zip", "application/x-zip-compressed"],
-					maxSize: 50 * 1024 * 1024, // 50MB max
+					maxSize: 50 * 1024 * 1024, // NOTE: 50MB max
 				}),
 				layerId: t.Optional(t.String()),
 				defaultStatus: t.Optional(

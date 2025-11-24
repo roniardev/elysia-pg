@@ -17,7 +17,10 @@ export interface ParsedShapefile {
 }
 
 /**
- * Parse Shapefile from Buffer (supports .zip containing .shp, .shx, .dbf files)
+ * NOTE: Parse Shapefile from Buffer
+ *
+ * Supports .zip containing .shp, .shx, .dbf files
+ *
  * @param fileBuffer - Buffer of uploaded file (.zip or .shp)
  * @param fileName - Original filename
  * @returns Parsed shapefile data with features
@@ -31,12 +34,12 @@ export async function parseShapefile(
 		let dbfBuffer: ArrayBuffer | null = null
 		let prjContent: string | null = null
 
-		// Check if it's a ZIP file
+		// NOTE: Check if it's a ZIP file
 		if (fileName.endsWith(".zip")) {
 			const zip = await JSZip.loadAsync(fileBuffer)
 			const files = Object.keys(zip.files)
 
-			// Find .shp, .dbf, and .prj files
+			// TODO: Find .shp, .dbf, and .prj files
 			const shpFile = files.find((f) => f.endsWith(".shp"))
 			const dbfFile = files.find((f) => f.endsWith(".dbf"))
 			const prjFile = files.find((f) => f.endsWith(".prj"))
@@ -45,7 +48,7 @@ export async function parseShapefile(
 				throw new Error("No .shp file found in ZIP archive")
 			}
 
-			// Extract buffers
+			// CHORE: Extract buffers
 			shpBuffer = await zip.files[shpFile].async("arraybuffer")
 
 			if (dbfFile) {
@@ -56,7 +59,7 @@ export async function parseShapefile(
 				prjContent = await zip.files[prjFile].async("string")
 			}
 		} else if (fileName.endsWith(".shp")) {
-			// Single .shp file (without .dbf attributes)
+			// NOTE: Single .shp file (without .dbf attributes)
 			shpBuffer = fileBuffer.buffer.slice(
 				fileBuffer.byteOffset,
 				fileBuffer.byteOffset + fileBuffer.byteLength,
@@ -71,7 +74,7 @@ export async function parseShapefile(
 			throw new Error("Failed to extract shapefile data")
 		}
 
-		// Parse shapefile using shapefile library
+		// CHORE: Parse shapefile using shapefile library
 		const features: ShapefileFeature[] = []
 
 		const source = dbfBuffer
@@ -100,7 +103,8 @@ export async function parseShapefile(
 }
 
 /**
- * Extract coordinates from GeoJSON geometry
+ * NOTE: Extract coordinates from GeoJSON geometry
+ *
  * Returns [longitude, latitude] for Point geometry
  */
 export function extractCoordinates(geometry: {
@@ -112,7 +116,7 @@ export function extractCoordinates(geometry: {
 		return { longitude, latitude }
 	}
 
-	// For other geometry types, get centroid or first point
+	// NOTE: For other geometry types, get centroid or first point
 	if (geometry.type === "LineString" || geometry.type === "MultiPoint") {
 		const [longitude, latitude] = geometry.coordinates[0]
 		return { longitude, latitude }
@@ -132,7 +136,7 @@ export function extractCoordinates(geometry: {
 }
 
 /**
- * Convert GeoJSON geometry type to spatial data type
+ * NOTE: Convert GeoJSON geometry type to spatial data type
  */
 export function getDataType(geometryType: string): string {
 	const typeMap: Record<string, string> = {
@@ -148,7 +152,7 @@ export function getDataType(geometryType: string): string {
 }
 
 /**
- * Validate if coordinates are valid
+ * NOTE: Validate if coordinates are valid
  */
 export function isValidCoordinates(
 	longitude: number,
