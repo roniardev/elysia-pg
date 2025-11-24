@@ -13,31 +13,6 @@ export async function runPermissionsSeed() {
 	const start = Date.now()
 	const data: (typeof schema.permissions.$inferInsert)[] = [
 		{
-			id: "01JM71SE4T1709CSXCF4W3J3XR",
-			name: "create:post",
-			description: "Create a post",
-		},
-		{
-			id: "01JM71SE4T4DZGY8H5TKXHCTZE",
-			name: "update:post",
-			description: "Update a post",
-		},
-		{
-			id: "01JM71SE4TD9GTGVBZ6TK8GE6A",
-			name: "delete:post",
-			description: "Delete a post",
-		},
-		{
-			id: "01JM71SE4THD02JK37P7BWE3BV",
-			name: "read-all:post",
-			description: "Read all posts",
-		},
-		{
-			id: "01JM71SE4TYDYEBS509C2X11R7",
-			name: "read:post",
-			description: "Read a post",
-		},
-		{
 			id: "01JM8P67X78PBQKBWT39CCVC5K",
 			name: "create:user",
 			description: "Create a user",
@@ -97,6 +72,84 @@ export async function runPermissionsSeed() {
 			id: "01JMORG7MEMBERS00000000007",
 			name: "manage:members",
 			description: "Manage organization members",
+		},
+		// Spatial Data Permissions
+		{
+			id: "01JMSPATIAL1CREATE0000001",
+			name: "create:spatial-data",
+			description: "Create spatial data",
+		},
+		{
+			id: "01JMSPATIAL2READ00000002",
+			name: "read:spatial-data",
+			description: "Read spatial data",
+		},
+		{
+			id: "01JMSPATIAL3READALL0003",
+			name: "read-all:spatial-data",
+			description: "Read all spatial data",
+		},
+		{
+			id: "01JMSPATIAL4UPDATE00004",
+			name: "update:spatial-data",
+			description: "Update spatial data",
+		},
+		{
+			id: "01JMSPATIAL5DELETE00005",
+			name: "delete:spatial-data",
+			description: "Delete spatial data",
+		},
+		// Spatial Layer Permissions
+		{
+			id: "01JMSPLAYER1CREATE0006",
+			name: "create:spatial-layer",
+			description: "Create spatial layer",
+		},
+		{
+			id: "01JMSPLAYER2READ000007",
+			name: "read:spatial-layer",
+			description: "Read spatial layer",
+		},
+		{
+			id: "01JMSPLAYER3READALL008",
+			name: "read-all:spatial-layer",
+			description: "Read all spatial layers",
+		},
+		{
+			id: "01JMSPLAYER4UPDATE0009",
+			name: "update:spatial-layer",
+			description: "Update spatial layer",
+		},
+		{
+			id: "01JMSPLAYER5DELETE0010",
+			name: "delete:spatial-layer",
+			description: "Delete spatial layer",
+		},
+		// Spatial Map Permissions
+		{
+			id: "01JMSPMAP1CREATE000011",
+			name: "create:spatial-map",
+			description: "Create spatial map",
+		},
+		{
+			id: "01JMSPMAP2READ0000012",
+			name: "read:spatial-map",
+			description: "Read spatial map",
+		},
+		{
+			id: "01JMSPMAP3READALL0013",
+			name: "read-all:spatial-map",
+			description: "Read all spatial maps",
+		},
+		{
+			id: "01JMSPMAP4UPDATE00014",
+			name: "update:spatial-map",
+			description: "Update spatial map",
+		},
+		{
+			id: "01JMSPMAP5DELETE00015",
+			name: "delete:spatial-map",
+			description: "Delete spatial map",
 		},
 	]
 

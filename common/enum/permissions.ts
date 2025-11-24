@@ -39,3 +39,27 @@ export enum OrganizationPermission {
 	SWITCH_ORGANIZATION = "switch:organization",
 	MANAGE_MEMBERS = "manage:members",
 }
+
+export enum SpatialDataPermission {
+	CREATE_SPATIAL_DATA = "create:spatial-data",
+	READ_SPATIAL_DATA = "read:spatial-data",
+	READ_ALL_SPATIAL_DATA = "read-all:spatial-data",
+	UPDATE_SPATIAL_DATA = "update:spatial-data",
+	DELETE_SPATIAL_DATA = "delete:spatial-data",
+}
+
+export enum SpatialLayerPermission {
+	CREATE_SPATIAL_LAYER = "create:spatial-layer",
+	READ_SPATIAL_LAYER = "read:spatial-layer",
+	READ_ALL_SPATIAL_LAYER = "read-all:spatial-layer",
+	UPDATE_SPATIAL_LAYER = "update:spatial-layer",
+	DELETE_SPATIAL_LAYER = "delete:spatial-layer",
+}
+
+export enum SpatialMapPermission {
+	CREATE_SPATIAL_MAP = "create:spatial-map",
+	READ_SPATIAL_MAP = "read:spatial-map",
+	READ_ALL_SPATIAL_MAP = "read-all:spatial-map",
+	UPDATE_SPATIAL_MAP = "update:spatial-map",
+	DELETE_SPATIAL_MAP = "delete:spatial-map",
+}

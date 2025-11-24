@@ -6,11 +6,13 @@ import { swagger } from "@elysiajs/swagger"
 
 import { config } from "./config"
 
-import { posts } from "@/src/posts"
 import { auth } from "@/src/auth"
 import { users } from "@/src/users"
 import { permissions } from "@/src/permissions"
 import { organizations } from "@/src/organizations"
+import { spatialDataRoutes } from "@/src/spatial-data"
+import { spatialLayerRoutes } from "@/src/spatial-layer"
+import { spatialMapRoutes } from "@/src/spatial-map"
 import logger from "@/utils/logger"
 import { encryptResponse } from "@/utils/encrypt-response"
 import { opentelemetry } from '@elysiajs/opentelemetry'
@@ -92,9 +94,11 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
             return encryptResponse(response)
         })
         .use(auth)
-        .use(posts)
         .use(users)
         .use(permissions)
         .use(organizations)
+        .use(spatialDataRoutes)
+        .use(spatialLayerRoutes)
+        .use(spatialMapRoutes)
 
 export type ElysiaApp = typeof app

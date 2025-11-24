@@ -9,7 +9,7 @@ services:
       - NODE_ENV=production
   postgres:
     container_name: elysia-pg-postgres
-    image: postgres:latest
+    image: postgis/postgis:16-3.4
     restart: unless-stopped
     environment:
       - POSTGRES_USER=elysia-pg
@@ -17,6 +17,7 @@ services:
       - POSTGRES_DB=elysia-pg
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./db/init-postgis.sql:/docker-entrypoint-initdb.d/init-postgis.sql
   redis:
     container_name: elysia-pg-redis
     image: redis:latest
