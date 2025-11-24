@@ -20,7 +20,7 @@ export const createSpatialDataModel = new Elysia().model({
 		),
 		status: t.Optional(t.Union([t.Literal("active"), t.Literal("inactive")])),
 		visibility: t.Optional(
-			t.Union([t.Literal("public"), t.Literal("private")]),
+			t.Union([t.Literal("public"), t.Literal("private"), t.Literal("organization")]),
 		),
 		tags: t.Optional(t.String()),
 	}),
@@ -56,7 +56,7 @@ export const updateSpatialDataModel = new Elysia().model({
 		),
 		status: t.Optional(t.Union([t.Literal("active"), t.Literal("inactive")])),
 		visibility: t.Optional(
-			t.Union([t.Literal("public"), t.Literal("private")]),
+			t.Union([t.Literal("public"), t.Literal("private"), t.Literal("organization")]),
 		),
 		tags: t.Optional(t.String()),
 	}),

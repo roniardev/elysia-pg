@@ -38,21 +38,21 @@ export const spatialLayers = pgTable(
 		maxZoom: integer("max_zoom").default(22),
 		opacity: integer("opacity").default(100), // 0-100
 		isVisible: varchar("is_visible", {
-			length: 10,
+			length: 12,
 			enum: ["true", "false"],
 		})
 			.default("true")
 			.notNull(),
 		zIndex: integer("z_index").default(0), // Layer ordering
 		status: varchar("status", {
-			length: 10,
+			length: 12,
 			enum: ["active", "inactive"],
 		})
 			.default("active")
 			.notNull(),
 		visibility: varchar("visibility", {
-			length: 10,
-			enum: ["public", "private"],
+			length: 12,
+			enum: ["public", "private", "organization"],
 		})
 			.default("private")
 			.notNull(),

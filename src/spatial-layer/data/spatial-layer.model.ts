@@ -16,7 +16,7 @@ export const createSpatialLayerModel = new Elysia().model({
 		zIndex: t.Optional(t.Number()),
 		status: t.Optional(t.Union([t.Literal("active"), t.Literal("inactive")])),
 		visibility: t.Optional(
-			t.Union([t.Literal("public"), t.Literal("private")]),
+			t.Union([t.Literal("public"), t.Literal("private"), t.Literal("organization")]),
 		),
 		tags: t.Optional(t.String()),
 	}),
@@ -48,7 +48,7 @@ export const updateSpatialLayerModel = new Elysia().model({
 		zIndex: t.Optional(t.Number()),
 		status: t.Optional(t.Union([t.Literal("active"), t.Literal("inactive")])),
 		visibility: t.Optional(
-			t.Union([t.Literal("public"), t.Literal("private")]),
+			t.Union([t.Literal("public"), t.Literal("private"), t.Literal("organization")]),
 		),
 		tags: t.Optional(t.String()),
 	}),

@@ -45,7 +45,7 @@ Content-Type: multipart/form-data
 | `file` | File | ✅ | Shapefile .zip (max 50MB) |
 | `layerId` | String | ❌ | ID layer untuk grouping |
 | `defaultStatus` | String | ❌ | Default status: "active" atau "inactive" |
-| `defaultVisibility` | String | ❌ | Default visibility: "public" atau "private" |
+| `defaultVisibility` | String | ❌ | Default visibility: "public", "private", atau "organization" |
 | `tags` | String | ❌ | Tags comma-separated |
 
 ### Response Success (201 Created)
@@ -253,6 +253,38 @@ curl -X POST http://localhost:3000/spatial-data/upload-shapefile \
   -H "Authorization: Bearer $TOKEN" \
   -F "file=@roads.zip" \
   -F "tags=roads,infrastructure"
+```
+
+### 4. Import Data Internal Organisasi
+```bash
+# Upload shapefile dengan visibility organization (hanya visible untuk anggota organisasi)
+curl -X POST http://localhost:3000/spatial-data/upload-shapefile \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@internal-locations.zip" \
+  -F "defaultVisibility=organization" \
+  -F "tags=internal,confidential"
+```
+
+## 🔐 Visibility Options
+
+Spatial data memiliki 3 level visibility:
+
+| Visibility | Deskripsi | Use Case |
+|-----------|-----------|----------|
+| **public** | Visible untuk semua user | Data publik seperti tempat wisata, landmark |
+| **private** | Hanya visible untuk user yang membuat | Data personal, lokasi pribadi |
+| **organization** | Visible untuk semua member di organisasi yang sama | Data internal perusahaan, lokasi cabang |
+
+### Contoh:
+```typescript
+// Public - semua orang bisa lihat
+defaultVisibility: "public"
+
+// Private - hanya saya yang bisa lihat
+defaultVisibility: "private"
+
+// Organization - semua anggota organisasi saya bisa lihat
+defaultVisibility: "organization"
 ```
 
 ## 🔧 Konfigurasi

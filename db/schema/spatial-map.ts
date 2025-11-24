@@ -44,8 +44,8 @@ export const spatialMaps = pgTable(
 			.default("active")
 			.notNull(),
 		visibility: varchar("visibility", {
-			length: 10,
-			enum: ["public", "private"],
+			length: 12,
+			enum: ["public", "private", "organization"],
 		})
 			.default("private")
 			.notNull(),

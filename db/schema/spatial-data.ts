@@ -43,14 +43,14 @@ export const spatialData = pgTable(
 			.default("point")
 			.notNull(),
 		status: varchar("status", {
-			length: 10,
+			length: 12,
 			enum: ["active", "inactive"],
 		})
 			.default("active")
 			.notNull(),
 		visibility: varchar("visibility", {
-			length: 10,
-			enum: ["public", "private"],
+			length: 12,
+			enum: ["public", "private", "organization"],
 		})
 			.default("private")
 			.notNull(),

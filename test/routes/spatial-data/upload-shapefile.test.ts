@@ -234,6 +234,50 @@ describe("POST /spatial-data/upload-shapefile", () => {
 		await db.delete(spatialLayers).where(eq(spatialLayers.id, layerId))
 	})
 
+	it("should upload shapefile with organization visibility", async () => {
+		const mockZip = await createMockShapefileZip()
+		const formData = new FormData()
+		formData.append(
+			"file",
+			new Blob([mockZip], { type: "application/zip" }),
+			"test-org-visibility.zip",
+		)
+		formData.append("defaultStatus", "active")
+		formData.append("defaultVisibility", "organization")
+		formData.append("tags", "test,organization-only")
+
+		const response = await fetch(`${API_URL}/spatial-data/upload-shapefile`, {
+			method: "POST",
+			body: formData,
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+			},
+		})
+
+		const json = (await response.json()) as UploadShapefileResponse
+
+		expect(response.status).toBe(201)
+		expect(json.status).toBe(true)
+
+		// NOTE: Verify visibility is set to organization
+		const insertedData = await db.query.spatialData.findFirst({
+			where: (table, { eq }) =>
+				and(
+					eq(table.organizationId, testSetup.organizationId),
+					eq(table.visibility, "organization"),
+				),
+		})
+
+		expect(insertedData).toBeDefined()
+		expect(insertedData?.visibility).toBe("organization")
+		expect(insertedData?.tags).toBe("test,organization-only")
+
+		// NOTE: Store ID for cleanup
+		if (insertedData) {
+			createdSpatialDataIds.push(insertedData.id)
+		}
+	})
+
 	it("should handle empty shapefile gracefully", async () => {
 		// NOTE: Create a ZIP with empty shapefile
 		const JSZip = (await import("jszip")).default
