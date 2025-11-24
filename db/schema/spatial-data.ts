@@ -49,12 +49,31 @@ export const spatialData = pgTable(
 			.default("active")
 			.notNull(),
 		visibility: varchar("visibility", {
-			length: 12,
-			enum: ["public", "private", "organization"],
+			length: 20,
+			enum: ["public", "private", "organization", "organization_tree", "organization_parent"],
 		})
 			.default("private")
 			.notNull(),
 		tags: varchar("tags", { length: 255 }),
+		approvalStatus: varchar("approval_status", {
+			length: 20,
+			enum: ["draft", "pending_check", "pending_sign", "approved", "rejected", "revision"],
+		})
+			.default("draft")
+			.notNull(),
+		makerId: varchar("maker_id", { length: 26 })
+			.references(() => users.id),
+		checkerId: varchar("checker_id", { length: 26 })
+			.references(() => users.id),
+		signerId: varchar("signer_id", { length: 26 })
+			.references(() => users.id),
+		checkedAt: timestamp("checked_at", { mode: "date" }),
+		signedAt: timestamp("signed_at", { mode: "date" }),
+		approvedAt: timestamp("approved_at", { mode: "date" }),
+		rejectionReason: text("rejection_reason"),
+		rejectedBy: varchar("rejected_by", { length: 26 })
+			.references(() => users.id),
+		rejectedAt: timestamp("rejected_at", { mode: "date" }),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at", { mode: "date" }).$onUpdate(
 			() => new Date(),
@@ -66,6 +85,10 @@ export const spatialData = pgTable(
 		index("spatial_data_org_idx").on(t.organizationId),
 		index("spatial_data_layer_idx").on(t.layerId),
 		index("spatial_data_created_at_idx").on(t.createdAt),
+		index("spatial_data_approval_status_idx").on(t.approvalStatus),
+		index("spatial_data_maker_idx").on(t.makerId),
+		index("spatial_data_checker_idx").on(t.checkerId),
+		index("spatial_data_signer_idx").on(t.signerId),
 		// PostGIS spatial index (will be created via migration)
 		// CREATE INDEX spatial_data_geom_idx ON spatial_data USING GIST (geometry);
 	],

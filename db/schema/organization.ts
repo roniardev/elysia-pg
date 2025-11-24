@@ -4,6 +4,8 @@ import {
 	timestamp,
 	varchar,
 	pgTable,
+	integer,
+	boolean,
 } from "drizzle-orm/pg-core"
 
 import { users } from "./user"
@@ -19,6 +21,12 @@ export const organizations = pgTable(
 		ownerId: varchar("owner_id", { length: 26 })
 			.notNull()
 			.references(() => users.id),
+		parentOrganizationId: varchar("parent_organization_id", { length: 26 })
+			.references(() => organizations.id),
+		organizationPath: varchar("organization_path", { length: 500 }),
+		level: integer("level").default(0).notNull(),
+		inheritPermissions: boolean("inherit_permissions").default(true).notNull(),
+		isolatedData: boolean("isolated_data").default(false).notNull(),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at", { mode: "date" }).$onUpdate(
 			() => new Date(),
@@ -28,6 +36,9 @@ export const organizations = pgTable(
 	(t) => [
 		index("org_slug_idx").on(t.slug),
 		index("org_owner_idx").on(t.ownerId),
+		index("org_parent_idx").on(t.parentOrganizationId),
+		index("org_path_idx").on(t.organizationPath),
+		index("org_level_idx").on(t.level),
 	],
 )
 
@@ -38,6 +49,14 @@ export const organizationRelations = relations(organizations, ({ one, many }) =>
 	owner: one(users, {
 		fields: [organizations.ownerId],
 		references: [users.id],
+	}),
+	parentOrganization: one(organizations, {
+		fields: [organizations.parentOrganizationId],
+		references: [organizations.id],
+		relationName: "organizationHierarchy",
+	}),
+	childOrganizations: many(organizations, {
+		relationName: "organizationHierarchy",
 	}),
 	members: many(userOrganizations),
 	posts: many(posts),

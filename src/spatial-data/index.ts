@@ -11,6 +11,9 @@ import { readSpatialData } from "./usecase/read"
 import { readAllSpatialData } from "./usecase/read-all"
 import { updateSpatialData } from "./usecase/update"
 import { uploadShapefile } from "./usecase/upload-shapefile"
+import { submitSpatialDataForCheck } from "./usecase/submit-for-check"
+import { checkSpatialData } from "./usecase/check-data"
+import { signSpatialData } from "./usecase/sign-data"
 
 export const spatialDataRoutes = new Elysia()
 	.use(jwtAccessSetup)
@@ -45,5 +48,8 @@ export const spatialDataRoutes = new Elysia()
 				.use(deleteSpatialData)
 				.use(readSpatialData)
 				.use(updateSpatialData)
-				.use(uploadShapefile),
+				.use(uploadShapefile)
+				.use(submitSpatialDataForCheck)
+				.use(checkSpatialData)
+				.use(signSpatialData),
 	)

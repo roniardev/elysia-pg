@@ -44,12 +44,31 @@ export const spatialMaps = pgTable(
 			.default("active")
 			.notNull(),
 		visibility: varchar("visibility", {
-			length: 12,
-			enum: ["public", "private", "organization"],
+			length: 20,
+			enum: ["public", "private", "organization", "organization_tree", "organization_parent"],
 		})
 			.default("private")
 			.notNull(),
 		tags: varchar("tags", { length: 255 }),
+		approvalStatus: varchar("approval_status", {
+			length: 20,
+			enum: ["draft", "pending_check", "pending_sign", "approved", "rejected", "revision"],
+		})
+			.default("draft")
+			.notNull(),
+		makerId: varchar("maker_id", { length: 26 })
+			.references(() => users.id),
+		checkerId: varchar("checker_id", { length: 26 })
+			.references(() => users.id),
+		signerId: varchar("signer_id", { length: 26 })
+			.references(() => users.id),
+		checkedAt: timestamp("checked_at", { mode: "date" }),
+		signedAt: timestamp("signed_at", { mode: "date" }),
+		approvedAt: timestamp("approved_at", { mode: "date" }),
+		rejectionReason: text("rejection_reason"),
+		rejectedBy: varchar("rejected_by", { length: 26 })
+			.references(() => users.id),
+		rejectedAt: timestamp("rejected_at", { mode: "date" }),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at", { mode: "date" }).$onUpdate(
 			() => new Date(),
@@ -60,6 +79,7 @@ export const spatialMaps = pgTable(
 		index("spatial_map_user_idx").on(t.userId),
 		index("spatial_map_org_idx").on(t.organizationId),
 		index("spatial_map_created_at_idx").on(t.createdAt),
+		index("spatial_maps_approval_status_idx").on(t.approvalStatus),
 	],
 )
 
