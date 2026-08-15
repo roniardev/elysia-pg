@@ -50,5 +50,5 @@
         "drizzle-kit": "^0.31.10",
         "typescript": "^7.0.2"
     },
-    "version": "0.1.2"
+    "version": "0.1.3"
 }
