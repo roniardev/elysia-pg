@@ -13,8 +13,8 @@ import { verifyPermission } from "@/src/general/usecase/verify-permission"
 import { handleResponse } from "@/utils/handle-response"
 
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
-import { readPermissionModel } from "../data/permissions.model"
 import { getUser } from "@/src/general/usecase/get-user"
+import { readPermissionModel } from "../data/permissions.model"
 
 export const readPermission = new Elysia()
     .use(readPermissionModel)

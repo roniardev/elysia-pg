@@ -5,14 +5,14 @@ import { UserPermission } from "@/common/enum/permissions"
 import { db } from "@/db"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
 
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
-import { readAllUserModel } from "../data/users.model"
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
-import { handleResponse } from "@/utils/handle-response"
 import {
     ResponseErrorStatus,
     ResponseSuccessStatus,
 } from "@/common/enum/response-status"
+import { jwtAccessSetup } from "@/src/auth/setup/auth"
+import { handleResponse } from "@/utils/handle-response"
+import { readAllUserModel } from "../data/users.model"
 
 export const readAllUser = new Elysia()
     .use(readAllUserModel)

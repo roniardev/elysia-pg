@@ -2,21 +2,21 @@ import bearer from "@elysiajs/bearer"
 import { eq } from "drizzle-orm"
 import { Elysia } from "elysia"
 
+import { PostPermission } from "@/common/enum/permissions"
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
 import {
     ResponseErrorStatus,
     ResponseSuccessStatus,
 } from "@/common/enum/response-status"
+import { Scope } from "@/common/enum/scopes"
 import { db } from "@/db"
 import { posts } from "@/db/schema"
+import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { getScope } from "@/src/general/usecase/get-scope"
+import { getUser } from "@/src/general/usecase/get-user"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
 import { handleResponse } from "@/utils/handle-response"
 import { verrou } from "@/utils/services/locks"
-import { getUser } from "@/src/general/usecase/get-user"
-import { PostPermission } from "@/common/enum/permissions"
-import { Scope } from "@/common/enum/scopes"
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { updatePostModel } from "../data/posts.model"
 
 export const updatePost = new Elysia()
@@ -103,7 +103,9 @@ export const updatePost = new Elysia()
                 })
             }
 
-            if (existingPost.userId !== (existingUser.user?.id || validToken.id)) {
+            if (
+                existingPost.userId !== (existingUser.user?.id || validToken.id)
+            ) {
                 return handleResponse({
                     message: ErrorMessage.INVALID_USER,
                     callback: () => {

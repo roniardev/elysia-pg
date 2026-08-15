@@ -11,9 +11,9 @@ import {
 } from "@/common/enum/response-status"
 import { getUser } from "@/src/general/usecase/get-user"
 import { handleResponse } from "@/utils/handle-response"
+import { verrou } from "@/utils/services/locks"
 import { resetPasswordModel } from "../data/auth.model"
 import { jwtAccessSetup } from "../setup/auth"
-import { verrou } from "@/utils/services/locks"
 
 export const resetPassword = new Elysia()
     .use(jwtAccessSetup)

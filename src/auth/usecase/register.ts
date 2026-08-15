@@ -8,16 +8,16 @@ import { getUser } from "@/src/general/usecase/get-user"
 import { sendEmail } from "@/utils/send-email"
 import { verrou } from "@/utils/services/locks"
 
+import { config } from "@/app/config"
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
 import {
     ResponseErrorStatus,
     ResponseSuccessStatus,
 } from "@/common/enum/response-status"
+import RegexPattern from "@/common/regex-pattern"
 import { handleResponse } from "@/utils/handle-response"
 import { registerModel } from "../data/auth.model"
 import { jwtAccessSetup } from "../setup/auth"
-import RegexPattern from "@/common/regex-pattern"
-import { config } from "@/app/config"
 
 export const register = new Elysia()
     .use(registerModel)

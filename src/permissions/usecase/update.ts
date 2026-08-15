@@ -9,16 +9,16 @@ import {
 } from "@/common/enum/response-status"
 import { db } from "@/db"
 import { permissions } from "@/db/schema/permission"
+import { jwtAccessSetup } from "@/src/auth/setup/auth"
+import { getUser } from "@/src/general/usecase/get-user"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
 import { handleResponse } from "@/utils/handle-response"
-import { getUser } from "@/src/general/usecase/get-user"
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
+import { verrou } from "@/utils/services/locks"
 import { eq } from "drizzle-orm"
 import {
     readPermissionModel,
     updatePermissionModel,
 } from "../data/permissions.model"
-import { verrou } from "@/utils/services/locks"
 
 export const updatePermission = new Elysia()
     .use(updatePermissionModel)

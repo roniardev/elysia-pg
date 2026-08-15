@@ -11,9 +11,9 @@ import {
 } from "@/common/enum/response-status"
 import { getUser } from "@/src/general/usecase/get-user"
 import { handleResponse } from "@/utils/handle-response"
+import { verrou } from "@/utils/services/locks"
 import { verifyEmailModel } from "../data/auth.model"
 import { jwtEmailSetup } from "../setup/auth"
-import { verrou } from "@/utils/services/locks"
 
 export const verifyEmail = new Elysia()
     .use(verifyEmailModel)

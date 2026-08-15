@@ -110,15 +110,15 @@ export const createUser = new Elysia()
                     })
                 } catch (error) {
                     console.error(error)
-                        return handleResponse({
-                            message:
-                                ErrorMessage.FAILED_TO_CREATE_EMAIL_VERIFICATION_TOKEN,
-                            callback: () => {
-                                set.status =
-                                    ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                            },
-                            path,
-                        })
+                    return handleResponse({
+                        message:
+                            ErrorMessage.FAILED_TO_CREATE_EMAIL_VERIFICATION_TOKEN,
+                        callback: () => {
+                            set.status =
+                                ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                        },
+                        path,
+                    })
                 }
 
                 const emailResponse = await sendEmail(

@@ -11,10 +11,10 @@ import {
 import Sorting from "@/common/enum/sorting"
 import { db } from "@/db"
 import { permissions } from "@/db/schema/permission"
+import { jwtAccessSetup } from "@/src/auth/setup/auth"
+import { getUser } from "@/src/general/usecase/get-user"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
 import { handleResponse } from "@/utils/handle-response"
-import { getUser } from "@/src/general/usecase/get-user"
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { readAllPermissionModel } from "../data/permissions.model"
 
 export const readAllPermission = new Elysia()

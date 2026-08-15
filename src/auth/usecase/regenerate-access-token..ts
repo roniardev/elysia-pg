@@ -11,9 +11,9 @@ import {
     ResponseSuccessStatus,
 } from "@/common/enum/response-status"
 import { handleResponse } from "@/utils/handle-response"
+import { verrou } from "@/utils/services/locks"
 import { regenerateAccessTokenModel } from "../data/auth.model"
 import { jwtAccessSetup, jwtRefreshSetup } from "../setup/auth"
-import { verrou } from "@/utils/services/locks"
 
 export const regenerateAccessToken = new Elysia()
     .use(jwtRefreshSetup)

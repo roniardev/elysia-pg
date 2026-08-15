@@ -13,11 +13,11 @@ import {
     ResponseErrorStatus,
     ResponseSuccessStatus,
 } from "@/common/enum/response-status"
+import RegexPattern from "@/common/regex-pattern"
 import { getUser } from "@/src/general/usecase/get-user"
 import { handleResponse } from "@/utils/handle-response"
 import { basicAuthModel } from "../data/auth.model"
 import { jwtAccessSetup, jwtRefreshSetup } from "../setup/auth"
-import RegexPattern from "@/common/regex-pattern"
 
 export const login = new Elysia()
     .use(basicAuthModel)
