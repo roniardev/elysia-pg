@@ -1,1 +1,1 @@
-ALTER TABLE "user_permissions" DROP CONSTRAINT "user_permissions_user_id_permission_id_pk";
+ALTER TABLE "user_permissions" DROP CONSTRAINT IF EXISTS "user_permissions_user_id_permission_id_pk";
