@@ -1,0 +1,46 @@
+import { Effect } from "effect"
+import { ulid } from "ulid"
+
+import { ErrorMessage } from "@/common/enum/response-message"
+import { ResponseErrorStatus } from "@/common/enum/response-status"
+import { db } from "@/db"
+import { posts } from "@/db/schema"
+import { PostServiceError } from "@/src/posts/service/error"
+
+export type CreatePostInput = {
+    title: string
+    excerpt: string
+    content: string
+    status?: string
+    visibility?: string
+    tags?: string
+}
+
+export const createPost = (input: CreatePostInput, userId: string) =>
+    Effect.tryPromise({
+        try: async () => {
+            const postId = ulid()
+
+            await db.insert(posts).values({
+                id: postId,
+                userId,
+                title: input.title,
+                excerpt: input.excerpt,
+                content: input.content,
+            })
+
+            return {
+                id: postId,
+                title: input.title,
+                excerpt: input.excerpt,
+                content: input.content,
+            }
+        },
+        catch: (error) => {
+            console.error(error)
+            return new PostServiceError(
+                ErrorMessage.INTERNAL_SERVER_ERROR,
+                ResponseErrorStatus.INTERNAL_SERVER_ERROR,
+            )
+        },
+    })

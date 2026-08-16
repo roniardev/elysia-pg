@@ -1,19 +1,13 @@
-import { eq } from "drizzle-orm"
+import { Effect } from "effect"
 import { Elysia } from "elysia"
 
 import { PostPermission } from "@/common/enum/permissions"
-import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
-import {
-    ResponseErrorStatus,
-    ResponseSuccessStatus,
-} from "@/common/enum/response-status"
-import { Scope } from "@/common/enum/scopes"
-import { db } from "@/db"
-import { posts } from "@/db/schema"
+import { SuccessMessage } from "@/common/enum/response-message"
+import { ResponseSuccessStatus } from "@/common/enum/response-status"
 import { requirePermission } from "@/src/general/setup/require-permission"
 import { readPostModel, updatePostModel } from "@/src/posts/data/posts.model"
+import { PostService } from "@/src/posts/service"
 import { handleResponse } from "@/utils/handle-response"
-import { verrou } from "@/utils/services/locks"
 
 export const updatePost = new Elysia()
     .use(updatePostModel)
@@ -25,66 +19,21 @@ export const updatePost = new Elysia()
             const path = "posts.update.usecase"
             const { userId, scope } = store.auth
 
-            // CHECK EXISTING POST
-            const existingPost = await db.query.posts.findFirst({
-                where: (table, { eq, and }) => {
-                    if (scope === Scope.PERSONAL) {
-                        return and(
-                            eq(table.id, params.id),
-                            eq(table.userId, userId),
-                        )
-                    }
-                    return eq(table.id, params.id)
-                },
-            })
+            const result = await Effect.runPromise(
+                Effect.either(
+                    PostService.update(params.id, body, userId, scope),
+                ),
+            )
 
-            if (!existingPost) {
+            if (result._tag === "Left") {
                 return handleResponse({
-                    message: ErrorMessage.POST_NOT_FOUND,
+                    message: result.left.message,
                     callback: () => {
-                        set.status = ResponseErrorStatus.BAD_REQUEST
+                        set.status = result.left.status
                     },
                     path,
                 })
             }
-
-            await verrou
-                .createLock(`updatePost:${existingPost.id}`)
-                .run(async () => {
-                    // UPDATE POST
-                    try {
-                        await db
-                            .update(posts)
-                            .set({
-                                title: body.title || existingPost.title,
-                                excerpt: body.excerpt || existingPost.excerpt,
-                                content: body.content || existingPost.content,
-                                status:
-                                    (body.status as "draft" | "published") ||
-                                    (existingPost.status as
-                                        | "draft"
-                                        | "published"),
-                                visibility:
-                                    (body.visibility as "public" | "private") ||
-                                    (existingPost.visibility as
-                                        | "public"
-                                        | "private"),
-                                tags: body.tags || existingPost.tags,
-                                updatedAt: new Date(),
-                            })
-                            .where(eq(posts.id, existingPost.id))
-                    } catch (error) {
-                        console.error(error)
-                        return handleResponse({
-                            message: ErrorMessage.FAILED_TO_UPDATE_POST,
-                            callback: () => {
-                                set.status =
-                                    ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                            },
-                            path,
-                        })
-                    }
-                })
 
             return handleResponse({
                 message: SuccessMessage.POST_UPDATED,

@@ -1,16 +1,12 @@
+import { Effect } from "effect"
 import { Elysia } from "elysia"
-import { ulid } from "ulid"
 
 import { PostPermission } from "@/common/enum/permissions"
-import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
-import {
-    ResponseErrorStatus,
-    ResponseSuccessStatus,
-} from "@/common/enum/response-status"
-import { db } from "@/db"
-import { posts } from "@/db/schema"
+import { SuccessMessage } from "@/common/enum/response-message"
+import { ResponseSuccessStatus } from "@/common/enum/response-status"
 import { requirePermission } from "@/src/general/setup/require-permission"
 import { createPostModel } from "@/src/posts/data/posts.model"
+import { PostService } from "@/src/posts/service"
 import { handleResponse } from "@/utils/handle-response"
 
 export const createPost = new Elysia()
@@ -22,33 +18,18 @@ export const createPost = new Elysia()
             const path = "posts.create.usecase"
             const { userId } = store.auth
 
-            // CREATE POST
-            const postId = ulid()
+            const result = await Effect.runPromise(
+                Effect.either(PostService.create(body, userId)),
+            )
 
-            try {
-                await db.insert(posts).values({
-                    id: postId,
-                    userId,
-                    title: body.title,
-                    excerpt: body.excerpt,
-                    content: body.content,
-                })
-            } catch (error) {
-                console.error(error)
+            if (result._tag === "Left") {
                 return handleResponse({
-                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                    message: result.left.message,
                     callback: () => {
-                        set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                        set.status = result.left.status
                     },
                     path,
                 })
-            }
-
-            const response = {
-                id: postId,
-                title: body.title,
-                excerpt: body.excerpt,
-                content: body.content,
             }
 
             return handleResponse({
@@ -56,7 +37,7 @@ export const createPost = new Elysia()
                 callback: () => {
                     set.status = ResponseSuccessStatus.CREATED
                 },
-                data: response,
+                data: result.right,
                 path,
             })
         },

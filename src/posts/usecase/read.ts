@@ -1,15 +1,12 @@
+import { Effect } from "effect"
 import { Elysia } from "elysia"
 
 import { PostPermission } from "@/common/enum/permissions"
-import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
-import {
-    ResponseErrorStatus,
-    ResponseSuccessStatus,
-} from "@/common/enum/response-status"
-import { Scope } from "@/common/enum/scopes"
-import { db } from "@/db"
+import { SuccessMessage } from "@/common/enum/response-message"
+import { ResponseSuccessStatus } from "@/common/enum/response-status"
 import { requirePermission } from "@/src/general/setup/require-permission"
 import { readPostModel } from "@/src/posts/data/posts.model"
+import { PostService } from "@/src/posts/service"
 import { handleResponse } from "@/utils/handle-response"
 
 export const readPost = new Elysia()
@@ -21,25 +18,15 @@ export const readPost = new Elysia()
             const path = "posts.read.usecase"
             const { userId, scope } = store.auth
 
-            // READ POST (single query, scope-aware)
-            const post = await db.query.posts.findFirst({
-                where: (table, { eq, and }) => {
-                    if (scope === Scope.PERSONAL) {
-                        return and(
-                            eq(table.id, params.id),
-                            eq(table.userId, userId),
-                        )
-                    }
+            const result = await Effect.runPromise(
+                Effect.either(PostService.read(params.id, userId, scope)),
+            )
 
-                    return eq(table.id, params.id)
-                },
-            })
-
-            if (!post) {
+            if (result._tag === "Left") {
                 return handleResponse({
-                    message: ErrorMessage.POST_NOT_FOUND,
+                    message: result.left.message,
                     callback: () => {
-                        set.status = ResponseErrorStatus.BAD_REQUEST
+                        set.status = result.left.status
                     },
                     path,
                 })
@@ -50,7 +37,7 @@ export const readPost = new Elysia()
                 callback: () => {
                     set.status = ResponseSuccessStatus.OK
                 },
-                data: post,
+                data: result.right,
                 path,
             })
         },
