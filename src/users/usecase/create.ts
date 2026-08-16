@@ -1,122 +1,34 @@
+import { Effect } from "effect"
 import { Elysia } from "elysia"
-import { ulid } from "ulid"
 
-import { verifyEmailTemplate } from "@/common/email-templates/verify-email"
 import { UserPermission } from "@/common/enum/permissions"
-import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
-import {
-    ResponseErrorStatus,
-    ResponseSuccessStatus,
-} from "@/common/enum/response-status"
-import { db } from "@/db"
-import { emailVerificationTokens, userPermissions, users } from "@/db/schema"
+import { SuccessMessage } from "@/common/enum/response-message"
+import { ResponseSuccessStatus } from "@/common/enum/response-status"
 import { requirePermission } from "@/src/general/setup/require-permission"
-import { getUser } from "@/src/general/usecase/get-user"
 import { createUserModel } from "@/src/users/data/users.model"
+import { UserService } from "@/src/users/service"
 import { handleResponse } from "@/utils/handle-response"
-import { sendEmail } from "@/utils/send-email"
 
 export const createUser = new Elysia()
     .use(createUserModel)
     .use(requirePermission(UserPermission.CREATE_USER))
     .post(
         "/user",
-        async ({ body, set, jwtAccess }) => {
+        async ({ body, set }) => {
             const path = "users.create.usecase"
 
-            // CHECK EXISTING USER
-            const existingUser = await getUser({
-                identifier: body.email,
-                type: "email",
-            })
+            const result = await Effect.runPromise(
+                Effect.either(UserService.create(body)),
+            )
 
-            if (existingUser.user) {
+            if (result._tag === "Left") {
                 return handleResponse({
-                    message: ErrorMessage.USER_ALREADY_EXISTS,
+                    message: result.left.message,
                     callback: () => {
-                        set.status = ResponseErrorStatus.BAD_REQUEST
+                        set.status = result.left.status
                     },
                     path,
                 })
-            }
-
-            // CREATE USER
-            const userId = ulid()
-            const { email, emailVerified, password, permissions } = body
-
-            const newUser = await db.insert(users).values({
-                id: userId,
-                email,
-                emailVerified,
-                hashedPassword: await Bun.password.hash(password),
-            })
-
-            if (!newUser) {
-                return handleResponse({
-                    message: ErrorMessage.FAILED_TO_CREATE_USER,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                    },
-                    path,
-                })
-            }
-
-            const emailToken = await jwtAccess.sign({
-                id: userId,
-            })
-
-            const hashedToken = await Bun.password.hash(emailToken)
-
-            if (!emailVerified) {
-                // CREATE EMAIL VERIFICATION TOKEN
-                try {
-                    await db.insert(emailVerificationTokens).values({
-                        id: ulid(),
-                        email,
-                        userId: userId,
-                        hashedToken,
-                        expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 HOUR,
-                    })
-                } catch (error) {
-                    console.error(error)
-                    return handleResponse({
-                        message:
-                            ErrorMessage.FAILED_TO_CREATE_EMAIL_VERIFICATION_TOKEN,
-                        callback: () => {
-                            set.status =
-                                ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                        },
-                        path,
-                    })
-                }
-
-                const emailResponse = await sendEmail(
-                    email,
-                    "Verify your email",
-                    verifyEmailTemplate(emailToken),
-                )
-
-                if (!emailResponse) {
-                    return handleResponse({
-                        message: ErrorMessage.FAILED_TO_SEND_EMAIL,
-                        callback: () => {
-                            set.status =
-                                ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                        },
-                        path,
-                    })
-                }
-            }
-
-            // CREATE USER PERMISSIONS
-            if (permissions) {
-                for (const permission of permissions) {
-                    await db.insert(userPermissions).values({
-                        id: ulid(),
-                        userId: userId,
-                        permissionId: permission,
-                    })
-                }
             }
 
             return handleResponse({

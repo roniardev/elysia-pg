@@ -1,16 +1,12 @@
+import { Effect } from "effect"
 import { Elysia } from "elysia"
-import { ulid } from "ulid"
 
 import { ManagePermission } from "@/common/enum/permissions"
-import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
-import {
-    ResponseErrorStatus,
-    ResponseSuccessStatus,
-} from "@/common/enum/response-status"
-import { db } from "@/db"
-import { permissions } from "@/db/schema/permission"
+import { SuccessMessage } from "@/common/enum/response-message"
+import { ResponseSuccessStatus } from "@/common/enum/response-status"
 import { requirePermission } from "@/src/general/setup/require-permission"
 import { createPermissionModel } from "@/src/permissions/data/permissions.model"
+import { PermissionService } from "@/src/permissions/service"
 import { handleResponse } from "@/utils/handle-response"
 
 export const createPermission = new Elysia()
@@ -21,30 +17,18 @@ export const createPermission = new Elysia()
         async ({ body, set }) => {
             const path = "permissions.create.usecase"
 
-            // CREATE PERMISSION
-            const permissionId = ulid()
+            const result = await Effect.runPromise(
+                Effect.either(PermissionService.create(body)),
+            )
 
-            try {
-                await db.insert(permissions).values({
-                    id: permissionId,
-                    name: body.name,
-                    description: body.description,
-                })
-            } catch (error) {
-                console.error(error)
+            if (result._tag === "Left") {
                 return handleResponse({
-                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                    message: result.left.message,
                     callback: () => {
-                        set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                        set.status = result.left.status
                     },
                     path,
                 })
-            }
-
-            const response = {
-                id: permissionId,
-                name: body.name,
-                description: body.description,
             }
 
             return handleResponse({
@@ -52,7 +36,7 @@ export const createPermission = new Elysia()
                 callback: () => {
                     set.status = ResponseSuccessStatus.CREATED
                 },
-                data: response,
+                data: result.right,
                 path,
             })
         },

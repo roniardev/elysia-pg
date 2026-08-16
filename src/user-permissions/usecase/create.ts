@@ -1,16 +1,12 @@
+import { Effect } from "effect"
 import { Elysia } from "elysia"
-import { ulid } from "ulid"
 
 import { ManageUserPermission } from "@/common/enum/permissions"
-import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
-import {
-    ResponseErrorStatus,
-    ResponseSuccessStatus,
-} from "@/common/enum/response-status"
-import { db } from "@/db"
-import { userPermissions } from "@/db/schema/user-permissions"
+import { SuccessMessage } from "@/common/enum/response-message"
+import { ResponseSuccessStatus } from "@/common/enum/response-status"
 import { requirePermission } from "@/src/general/setup/require-permission"
 import { createUserPermissionModel } from "@/src/user-permissions/data/user-permissions.model"
+import { UserPermissionService } from "@/src/user-permissions/service"
 import { handleResponse } from "@/utils/handle-response"
 
 export const createUserPermission = new Elysia()
@@ -21,53 +17,18 @@ export const createUserPermission = new Elysia()
         async ({ body, set }) => {
             const path = "user-permissions.create.usecase"
 
-            // Check if permission already exists and not revoked
-            const existingPermission = await db.query.userPermissions.findFirst(
-                {
-                    where: (fields, { eq, and }) =>
-                        and(
-                            eq(fields.userId, body.userId),
-                            eq(fields.permissionId, body.permissionId),
-                            eq(fields.revoked, false),
-                        ),
-                },
+            const result = await Effect.runPromise(
+                Effect.either(UserPermissionService.create(body)),
             )
 
-            if (existingPermission) {
+            if (result._tag === "Left") {
                 return handleResponse({
-                    message: ErrorMessage.PERMISSION_ALREADY_ASSIGNED,
+                    message: result.left.message,
                     callback: () => {
-                        set.status = ResponseErrorStatus.BAD_REQUEST
+                        set.status = result.left.status
                     },
                     path,
                 })
-            }
-
-            // CREATE USER PERMISSION
-            const userPermissionId = ulid()
-
-            try {
-                await db.insert(userPermissions).values({
-                    id: userPermissionId,
-                    userId: body.userId,
-                    permissionId: body.permissionId,
-                })
-            } catch (error) {
-                console.error(error)
-                return handleResponse({
-                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                    },
-                    path,
-                })
-            }
-
-            const response = {
-                id: userPermissionId,
-                userId: body.userId,
-                permissionId: body.permissionId,
-                revoked: false,
             }
 
             return handleResponse({
@@ -75,7 +36,7 @@ export const createUserPermission = new Elysia()
                 callback: () => {
                     set.status = ResponseSuccessStatus.CREATED
                 },
-                data: response,
+                data: result.right,
                 path,
             })
         },

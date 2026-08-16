@@ -1,19 +1,13 @@
-import { eq } from "drizzle-orm"
+import { Effect } from "effect"
 import { Elysia } from "elysia"
 
 import { UserPermission } from "@/common/enum/permissions"
-import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
-import {
-    ResponseErrorStatus,
-    ResponseSuccessStatus,
-} from "@/common/enum/response-status"
-import { db } from "@/db"
-import { users } from "@/db/schema"
+import { SuccessMessage } from "@/common/enum/response-message"
+import { ResponseSuccessStatus } from "@/common/enum/response-status"
 import { requirePermission } from "@/src/general/setup/require-permission"
-import { getUser } from "@/src/general/usecase/get-user"
 import { deleteUserModel } from "@/src/users/data/users.model"
+import { UserService } from "@/src/users/service"
 import { handleResponse } from "@/utils/handle-response"
-import { verrou } from "@/utils/services/locks"
 
 export const deleteUser = new Elysia()
     .use(deleteUserModel)
@@ -23,56 +17,19 @@ export const deleteUser = new Elysia()
         async ({ set, params }) => {
             const path = "users.delete.usecase"
 
-            const existingUser = await getUser({
-                identifier: params.id,
-                type: "id",
-            })
+            const result = await Effect.runPromise(
+                Effect.either(UserService.delete(params.id)),
+            )
 
-            if (!existingUser.user) {
+            if (result._tag === "Left") {
                 return handleResponse({
-                    message: ErrorMessage.USER_NOT_FOUND,
+                    message: result.left.message,
                     callback: () => {
-                        set.status = ResponseErrorStatus.NOT_FOUND
+                        set.status = result.left.status
                     },
                     path,
                 })
             }
-
-            if (existingUser.user.deletedAt) {
-                return handleResponse({
-                    message: ErrorMessage.USER_ALREADY_DELETED,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.BAD_REQUEST
-                    },
-                    path,
-                })
-            }
-
-            const { user } = existingUser
-
-            await verrou.createLock(`user:${user.id}`).run(async () => {
-                try {
-                    // await 15s
-                    await new Promise((resolve) => setTimeout(resolve, 15000))
-
-                    await db
-                        .update(users)
-                        .set({
-                            deletedAt: new Date(),
-                        })
-                        .where(eq(users.id, user.id))
-                } catch (error) {
-                    console.error(error)
-                    return handleResponse({
-                        message: ErrorMessage.FAILED_TO_DELETE_USER,
-                        callback: () => {
-                            set.status =
-                                ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                        },
-                        path,
-                    })
-                }
-            })
 
             return handleResponse({
                 message: SuccessMessage.USER_DELETED,

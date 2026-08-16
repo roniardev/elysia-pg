@@ -1,18 +1,13 @@
-import { eq } from "drizzle-orm"
+import { Effect } from "effect"
 import { Elysia } from "elysia"
 
 import { ManagePermission } from "@/common/enum/permissions"
-import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
-import {
-    ResponseErrorStatus,
-    ResponseSuccessStatus,
-} from "@/common/enum/response-status"
-import { db } from "@/db"
-import { permissions } from "@/db/schema/permission"
+import { SuccessMessage } from "@/common/enum/response-message"
+import { ResponseSuccessStatus } from "@/common/enum/response-status"
 import { requirePermission } from "@/src/general/setup/require-permission"
 import { deletePermissionModel } from "@/src/permissions/data/permissions.model"
+import { PermissionService } from "@/src/permissions/service"
 import { handleResponse } from "@/utils/handle-response"
-import { verrou } from "@/utils/services/locks"
 
 export const deletePermission = new Elysia()
     .use(deletePermissionModel)
@@ -23,44 +18,19 @@ export const deletePermission = new Elysia()
             const path = "permissions.delete.usecase"
             const { userId } = store.auth
 
-            // CHECK IF PERMISSION EXISTS
-            const existingPermission = await db.query.permissions.findFirst({
-                where: (table, { eq, and, isNull }) => {
-                    return and(eq(table.id, params.id), isNull(table.deletedAt))
-                },
-            })
+            const result = await Effect.runPromise(
+                Effect.either(PermissionService.delete(params.id, userId)),
+            )
 
-            if (!existingPermission) {
+            if (result._tag === "Left") {
                 return handleResponse({
-                    message: ErrorMessage.PERMISSION_NOT_FOUND,
+                    message: result.left.message,
                     callback: () => {
-                        set.status = ResponseErrorStatus.NOT_FOUND
+                        set.status = result.left.status
                     },
                     path,
                 })
             }
-
-            // DELETE PERMISSION
-            await verrou
-                .createLock(`${userId}:delete-permission`)
-                .run(async () => {
-                    try {
-                        await db
-                            .update(permissions)
-                            .set({ deletedAt: new Date() })
-                            .where(eq(permissions.id, params.id))
-                    } catch (error) {
-                        console.error(error)
-                        return handleResponse({
-                            message: ErrorMessage.INTERNAL_SERVER_ERROR,
-                            callback: () => {
-                                set.status =
-                                    ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                            },
-                            path,
-                        })
-                    }
-                })
 
             return handleResponse({
                 message: SuccessMessage.PERMISSION_DELETED,

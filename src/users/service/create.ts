@@ -1,0 +1,174 @@
+import { Effect } from "effect"
+import { SignJWT } from "jose"
+import { ulid } from "ulid"
+
+import { config } from "@/app/config"
+import { verifyEmailTemplate } from "@/common/email-templates/verify-email"
+import { ErrorMessage } from "@/common/enum/response-message"
+import { ResponseErrorStatus } from "@/common/enum/response-status"
+import { db } from "@/db"
+import { emailVerificationTokens, userPermissions, users } from "@/db/schema"
+import { getUser } from "@/src/general/usecase/get-user"
+import { UserServiceError } from "@/src/users/service/error"
+import { sendEmail } from "@/utils/send-email"
+
+export type CreateUserInput = {
+    email: string
+    password: string
+    emailVerified?: boolean
+    permissions?: string[]
+}
+
+export const createUser = (input: CreateUserInput) =>
+    Effect.gen(function* () {
+        // CHECK EXISTING USER
+        const existingUser = yield* Effect.tryPromise({
+            try: () =>
+                getUser({
+                    identifier: input.email,
+                    type: "email",
+                }),
+            catch: (error) => {
+                console.error(error)
+                return new UserServiceError(
+                    ErrorMessage.INTERNAL_SERVER_ERROR,
+                    ResponseErrorStatus.INTERNAL_SERVER_ERROR,
+                )
+            },
+        })
+
+        if (existingUser.user) {
+            return yield* Effect.fail(
+                new UserServiceError(
+                    ErrorMessage.USER_ALREADY_EXISTS,
+                    ResponseErrorStatus.BAD_REQUEST,
+                ),
+            )
+        }
+
+        // CREATE USER
+        const userId = ulid()
+        const { email, emailVerified, password, permissions } = input
+
+        const newUser = yield* Effect.tryPromise({
+            try: async () =>
+                db.insert(users).values({
+                    id: userId,
+                    email,
+                    emailVerified,
+                    hashedPassword: await Bun.password.hash(password),
+                }),
+            catch: (error) => {
+                console.error(error)
+                return new UserServiceError(
+                    ErrorMessage.FAILED_TO_CREATE_USER,
+                    ResponseErrorStatus.INTERNAL_SERVER_ERROR,
+                )
+            },
+        })
+
+        if (!newUser) {
+            return yield* Effect.fail(
+                new UserServiceError(
+                    ErrorMessage.FAILED_TO_CREATE_USER,
+                    ResponseErrorStatus.INTERNAL_SERVER_ERROR,
+                ),
+            )
+        }
+
+        const emailToken = yield* Effect.tryPromise({
+            try: () =>
+                new SignJWT({ id: userId })
+                    .setProtectedHeader({ alg: "HS256" })
+                    .setIssuedAt()
+                    .setExpirationTime("25m")
+                    .sign(new TextEncoder().encode(config.JWT_ACCESS_SECRET)),
+            catch: (error) => {
+                console.error(error)
+                return new UserServiceError(
+                    ErrorMessage.FAILED_TO_CREATE_EMAIL_VERIFICATION_TOKEN,
+                    ResponseErrorStatus.INTERNAL_SERVER_ERROR,
+                )
+            },
+        })
+
+        const hashedToken = yield* Effect.tryPromise({
+            try: () => Bun.password.hash(emailToken),
+            catch: (error) => {
+                console.error(error)
+                return new UserServiceError(
+                    ErrorMessage.FAILED_TO_CREATE_EMAIL_VERIFICATION_TOKEN,
+                    ResponseErrorStatus.INTERNAL_SERVER_ERROR,
+                )
+            },
+        })
+
+        if (!emailVerified) {
+            // CREATE EMAIL VERIFICATION TOKEN
+            yield* Effect.tryPromise({
+                try: () =>
+                    db.insert(emailVerificationTokens).values({
+                        id: ulid(),
+                        email,
+                        userId: userId,
+                        hashedToken,
+                        expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 HOUR,
+                    }),
+                catch: (error) => {
+                    console.error(error)
+                    return new UserServiceError(
+                        ErrorMessage.FAILED_TO_CREATE_EMAIL_VERIFICATION_TOKEN,
+                        ResponseErrorStatus.INTERNAL_SERVER_ERROR,
+                    )
+                },
+            })
+
+            const emailResponse = yield* Effect.tryPromise({
+                try: () =>
+                    sendEmail(
+                        email,
+                        "Verify your email",
+                        verifyEmailTemplate(emailToken),
+                    ),
+                catch: (error) => {
+                    console.error(error)
+                    return new UserServiceError(
+                        ErrorMessage.FAILED_TO_SEND_EMAIL,
+                        ResponseErrorStatus.INTERNAL_SERVER_ERROR,
+                    )
+                },
+            })
+
+            if (!emailResponse) {
+                return yield* Effect.fail(
+                    new UserServiceError(
+                        ErrorMessage.FAILED_TO_SEND_EMAIL,
+                        ResponseErrorStatus.INTERNAL_SERVER_ERROR,
+                    ),
+                )
+            }
+        }
+
+        // CREATE USER PERMISSIONS
+        if (permissions) {
+            for (const permission of permissions) {
+                yield* Effect.tryPromise({
+                    try: () =>
+                        db.insert(userPermissions).values({
+                            id: ulid(),
+                            userId: userId,
+                            permissionId: permission,
+                        }),
+                    catch: (error) => {
+                        console.error(error)
+                        return new UserServiceError(
+                            ErrorMessage.FAILED_TO_CREATE_USER,
+                            ResponseErrorStatus.INTERNAL_SERVER_ERROR,
+                        )
+                    },
+                })
+            }
+        }
+
+        return { id: userId }
+    })

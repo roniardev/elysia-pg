@@ -1,14 +1,12 @@
+import { Effect } from "effect"
 import { Elysia } from "elysia"
 
 import { ManageUserPermission } from "@/common/enum/permissions"
-import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
-import {
-    ResponseErrorStatus,
-    ResponseSuccessStatus,
-} from "@/common/enum/response-status"
-import { db } from "@/db"
+import { SuccessMessage } from "@/common/enum/response-message"
+import { ResponseSuccessStatus } from "@/common/enum/response-status"
 import { requirePermission } from "@/src/general/setup/require-permission"
 import { readUserPermissionModel } from "@/src/user-permissions/data/user-permissions.model"
+import { UserPermissionService } from "@/src/user-permissions/service"
 import { handleResponse } from "@/utils/handle-response"
 
 export const readUserPermission = new Elysia()
@@ -19,36 +17,18 @@ export const readUserPermission = new Elysia()
         async ({ params, set }) => {
             const path = "user-permissions.read.usecase"
 
-            // READ USER PERMISSION
-            const userPermission = await db.query.userPermissions.findFirst({
-                where: (fields, { eq }) => eq(fields.id, params.id),
-                with: {
-                    permission: true,
-                },
-            })
+            const result = await Effect.runPromise(
+                Effect.either(UserPermissionService.read(params.id)),
+            )
 
-            if (!userPermission) {
+            if (result._tag === "Left") {
                 return handleResponse({
-                    message: ErrorMessage.USER_PERMISSION_NOT_FOUND,
+                    message: result.left.message,
                     callback: () => {
-                        set.status = ResponseErrorStatus.NOT_FOUND
+                        set.status = result.left.status
                     },
                     path,
                 })
-            }
-
-            const response = {
-                id: userPermission.id,
-                userId: userPermission.userId,
-                permissionId: userPermission.permissionId,
-                revoked: userPermission.revoked,
-                createdAt: userPermission.createdAt.toISOString(),
-                updatedAt: userPermission.updatedAt?.toISOString() ?? null,
-                permission: {
-                    id: userPermission.permission.id,
-                    name: userPermission.permission.name,
-                    description: userPermission.permission.description,
-                },
             }
 
             return handleResponse({
@@ -56,7 +36,7 @@ export const readUserPermission = new Elysia()
                 callback: () => {
                     set.status = ResponseSuccessStatus.OK
                 },
-                data: response,
+                data: result.right,
                 path,
             })
         },
