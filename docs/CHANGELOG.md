@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.1.4] - 2026-08-16
+
+### Added
+- ULID id format validation on all route params (invalid id rejected with 400 before hitting the DB)
+- Query param constraints on read-all endpoints: page, limit, sort, search
+- `page=-1` now returns all records without limit/offset
+
+### Changed
+- `verifyPermission` no longer uses an IN subquery; permission-name matching moved to application code
+
 ## [v0.1.3] - 2026-08-16
 
 ### Changed
