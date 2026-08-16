@@ -1,23 +1,20 @@
 import { Elysia } from "elysia"
 import { ulid } from "ulid"
-
 import { verifyEmailTemplate } from "@/common/email-templates/verify-email"
-import { db } from "@/db"
-import { emailVerificationTokens, users } from "@/db/schema"
-import { getUser } from "@/src/general/usecase/get-user"
-import { sendEmail } from "@/utils/send-email"
-import { verrou } from "@/utils/services/locks"
-
-import { config } from "@/app/config"
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
 import {
     ResponseErrorStatus,
     ResponseSuccessStatus,
 } from "@/common/enum/response-status"
 import RegexPattern from "@/common/regex-pattern"
+import { db } from "@/db"
+import { emailVerificationTokens, users } from "@/db/schema"
 import { registerModel } from "@/src/auth/data/auth.model"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
+import { getUser } from "@/src/general/usecase/get-user"
 import { handleResponse } from "@/utils/handle-response"
+import { sendEmail } from "@/utils/send-email"
+import { verrou } from "@/utils/services/locks"
 
 export const register = new Elysia()
     .use(registerModel)

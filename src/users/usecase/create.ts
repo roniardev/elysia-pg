@@ -1,7 +1,7 @@
 import bearer from "@elysiajs/bearer"
 import { Elysia } from "elysia"
 import { ulid } from "ulid"
-
+import { verifyEmailTemplate } from "@/common/email-templates/verify-email"
 import { UserPermission } from "@/common/enum/permissions"
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
 import {
@@ -10,13 +10,11 @@ import {
 } from "@/common/enum/response-status"
 import { db } from "@/db"
 import { emailVerificationTokens, userPermissions, users } from "@/db/schema"
+import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { getUser } from "@/src/general/usecase/get-user"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
-import { handleResponse } from "@/utils/handle-response"
-
-import { verifyEmailTemplate } from "@/common/email-templates/verify-email"
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { createUserModel } from "@/src/users/data/users.model"
+import { handleResponse } from "@/utils/handle-response"
 import { sendEmail } from "@/utils/send-email"
 
 export const createUser = new Elysia()

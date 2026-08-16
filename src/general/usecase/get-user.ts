@@ -39,10 +39,11 @@ export const getUser = async ({
                 conditions.push(eq(table.emailVerified, true))
             }
 
-            const result =
-                conditions.length === 1 ? conditions[0] : and(...conditions)
+            if (conditions.length === 1) {
+                return conditions[0]
+            }
 
-            return result
+            return and(...conditions)
         },
         with: {
             permissions: withPermissions,

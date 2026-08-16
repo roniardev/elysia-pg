@@ -1,13 +1,7 @@
-import { and, eq, isNull } from "drizzle-orm"
+import dayjs from "dayjs"
 import { Elysia } from "elysia"
 
-import dayjs from "dayjs"
-
 import { config } from "@/app/config"
-import ExpiredTime from "@/utils/expired-time"
-import { verrou } from "@/utils/services/locks"
-import { redis } from "@/utils/services/redis"
-
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
 import {
     ResponseErrorStatus,
@@ -17,7 +11,10 @@ import RegexPattern from "@/common/regex-pattern"
 import { basicAuthModel } from "@/src/auth/data/auth.model"
 import { jwtAccessSetup, jwtRefreshSetup } from "@/src/auth/setup/auth"
 import { getUser } from "@/src/general/usecase/get-user"
+import ExpiredTime from "@/utils/expired-time"
 import { handleResponse } from "@/utils/handle-response"
+import { verrou } from "@/utils/services/locks"
+import { redis } from "@/utils/services/redis"
 
 export const login = new Elysia()
     .use(basicAuthModel)
@@ -87,10 +84,6 @@ export const login = new Elysia()
             // CHECK EXISTING REFRESH TOKEN
             const existingRefreshToken = await redis.get(
                 `${existingUser.user?.id}:refreshToken`,
-            )
-
-            const existingAccessToken = await redis.get(
-                `${existingUser.user?.id}:accessToken`,
             )
 
             if (existingRefreshToken) {

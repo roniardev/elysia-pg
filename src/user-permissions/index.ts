@@ -1,7 +1,6 @@
-import { Elysia } from "elysia"
-
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import bearer from "@elysiajs/bearer"
+import { Elysia } from "elysia"
+import { jwtAccessSetup } from "@/src/auth/setup/auth"
 
 import { createUserPermission } from "@/src/user-permissions/usecase/create"
 import { deleteUserPermission } from "@/src/user-permissions/usecase/delete"

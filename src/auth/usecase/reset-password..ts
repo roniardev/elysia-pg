@@ -1,14 +1,12 @@
 import { eq } from "drizzle-orm"
 import { Elysia } from "elysia"
-
-import { db } from "@/db"
-import { users } from "@/db/schema"
-
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
 import {
     ResponseErrorStatus,
     ResponseSuccessStatus,
 } from "@/common/enum/response-status"
+import { db } from "@/db"
+import { users } from "@/db/schema"
 import { resetPasswordModel } from "@/src/auth/data/auth.model"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { getUser } from "@/src/general/usecase/get-user"

@@ -10,14 +10,11 @@ import {
 } from "@/common/enum/response-status"
 import { db } from "@/db"
 import { posts } from "@/db/schema"
-import { getScope } from "@/src/general/usecase/get-scope"
+import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
+import { deletePostModel } from "@/src/posts/data/posts.model"
 import { handleResponse } from "@/utils/handle-response"
 import { verrou } from "@/utils/services/locks"
-
-import { Scope } from "@/common/enum/scopes"
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
-import { deletePostModel } from "@/src/posts/data/posts.model"
 
 export const deletePost = new Elysia()
     .use(deletePostModel)
@@ -54,8 +51,6 @@ export const deletePost = new Elysia()
                     path,
                 })
             }
-
-            const scope = await getScope(permission)
 
             // CHECK EXISTING POST
             const existingPost = await db.query.posts.findFirst({

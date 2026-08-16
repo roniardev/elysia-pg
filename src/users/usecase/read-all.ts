@@ -2,15 +2,14 @@ import bearer from "@elysiajs/bearer"
 import { Elysia } from "elysia"
 
 import { UserPermission } from "@/common/enum/permissions"
-import { db } from "@/db"
-import { verifyPermission } from "@/src/general/usecase/verify-permission"
-
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
 import {
     ResponseErrorStatus,
     ResponseSuccessStatus,
 } from "@/common/enum/response-status"
+import { db } from "@/db"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
+import { verifyPermission } from "@/src/general/usecase/verify-permission"
 import { readAllUserModel } from "@/src/users/data/users.model"
 import { handleResponse } from "@/utils/handle-response"
 
@@ -79,8 +78,6 @@ export const readAllUser = new Elysia()
                     path,
                 })
             }
-
-            const total = users.length
 
             return handleResponse({
                 message: SuccessMessage.USER_FETCHED,

@@ -1,6 +1,6 @@
 import bearer from "@elysiajs/bearer"
+import { and, eq, like, type SQL, sql } from "drizzle-orm"
 import { Elysia } from "elysia"
-
 import { PostPermission } from "@/common/enum/permissions"
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
 import {
@@ -17,7 +17,6 @@ import { getUser } from "@/src/general/usecase/get-user"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
 import { readAllPostModel } from "@/src/posts/data/posts.model"
 import { handleResponse } from "@/utils/handle-response"
-import { and, eq, like, sql } from "drizzle-orm"
 
 export const readAllPost = new Elysia()
     .use(readAllPostModel)
@@ -81,19 +80,22 @@ export const readAllPost = new Elysia()
             // GET ALL POSTS
             const postsRes = await db.query.posts.findMany({
                 where: (table, { eq, like, and }) => {
+                    const whereConditions = []
                     if (scope === Scope.PERSONAL) {
-                        return and(
+                        whereConditions.push(
                             eq(
                                 table.userId,
                                 existingUser.user?.id || validToken.id,
                             ),
-                            search
-                                ? like(table.title, `%${search}%`)
-                                : undefined,
                         )
                     }
-
-                    return search ? like(table.title, `%${search}%`) : undefined
+                    if (search) {
+                        whereConditions.push(like(table.title, `%${search}%`))
+                    }
+                    if (whereConditions.length === 1) {
+                        return whereConditions[0]
+                    }
+                    return and(...whereConditions)
                 },
                 limit: Number(limit),
                 offset: (Number(page) - 1) * Number(limit),
@@ -121,14 +123,15 @@ export const readAllPost = new Elysia()
                 whereConditions.push(like(posts.title, `%${search}%`))
             }
 
+            let totalWhere: SQL | undefined
+            if (whereConditions.length > 0) {
+                totalWhere = and(...whereConditions)
+            }
+
             const totalAllData = await db
                 .select({ count: sql<number>`count(*)` })
                 .from(posts)
-                .where(
-                    whereConditions.length > 0
-                        ? and(...whereConditions)
-                        : undefined,
-                )
+                .where(totalWhere)
 
             const total = Number(totalAllData[0]?.count || 0)
             const totalPage = Math.ceil(total / Number(limit))

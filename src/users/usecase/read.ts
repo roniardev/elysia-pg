@@ -7,13 +7,11 @@ import {
     ResponseErrorStatus,
     ResponseSuccessStatus,
 } from "@/common/enum/response-status"
-import { db } from "@/db"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { getUser } from "@/src/general/usecase/get-user"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
-import { handleResponse } from "@/utils/handle-response"
-
 import { readUserModel } from "@/src/users/data/users.model"
+import { handleResponse } from "@/utils/handle-response"
 
 export const readUser = new Elysia()
     .use(readUserModel)

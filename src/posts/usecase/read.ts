@@ -7,14 +7,13 @@ import {
     ResponseErrorStatus,
     ResponseSuccessStatus,
 } from "@/common/enum/response-status"
+import { Scope } from "@/common/enum/scopes"
 import { db } from "@/db"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
-import { verifyPermission } from "@/src/general/usecase/verify-permission"
-import { handleResponse } from "@/utils/handle-response"
-
-import { Scope } from "@/common/enum/scopes"
 import { getScope } from "@/src/general/usecase/get-scope"
+import { verifyPermission } from "@/src/general/usecase/verify-permission"
 import { readPostModel } from "@/src/posts/data/posts.model"
+import { handleResponse } from "@/utils/handle-response"
 
 export const readPost = new Elysia()
     .use(readPostModel)

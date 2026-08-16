@@ -3,8 +3,6 @@ import dayjs from "dayjs"
 import { Elysia } from "elysia"
 
 import { config } from "@/app/config"
-import { redis } from "@/utils/services/redis"
-
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
 import {
     ResponseErrorStatus,
@@ -14,6 +12,7 @@ import { regenerateAccessTokenModel } from "@/src/auth/data/auth.model"
 import { jwtAccessSetup, jwtRefreshSetup } from "@/src/auth/setup/auth"
 import { handleResponse } from "@/utils/handle-response"
 import { verrou } from "@/utils/services/locks"
+import { redis } from "@/utils/services/redis"
 
 export const regenerateAccessToken = new Elysia()
     .use(jwtRefreshSetup)

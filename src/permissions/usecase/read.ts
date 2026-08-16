@@ -8,13 +8,11 @@ import {
     ResponseSuccessStatus,
 } from "@/common/enum/response-status"
 import { db } from "@/db"
-import { permissions } from "@/db/schema/permission"
-import { verifyPermission } from "@/src/general/usecase/verify-permission"
-import { handleResponse } from "@/utils/handle-response"
-
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { getUser } from "@/src/general/usecase/get-user"
+import { verifyPermission } from "@/src/general/usecase/verify-permission"
 import { readPermissionModel } from "@/src/permissions/data/permissions.model"
+import { handleResponse } from "@/utils/handle-response"
 
 export const readPermission = new Elysia()
     .use(readPermissionModel)

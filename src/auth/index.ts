@@ -10,13 +10,18 @@ import { register } from "@/src/auth/usecase/register"
 import { resetPassword } from "@/src/auth/usecase/reset-password."
 import { verifyEmail } from "@/src/auth/usecase/verify-email"
 
+const IS_DEV_ENV =
+    config.NODE_ENV === "test" || config.NODE_ENV === "development"
+
+const RATE_LIMIT_MAX_MAP: Readonly<Record<string, number>> = {
+    true: 10000,
+    false: 100,
+}
+
 export const auth = new Elysia()
     .use(
         rateLimit({
-            max:
-                config.NODE_ENV === "test" || config.NODE_ENV === "development"
-                    ? 10000
-                    : 100,
+            max: RATE_LIMIT_MAX_MAP[String(IS_DEV_ENV)] || 100,
             duration: 60000,
             scoping: "scoped",
         }),

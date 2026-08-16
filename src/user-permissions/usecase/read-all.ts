@@ -1,5 +1,5 @@
 import bearer from "@elysiajs/bearer"
-import { type SQL, and, asc, desc, eq, sql } from "drizzle-orm"
+import { and, desc, eq, type SQL, sql } from "drizzle-orm"
 import { Elysia } from "elysia"
 
 import { ManageUserPermission } from "@/common/enum/permissions"

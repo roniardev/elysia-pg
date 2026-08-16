@@ -1,6 +1,6 @@
 import bearer from "@elysiajs/bearer"
+import { eq } from "drizzle-orm"
 import { Elysia } from "elysia"
-
 import { ManagePermission } from "@/common/enum/permissions"
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
 import {
@@ -9,14 +9,12 @@ import {
 } from "@/common/enum/response-status"
 import { db } from "@/db"
 import { permissions } from "@/db/schema/permission"
+import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { getUser } from "@/src/general/usecase/get-user"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
-import { handleResponse } from "@/utils/handle-response"
-
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { deletePermissionModel } from "@/src/permissions/data/permissions.model"
+import { handleResponse } from "@/utils/handle-response"
 import { verrou } from "@/utils/services/locks"
-import { eq } from "drizzle-orm"
 
 export const deletePermission = new Elysia()
     .use(deletePermissionModel)

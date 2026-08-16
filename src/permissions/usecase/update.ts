@@ -1,6 +1,6 @@
 import bearer from "@elysiajs/bearer"
+import { eq } from "drizzle-orm"
 import { Elysia } from "elysia"
-
 import { ManagePermission } from "@/common/enum/permissions"
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
 import {
@@ -18,7 +18,6 @@ import {
 } from "@/src/permissions/data/permissions.model"
 import { handleResponse } from "@/utils/handle-response"
 import { verrou } from "@/utils/services/locks"
-import { eq } from "drizzle-orm"
 
 export const updatePermission = new Elysia()
     .use(updatePermissionModel)
@@ -102,9 +101,8 @@ export const updatePermission = new Elysia()
                             .set({
                                 name: body.name || existingPermission.name,
                                 description:
-                                    body.description !== undefined
-                                        ? body.description
-                                        : existingPermission.description,
+                                    body.description ??
+                                    existingPermission.description,
                                 updatedAt: new Date(),
                             })
                             .where(eq(permissions.id, params.id))

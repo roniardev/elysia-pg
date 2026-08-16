@@ -3,8 +3,8 @@
     "type": "module",
     "scripts": {
         "dev": "bun --watch app/index.ts",
-        "start": "NODE_ENV=production bun run ./src/index.ts",
-        "lint": "bun x @biomejs/biome check src",
+        "start": "NODE_ENV=production bun run ./app/index.ts",
+        "lint": "bun x @biomejs/biome check src && bun ./scripts/check-no-else.ts",
         "lint:fix": "bun lint --write",
         "db:generate": "bun x drizzle-kit generate",
         "db:push": "bun x drizzle-kit push",
@@ -43,7 +43,7 @@
         "winston-daily-rotate-file": "^5.0.0"
     },
     "devDependencies": {
-        "@biomejs/biome": "^1.9.4",
+        "@biomejs/biome": "^2.5.8",
         "@faker-js/faker": "^10.6.0",
         "@softwaretechnik/dbml-renderer": "^1.0.31",
         "@types/bun": "^1.3.14",

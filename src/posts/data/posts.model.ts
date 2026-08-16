@@ -1,7 +1,5 @@
 import { Elysia, t } from "elysia"
 
-import Sorting from "@/common/enum/sorting"
-
 export const createPostModel = new Elysia().model({
     createPostModel: t.Object({
         title: t.String(),
