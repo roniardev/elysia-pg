@@ -11,10 +11,10 @@ export const createPermissionModel = new Elysia().model({
 
 export const readAllPermissionModel = new Elysia().model({
     readAllPermissionModel: t.Object({
-        page: t.Number(),
-        limit: t.Number(),
-        sort: t.Optional(t.String()),
-        search: t.Optional(t.String()),
+        page: t.Integer({ minimum: 1 }),
+        limit: t.Integer({ minimum: 1, maximum: 100 }),
+        sort: t.Optional(t.Union([t.Literal("asc"), t.Literal("desc")])),
+        search: t.Optional(t.String({ maxLength: 255 })),
     }),
 })
 

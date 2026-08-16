@@ -12,8 +12,8 @@ export const createUserPermissionModel = new Elysia().model({
 export const readAllUserPermissionModel = new Elysia().model({
     readAllUserPermissionModel: t.Object({
         userId: t.String({ pattern: ULID_PATTERN }),
-        page: t.Number(),
-        limit: t.Number(),
+        page: t.Integer({ minimum: 1 }),
+        limit: t.Integer({ minimum: 1, maximum: 100 }),
         includeRevoked: t.Optional(t.Boolean()),
     }),
 })
