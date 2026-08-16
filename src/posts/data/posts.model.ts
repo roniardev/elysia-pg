@@ -1,5 +1,7 @@
 import { Elysia, t } from "elysia"
 
+import { ULID_PATTERN } from "@/utils/ulid"
+
 export const createPostModel = new Elysia().model({
     createPostModel: t.Object({
         title: t.String(),
@@ -41,12 +43,12 @@ export const updatePostModel = new Elysia().model({
 
 export const deletePostModel = new Elysia().model({
     deletePostModel: t.Object({
-        id: t.String(),
+        id: t.String({ pattern: ULID_PATTERN }),
     }),
 })
 
 export const readPostModel = new Elysia().model({
     readPostModel: t.Object({
-        id: t.String(),
+        id: t.String({ pattern: ULID_PATTERN }),
     }),
 })

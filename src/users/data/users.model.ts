@@ -1,5 +1,7 @@
 import { Elysia, t } from "elysia"
 
+import { ULID_PATTERN } from "@/utils/ulid"
+
 export const createUserModel = new Elysia().model({
     createUserModel: t.Object({
         email: t.String(),
@@ -11,7 +13,7 @@ export const createUserModel = new Elysia().model({
 
 export const readUserModel = new Elysia().model({
     readUserModel: t.Object({
-        id: t.String(),
+        id: t.String({ pattern: ULID_PATTERN }),
     }),
 })
 
@@ -24,6 +26,6 @@ export const readAllUserModel = new Elysia().model({
 
 export const deleteUserModel = new Elysia().model({
     deleteUserModel: t.Object({
-        id: t.String(),
+        id: t.String({ pattern: ULID_PATTERN }),
     }),
 })

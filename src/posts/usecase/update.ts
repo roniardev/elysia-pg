@@ -5,11 +5,12 @@ import { SuccessMessage } from "@/common/enum/response-message"
 import { ResponseSuccessStatus } from "@/common/enum/response-status"
 import { runService } from "@/src/general/run-service"
 import { requirePermission } from "@/src/general/setup/require-permission"
-import { updatePostModel } from "@/src/posts/data/posts.model"
+import { readPostModel, updatePostModel } from "@/src/posts/data/posts.model"
 import { PostService } from "@/src/posts/service"
 
 export const updatePost = new Elysia()
     .use(updatePostModel)
+    .use(readPostModel)
     .use(requirePermission(PostPermission.UPDATE_POST, { scope: true }))
     .put(
         "/post/:id",
@@ -32,5 +33,6 @@ export const updatePost = new Elysia()
         },
         {
             body: "updatePostModel",
+            params: "readPostModel",
         },
     )

@@ -1,5 +1,7 @@
 import { Elysia, t } from "elysia"
 
+import { ULID_PATTERN } from "@/utils/ulid"
+
 export const createPermissionModel = new Elysia().model({
     createPermissionModel: t.Object({
         name: t.String(),
@@ -25,12 +27,12 @@ export const updatePermissionModel = new Elysia().model({
 
 export const deletePermissionModel = new Elysia().model({
     deletePermissionModel: t.Object({
-        id: t.String(),
+        id: t.String({ pattern: ULID_PATTERN }),
     }),
 })
 
 export const readPermissionModel = new Elysia().model({
     readPermissionModel: t.Object({
-        id: t.String(),
+        id: t.String({ pattern: ULID_PATTERN }),
     }),
 })
