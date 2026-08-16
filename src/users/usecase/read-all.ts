@@ -11,8 +11,8 @@ import {
     ResponseSuccessStatus,
 } from "@/common/enum/response-status"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
+import { readAllUserModel } from "@/src/users/data/users.model"
 import { handleResponse } from "@/utils/handle-response"
-import { readAllUserModel } from "../data/users.model"
 
 export const readAllUser = new Elysia()
     .use(readAllUserModel)

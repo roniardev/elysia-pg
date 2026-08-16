@@ -4,12 +4,12 @@ import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import bearer from "@elysiajs/bearer"
 
 import { ErrorMessage } from "@/common/enum/response-message"
-import { verifyAuth } from "../general/usecase/verify-auth"
-import { createPost } from "./usecase/create"
-import { deletePost } from "./usecase/delete"
-import { readPost } from "./usecase/read"
-import { readAllPost } from "./usecase/read-all"
-import { updatePost } from "./usecase/update"
+import { verifyAuth } from "@/src/general/usecase/verify-auth"
+import { createPost } from "@/src/posts/usecase/create"
+import { deletePost } from "@/src/posts/usecase/delete"
+import { readPost } from "@/src/posts/usecase/read"
+import { readAllPost } from "@/src/posts/usecase/read-all"
+import { updatePost } from "@/src/posts/usecase/update"
 
 export const posts = new Elysia()
     .use(jwtAccessSetup)

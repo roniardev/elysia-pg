@@ -15,9 +15,9 @@ import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { getScope } from "@/src/general/usecase/get-scope"
 import { getUser } from "@/src/general/usecase/get-user"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
+import { updatePostModel } from "@/src/posts/data/posts.model"
 import { handleResponse } from "@/utils/handle-response"
 import { verrou } from "@/utils/services/locks"
-import { updatePostModel } from "../data/posts.model"
 
 export const updatePost = new Elysia()
     .use(updatePostModel)

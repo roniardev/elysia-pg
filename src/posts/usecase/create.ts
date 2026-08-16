@@ -15,7 +15,7 @@ import { verifyPermission } from "@/src/general/usecase/verify-permission"
 import { handleResponse } from "@/utils/handle-response"
 
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
-import { createPostModel } from "../data/posts.model"
+import { createPostModel } from "@/src/posts/data/posts.model"
 
 export const createPost = new Elysia()
     .use(createPostModel)

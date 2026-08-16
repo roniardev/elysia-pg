@@ -7,8 +7,8 @@ import {
 } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
 
-import { scopes } from "./scope"
-import { userPermissions } from "./user-permissions"
+import { scopes } from "@/db/schema/scope"
+import { userPermissions } from "@/db/schema/user-permissions"
 
 export const scopeUserPermissions = pgTable("scope_user_permissions", {
 	id: varchar("id", { length: 26 }).primaryKey(),

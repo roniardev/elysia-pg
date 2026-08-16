@@ -14,7 +14,7 @@ import { handleResponse } from "@/utils/handle-response"
 
 import { Scope } from "@/common/enum/scopes"
 import { getScope } from "@/src/general/usecase/get-scope"
-import { readPostModel } from "../data/posts.model"
+import { readPostModel } from "@/src/posts/data/posts.model"
 
 export const readPost = new Elysia()
     .use(readPostModel)

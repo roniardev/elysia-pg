@@ -4,7 +4,7 @@ import { cors } from "@elysiajs/cors"
 import { serverTiming } from "@elysiajs/server-timing"
 import { swagger } from "@elysiajs/swagger"
 
-import { config } from "./config"
+import { config } from "@/app/config"
 
 import { posts } from "@/src/posts"
 import { auth } from "@/src/auth"

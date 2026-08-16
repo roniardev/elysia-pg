@@ -1,9 +1,9 @@
-import { runPostsSeed } from "./post"
-import { runUsersSeed } from "./user"
-import { runPermissionsSeed } from "./permission"
-import { runUserPermissionsSeed } from "./user-permissions"
-import { runScopesSeed } from "./scope"
-import { runScopeUserPermissionsSeed } from "./scope-user-permissions"
+import { runPostsSeed } from "@/db/seeds/post"
+import { runUsersSeed } from "@/db/seeds/user"
+import { runPermissionsSeed } from "@/db/seeds/permission"
+import { runUserPermissionsSeed } from "@/db/seeds/user-permissions"
+import { runScopesSeed } from "@/db/seeds/scope"
+import { runScopeUserPermissionsSeed } from "@/db/seeds/scope-user-permissions"
 const tasks = [
 	runUsersSeed,
 	runPermissionsSeed,

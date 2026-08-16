@@ -8,7 +8,7 @@ export const schemaTemplate = (sourceName: string) => {
   return `import { relations } from "drizzle-orm"
 import { index, text, timestamp, varchar, pgTable } from "drizzle-orm/pg-core"
 
-import { users } from "./user"
+import { users } from "@/db/schema/user"
 
 export const ${sourceName.toLowerCase()} = pgTable(
   "${sourceName.toLowerCase()}",

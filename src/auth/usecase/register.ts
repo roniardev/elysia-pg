@@ -15,9 +15,9 @@ import {
     ResponseSuccessStatus,
 } from "@/common/enum/response-status"
 import RegexPattern from "@/common/regex-pattern"
+import { registerModel } from "@/src/auth/data/auth.model"
+import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { handleResponse } from "@/utils/handle-response"
-import { registerModel } from "../data/auth.model"
-import { jwtAccessSetup } from "../setup/auth"
 
 export const register = new Elysia()
     .use(registerModel)

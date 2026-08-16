@@ -14,9 +14,9 @@ import { verifyPermission } from "@/src/general/usecase/verify-permission"
 import { handleResponse } from "@/utils/handle-response"
 
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
+import { deletePermissionModel } from "@/src/permissions/data/permissions.model"
 import { verrou } from "@/utils/services/locks"
 import { eq } from "drizzle-orm"
-import { deletePermissionModel } from "../data/permissions.model"
 
 export const deletePermission = new Elysia()
     .use(deletePermissionModel)

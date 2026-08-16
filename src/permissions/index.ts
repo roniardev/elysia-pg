@@ -4,12 +4,12 @@ import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import bearer from "@elysiajs/bearer"
 
 import { ErrorMessage } from "@/common/enum/response-message"
-import { verifyAuth } from "../general/usecase/verify-auth"
-import { createPermission } from "./usecase/create"
-import { deletePermission } from "./usecase/delete"
-import { readPermission } from "./usecase/read"
-import { readAllPermission } from "./usecase/read-all"
-import { updatePermission } from "./usecase/update"
+import { verifyAuth } from "@/src/general/usecase/verify-auth"
+import { createPermission } from "@/src/permissions/usecase/create"
+import { deletePermission } from "@/src/permissions/usecase/delete"
+import { readPermission } from "@/src/permissions/usecase/read"
+import { readAllPermission } from "@/src/permissions/usecase/read-all"
+import { updatePermission } from "@/src/permissions/usecase/update"
 
 export const permissions = new Elysia()
     .use(jwtAccessSetup)

@@ -16,7 +16,7 @@ import {
 } from "@/common/enum/response-status"
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
 
-import { update${sourceName}Model } from "../data/${sourceName.toLowerCase()}.model"
+import { update${sourceName}Model } from "@/src/${sourceName.toLowerCase()}/data/${sourceName.toLowerCase()}.model"
 import { getScope } from "@/src/general/usecase/get-scope"
 import { Scope } from "@/common/enum/scopes"
 

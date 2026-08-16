@@ -1,4 +1,4 @@
-import { db } from "./index"
+import { db } from "@/db"
 import {
 	userPermissions,
 	permissions,
@@ -8,7 +8,7 @@ import {
 	users,
 	scopes,
 	scopeUserPermissions,
-} from "./schema"
+} from "@/db/schema"
 import { getTableName } from "drizzle-orm"
 
 const tables = [

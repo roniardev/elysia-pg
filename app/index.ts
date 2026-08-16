@@ -1,5 +1,5 @@
-import { config } from "./config.ts"
-import { app } from "./server.ts"
+import { config } from "@/app/config"
+import { app } from "@/app/server"
 const signals = ["SIGINT", "SIGTERM"]
 
 for (const signal of signals) {

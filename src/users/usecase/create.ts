@@ -16,8 +16,8 @@ import { handleResponse } from "@/utils/handle-response"
 
 import { verifyEmailTemplate } from "@/common/email-templates/verify-email"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
+import { createUserModel } from "@/src/users/data/users.model"
 import { sendEmail } from "@/utils/send-email"
-import { createUserModel } from "../data/users.model"
 
 export const createUser = new Elysia()
     .use(createUserModel)

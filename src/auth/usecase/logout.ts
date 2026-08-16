@@ -9,10 +9,10 @@ import {
     ResponseErrorStatus,
     ResponseSuccessStatus,
 } from "@/common/enum/response-status"
+import { basicAuthModel } from "@/src/auth/data/auth.model"
+import { jwtAccessSetup, jwtRefreshSetup } from "@/src/auth/setup/auth"
 import { handleResponse } from "@/utils/handle-response"
 import { verrou } from "@/utils/services/locks"
-import { basicAuthModel } from "../data/auth.model"
-import { jwtAccessSetup, jwtRefreshSetup } from "../setup/auth"
 
 export const logout = new Elysia()
     .use(basicAuthModel)

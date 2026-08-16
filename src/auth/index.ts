@@ -2,13 +2,13 @@ import { Elysia } from "elysia"
 import { rateLimit } from "elysia-rate-limit"
 
 import { config } from "@/app/config"
-import { forgotPassword } from "./usecase/forgot-password"
-import { login } from "./usecase/login"
-import { logout } from "./usecase/logout"
-import { regenerateAccessToken } from "./usecase/regenerate-access-token."
-import { register } from "./usecase/register"
-import { resetPassword } from "./usecase/reset-password."
-import { verifyEmail } from "./usecase/verify-email"
+import { forgotPassword } from "@/src/auth/usecase/forgot-password"
+import { login } from "@/src/auth/usecase/login"
+import { logout } from "@/src/auth/usecase/logout"
+import { regenerateAccessToken } from "@/src/auth/usecase/regenerate-access-token."
+import { register } from "@/src/auth/usecase/register"
+import { resetPassword } from "@/src/auth/usecase/reset-password."
+import { verifyEmail } from "@/src/auth/usecase/verify-email"
 
 export const auth = new Elysia()
     .use(

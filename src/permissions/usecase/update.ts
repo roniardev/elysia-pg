@@ -12,13 +12,13 @@ import { permissions } from "@/db/schema/permission"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { getUser } from "@/src/general/usecase/get-user"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
-import { handleResponse } from "@/utils/handle-response"
-import { verrou } from "@/utils/services/locks"
-import { eq } from "drizzle-orm"
 import {
     readPermissionModel,
     updatePermissionModel,
-} from "../data/permissions.model"
+} from "@/src/permissions/data/permissions.model"
+import { handleResponse } from "@/utils/handle-response"
+import { verrou } from "@/utils/services/locks"
+import { eq } from "drizzle-orm"
 
 export const updatePermission = new Elysia()
     .use(updatePermissionModel)

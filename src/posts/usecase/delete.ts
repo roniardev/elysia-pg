@@ -17,7 +17,7 @@ import { verrou } from "@/utils/services/locks"
 
 import { Scope } from "@/common/enum/scopes"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
-import { deletePostModel } from "../data/posts.model"
+import { deletePostModel } from "@/src/posts/data/posts.model"
 
 export const deletePost = new Elysia()
     .use(deletePostModel)

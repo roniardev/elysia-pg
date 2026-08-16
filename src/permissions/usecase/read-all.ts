@@ -14,8 +14,8 @@ import { permissions } from "@/db/schema/permission"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { getUser } from "@/src/general/usecase/get-user"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
+import { readAllPermissionModel } from "@/src/permissions/data/permissions.model"
 import { handleResponse } from "@/utils/handle-response"
-import { readAllPermissionModel } from "../data/permissions.model"
 
 export const readAllPermission = new Elysia()
     .use(readAllPermissionModel)

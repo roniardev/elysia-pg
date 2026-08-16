@@ -14,10 +14,10 @@ import {
     ResponseSuccessStatus,
 } from "@/common/enum/response-status"
 import RegexPattern from "@/common/regex-pattern"
+import { forgotPasswordModel } from "@/src/auth/data/auth.model"
+import { jwtEmailSetup } from "@/src/auth/setup/auth"
 import { handleResponse } from "@/utils/handle-response"
 import { verrou } from "@/utils/services/locks"
-import { forgotPasswordModel } from "../data/auth.model"
-import { jwtEmailSetup } from "../setup/auth"
 
 export const forgotPassword = new Elysia()
     .use(jwtEmailSetup)

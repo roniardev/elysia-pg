@@ -16,7 +16,7 @@ import {
 } from "@/common/enum/response-status"
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
 
-import { create${sourceName}Model } from "../data/${sourceName.toLowerCase()}.model"
+import { create${sourceName}Model } from "@/src/${sourceName.toLowerCase()}/data/${sourceName.toLowerCase()}.model"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
 
 export const create${sourceName} = new Elysia()

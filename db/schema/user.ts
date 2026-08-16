@@ -7,7 +7,7 @@ import {
 	pgTable,
 } from "drizzle-orm/pg-core"
 
-import { userPermissions } from "./user-permissions"
+import { userPermissions } from "@/db/schema/user-permissions"
 
 export const users = pgTable(
 	"users",

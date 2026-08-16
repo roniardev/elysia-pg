@@ -2,7 +2,7 @@ import {
     ErrorMessage,
     type SuccessMessage,
 } from "@/common/enum/response-message"
-import logger from "../logger"
+import logger from "@/utils/logger"
 
 export const handleResponse = (params: {
     message: ErrorMessage | SuccessMessage

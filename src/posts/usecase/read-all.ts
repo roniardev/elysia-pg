@@ -15,9 +15,9 @@ import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { getScope } from "@/src/general/usecase/get-scope"
 import { getUser } from "@/src/general/usecase/get-user"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
+import { readAllPostModel } from "@/src/posts/data/posts.model"
 import { handleResponse } from "@/utils/handle-response"
 import { and, eq, like, sql } from "drizzle-orm"
-import { readAllPostModel } from "../data/posts.model"
 
 export const readAllPost = new Elysia()
     .use(readAllPostModel)

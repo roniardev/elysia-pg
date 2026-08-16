@@ -8,11 +8,11 @@ import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { verifyAuth } from "@/src/general/usecase/verify-auth"
 import { ErrorMessage } from "@/common/enum/response-message"
 
-import { create${sourceName} } from "./usecase/create"
-import { read${sourceName} } from "./usecase/read"
-import { readAll${sourceName} } from "./usecase/read-all"
-import { update${sourceName} } from "./usecase/update"
-import { delete${sourceName} } from "./usecase/delete"
+import { create${sourceName} } from "@/src/${sourceName.toLowerCase()}/usecase/create"
+import { read${sourceName} } from "@/src/${sourceName.toLowerCase()}/usecase/read"
+import { readAll${sourceName} } from "@/src/${sourceName.toLowerCase()}/usecase/read-all"
+import { update${sourceName} } from "@/src/${sourceName.toLowerCase()}/usecase/update"
+import { delete${sourceName} } from "@/src/${sourceName.toLowerCase()}/usecase/delete"
 
 /**
  * ${sourceName} module that groups all ${sourceName.toLowerCase()} related endpoints

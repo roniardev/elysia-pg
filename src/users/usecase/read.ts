@@ -13,7 +13,7 @@ import { getUser } from "@/src/general/usecase/get-user"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
 import { handleResponse } from "@/utils/handle-response"
 
-import { readUserModel } from "../data/users.model"
+import { readUserModel } from "@/src/users/data/users.model"
 
 export const readUser = new Elysia()
     .use(readUserModel)

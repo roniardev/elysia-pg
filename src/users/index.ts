@@ -3,11 +3,11 @@ import { Elysia } from "elysia"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import bearer from "@elysiajs/bearer"
 
-import { verifyAuth } from "../general/usecase/verify-auth"
-import { createUser } from "./usecase/create"
-import { deleteUser } from "./usecase/delete"
-import { readUser } from "./usecase/read"
-import { readAllUser } from "./usecase/read-all"
+import { verifyAuth } from "@/src/general/usecase/verify-auth"
+import { createUser } from "@/src/users/usecase/create"
+import { deleteUser } from "@/src/users/usecase/delete"
+import { readUser } from "@/src/users/usecase/read"
+import { readAllUser } from "@/src/users/usecase/read-all"
 
 export const users = new Elysia()
     .use(jwtAccessSetup)

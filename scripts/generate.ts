@@ -6,17 +6,17 @@ import {
 	capitalizeFirstLetter,
 	createDirectoryIfNotExists,
 	generateFile,
-} from "./utils/generator"
+} from "@/scripts/utils/generator"
 
 // Import templates
-import { dataModelTemplate } from "./templates/data-model.template"
-import { schemaTemplate } from "./templates/schema.template"
-import { createTemplate } from "./templates/create.template"
-import { readTemplate } from "./templates/read.template"
-import { readAllTemplate } from "./templates/read-all.template"
-import { updateTemplate } from "./templates/update.template"
-import { deleteTemplate } from "./templates/delete.template"
-import { indexTemplate } from "./templates/index.template"
+import { dataModelTemplate } from "@/scripts/templates/data-model.template"
+import { schemaTemplate } from "@/scripts/templates/schema.template"
+import { createTemplate } from "@/scripts/templates/create.template"
+import { readTemplate } from "@/scripts/templates/read.template"
+import { readAllTemplate } from "@/scripts/templates/read-all.template"
+import { updateTemplate } from "@/scripts/templates/update.template"
+import { deleteTemplate } from "@/scripts/templates/delete.template"
+import { indexTemplate } from "@/scripts/templates/index.template"
 
 // Import test templates
 import {
@@ -25,7 +25,7 @@ import {
 	readAllTestTemplate,
 	updateTestTemplate,
 	deleteTestTemplate,
-} from "./templates/tests"
+} from "@/scripts/templates/tests"
 
 /**
  * Main function to generate usecase files

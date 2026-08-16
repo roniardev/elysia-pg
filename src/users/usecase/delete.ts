@@ -15,8 +15,8 @@ import {
 } from "@/common/enum/response-status"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { getUser } from "@/src/general/usecase/get-user"
+import { deleteUserModel } from "@/src/users/data/users.model"
 import { handleResponse } from "@/utils/handle-response"
-import { deleteUserModel } from "../data/users.model"
 export const deleteUser = new Elysia()
     .use(deleteUserModel)
     .use(jwtAccessSetup)
