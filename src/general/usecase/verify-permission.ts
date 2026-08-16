@@ -1,4 +1,4 @@
-import { eq, inArray } from "drizzle-orm"
+import { and, eq } from "drizzle-orm"
 
 import type {
     ManagePermission,
@@ -7,7 +7,6 @@ import type {
     UserPermission,
 } from "@/common/enum/permissions"
 import { db } from "@/db"
-import { permissions } from "@/db/schema/permission"
 
 export const verifyPermission = async (
     permission:
@@ -17,22 +16,14 @@ export const verifyPermission = async (
         | ManageUserPermission,
     userId: string,
 ) => {
-    // ONE query hydrates user-permission, the permission-name match
-    // (IN subquery) and the optional scope; replaces the previous
-    // 4-query auth pipeline
-    const permissionSubquery = db
-        .select({ id: permissions.id })
-        .from(permissions)
-        .where(eq(permissions.name, permission))
-
+    // ONE relational query hydrates the user-permission, its permission
+    // and the optional scope; the permission-name match happens in JS,
+    // which avoids an IN subquery in the generated SQL
     const userPermission = await db.query.userPermissions.findFirst({
-        where: (table, { eq, and, inArray }) =>
-            and(
-                eq(table.userId, userId),
-                eq(table.revoked, false),
-                inArray(table.permissionId, permissionSubquery),
-            ),
+        where: (table, { eq, and }) =>
+            and(eq(table.userId, userId), eq(table.revoked, false)),
         with: {
+            permission: true,
             scopeUserPermissions: {
                 with: {
                     scope: true,
@@ -42,6 +33,13 @@ export const verifyPermission = async (
     })
 
     if (!userPermission) {
+        return {
+            valid: false,
+            message: "Unauthorized",
+        }
+    }
+
+    if (userPermission.permission?.name !== permission) {
         return {
             valid: false,
             message: "Unauthorized",
