@@ -1,4 +1,3 @@
-import bearer from "@elysiajs/bearer"
 import { Elysia } from "elysia"
 
 import { PostPermission } from "@/common/enum/permissions"
@@ -9,58 +8,26 @@ import {
 } from "@/common/enum/response-status"
 import { Scope } from "@/common/enum/scopes"
 import { db } from "@/db"
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
-import { getScope } from "@/src/general/usecase/get-scope"
-import { verifyPermission } from "@/src/general/usecase/verify-permission"
+import { requirePermission } from "@/src/general/setup/require-permission"
 import { readPostModel } from "@/src/posts/data/posts.model"
 import { handleResponse } from "@/utils/handle-response"
 
 export const readPost = new Elysia()
     .use(readPostModel)
-    .use(jwtAccessSetup)
-    .use(bearer())
+    .use(requirePermission(PostPermission.READ_POST, { scope: true }))
     .get(
         "/post/:id",
-        async ({ params, bearer, set, jwtAccess }) => {
+        async ({ params, set, store }) => {
             const path = "posts.read.usecase"
-            // CHECK VALID TOKEN
-            const validToken = await jwtAccess.verify(bearer)
+            const { userId, scope } = store.auth
 
-            if (!validToken) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
-
-            // CHECK EXISTING READ POST PERMISSION
-            const { valid, permission } = await verifyPermission(
-                PostPermission.READ_POST,
-                validToken.id,
-            )
-
-            if (!valid || !permission) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
-
-            const scope = await getScope(permission)
-
-            // READ POST
+            // READ POST (single query, scope-aware)
             const post = await db.query.posts.findFirst({
                 where: (table, { eq, and }) => {
                     if (scope === Scope.PERSONAL) {
                         return and(
                             eq(table.id, params.id),
-                            eq(table.userId, validToken.id),
+                            eq(table.userId, userId),
                         )
                     }
 
@@ -78,28 +45,12 @@ export const readPost = new Elysia()
                 })
             }
 
-            const readPost = await db.query.posts.findFirst({
-                where: (table, { eq }) => {
-                    return eq(table.id, params.id)
-                },
-            })
-
-            if (!readPost) {
-                return handleResponse({
-                    message: ErrorMessage.FAILED_TO_READ_POST,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.BAD_REQUEST
-                    },
-                    path,
-                })
-            }
-
             return handleResponse({
                 message: SuccessMessage.POST_READ,
                 callback: () => {
                     set.status = ResponseSuccessStatus.OK
                 },
-                data: readPost,
+                data: post,
                 path,
             })
         },

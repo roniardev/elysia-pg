@@ -1,4 +1,3 @@
-import bearer from "@elysiajs/bearer"
 import { Elysia } from "elysia"
 
 import { UserPermission } from "@/common/enum/permissions"
@@ -7,46 +6,18 @@ import {
     ResponseErrorStatus,
     ResponseSuccessStatus,
 } from "@/common/enum/response-status"
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
+import { requirePermission } from "@/src/general/setup/require-permission"
 import { getUser } from "@/src/general/usecase/get-user"
-import { verifyPermission } from "@/src/general/usecase/verify-permission"
 import { readUserModel } from "@/src/users/data/users.model"
 import { handleResponse } from "@/utils/handle-response"
 
 export const readUser = new Elysia()
     .use(readUserModel)
-    .use(jwtAccessSetup)
-    .use(bearer())
+    .use(requirePermission(UserPermission.READ_USER))
     .get(
         "/user/:id",
-        async ({ params, bearer, set, jwtAccess }) => {
+        async ({ params, set }) => {
             const path = "users.read.usecase"
-            const validToken = await jwtAccess.verify(bearer)
-
-            if (!validToken) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
-
-            const { valid } = await verifyPermission(
-                UserPermission.READ_USER,
-                validToken.id,
-            )
-
-            if (!valid) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
 
             const user = await getUser({
                 identifier: params.id,

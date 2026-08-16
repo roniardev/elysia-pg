@@ -1,4 +1,3 @@
-import bearer from "@elysiajs/bearer"
 import { eq } from "drizzle-orm"
 import { Elysia } from "elysia"
 
@@ -10,54 +9,26 @@ import {
 } from "@/common/enum/response-status"
 import { db } from "@/db"
 import { posts } from "@/db/schema"
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
-import { verifyPermission } from "@/src/general/usecase/verify-permission"
+import { requirePermission } from "@/src/general/setup/require-permission"
 import { deletePostModel } from "@/src/posts/data/posts.model"
 import { handleResponse } from "@/utils/handle-response"
 import { verrou } from "@/utils/services/locks"
 
 export const deletePost = new Elysia()
     .use(deletePostModel)
-    .use(jwtAccessSetup)
-    .use(bearer())
+    .use(requirePermission(PostPermission.DELETE_POST))
     .delete(
         "/post/:id",
-        async ({ bearer, set, jwtAccess, params }) => {
+        async ({ set, store, params }) => {
             const path = "posts.delete.usecase"
-            const validToken = await jwtAccess.verify(bearer)
-
-            if (!validToken) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
-
-            // CHECK EXISTING DELETE POST PERMISSION
-            const { valid, permission } = await verifyPermission(
-                PostPermission.DELETE_POST,
-                validToken.id,
-            )
-
-            if (!valid || !permission) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
+            const { userId } = store.auth
 
             // CHECK EXISTING POST
             const existingPost = await db.query.posts.findFirst({
                 where: (table, { eq, and }) => {
                     return and(
                         eq(table.id, params.id),
-                        eq(table.userId, validToken.id),
+                        eq(table.userId, userId),
                     )
                 },
             })
@@ -67,16 +38,6 @@ export const deletePost = new Elysia()
                     message: ErrorMessage.POST_NOT_FOUND,
                     callback: () => {
                         set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                    },
-                    path,
-                })
-            }
-
-            if (existingPost.userId !== validToken.id) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
                     },
                     path,
                 })
@@ -112,6 +73,6 @@ export const deletePost = new Elysia()
             })
         },
         // {
-        // 	params: "deletePostModel",
+        //     params: "deletePostModel",
         // },
     )

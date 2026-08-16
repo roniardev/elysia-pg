@@ -1,6 +1,6 @@
-import bearer from "@elysiajs/bearer"
 import { eq } from "drizzle-orm"
 import { Elysia } from "elysia"
+
 import { ManagePermission } from "@/common/enum/permissions"
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
 import {
@@ -9,9 +9,7 @@ import {
 } from "@/common/enum/response-status"
 import { db } from "@/db"
 import { permissions } from "@/db/schema/permission"
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
-import { getUser } from "@/src/general/usecase/get-user"
-import { verifyPermission } from "@/src/general/usecase/verify-permission"
+import { requirePermission } from "@/src/general/setup/require-permission"
 import {
     readPermissionModel,
     updatePermissionModel,
@@ -22,57 +20,12 @@ import { verrou } from "@/utils/services/locks"
 export const updatePermission = new Elysia()
     .use(updatePermissionModel)
     .use(readPermissionModel)
-    .use(jwtAccessSetup)
-    .use(bearer())
+    .use(requirePermission(ManagePermission.UPDATE_PERMISSION))
     .put(
         "/permission/:id",
-        async ({ params, body, bearer, set, jwtAccess }) => {
+        async ({ params, body, set, store }) => {
             const path = "permissions.update.usecase"
-            const validToken = await jwtAccess.verify(bearer)
-            if (!validToken) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
-
-            // CHECK EXISTING USER
-            const existingUser = await getUser({
-                identifier: validToken.id,
-                type: "id",
-                condition: {
-                    deleted: false,
-                },
-            })
-
-            if (!existingUser.user) {
-                return handleResponse({
-                    message: ErrorMessage.INVALID_USER,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.BAD_REQUEST
-                    },
-                    path,
-                })
-            }
-
-            // VERIFY IF USER HAS PERMISSION TO UPDATE PERMISSIONS
-            const { valid } = await verifyPermission(
-                ManagePermission.UPDATE_PERMISSION,
-                existingUser.user.id,
-            )
-
-            if (!valid) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
+            const { userId } = store.auth
 
             // CHECK IF PERMISSION EXISTS
             const existingPermission = await db.query.permissions.findFirst({
@@ -93,7 +46,7 @@ export const updatePermission = new Elysia()
 
             // UPDATE PERMISSION
             await verrou
-                .createLock(`${existingUser.user?.id}:update-permission`)
+                .createLock(`${userId}:update-permission`)
                 .run(async () => {
                     try {
                         await db

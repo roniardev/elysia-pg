@@ -1,6 +1,6 @@
-import bearer from "@elysiajs/bearer"
-import { and, eq, like, type SQL, sql } from "drizzle-orm"
+import { and, eq, like, type SQL } from "drizzle-orm"
 import { Elysia } from "elysia"
+
 import { PostPermission } from "@/common/enum/permissions"
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
 import {
@@ -11,75 +11,22 @@ import { Scope } from "@/common/enum/scopes"
 import Sorting from "@/common/enum/sorting"
 import { db } from "@/db"
 import { posts } from "@/db/schema"
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
-import { getScope } from "@/src/general/usecase/get-scope"
-import { getUser } from "@/src/general/usecase/get-user"
-import { verifyPermission } from "@/src/general/usecase/verify-permission"
+import { requirePermission } from "@/src/general/setup/require-permission"
 import { readAllPostModel } from "@/src/posts/data/posts.model"
 import { handleResponse } from "@/utils/handle-response"
+import { getPagination } from "@/utils/pagination"
 
 export const readAllPost = new Elysia()
     .use(readAllPostModel)
-    .use(jwtAccessSetup)
-    .use(bearer())
+    .use(requirePermission(PostPermission.READ_ALL_POST, { scope: true }))
     .get(
         "/post",
-        async ({ bearer, set, jwtAccess, query }) => {
+        async ({ set, store, query }) => {
             const path = "posts.read-all.usecase"
-            // CHECK VALID TOKEN
-            const validToken = await jwtAccess.verify(bearer)
+            const { userId, scope } = store.auth
             const { page, limit, sort, search } = query
 
-            if (!validToken) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
-
-            // CHECK EXISTING READ ALL POST PERMISSION
-            const { valid, permission } = await verifyPermission(
-                PostPermission.READ_ALL_POST,
-                validToken.id,
-            )
-
-            if (!valid || !permission) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
-
-            const scope = await getScope(permission)
-
-            // CHECK EXISTING USER
-            const existingUser = await getUser({
-                identifier: validToken.id,
-                type: "id",
-                condition: {
-                    deleted: false,
-                },
-            })
-
-            if (!existingUser.user) {
-                return handleResponse({
-                    message: ErrorMessage.INVALID_USER,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.BAD_REQUEST
-                    },
-                    path,
-                })
-            }
-
             // WHERE BUILDER: shared by list and total-count queries
-            // (user was verified non-null above; capture id before the closure)
-            const userId = existingUser.user.id
             const buildPostWhere = (
                 scope: string | null,
                 search: string | undefined,
@@ -115,13 +62,13 @@ export const readAllPost = new Elysia()
             })
 
             // Get total count based on scope and search
-            const totalAllData = await db
-                .select({ count: sql<number>`count(*)` })
-                .from(posts)
-                .where(buildPostWhere(scope, search))
+            const total = await db.$count(posts, buildPostWhere(scope, search))
 
-            const total = Number(totalAllData[0]?.count || 0)
-            const totalPage = Math.ceil(total / Number(limit))
+            const { totalPage, attributes } = getPagination(
+                Number(page),
+                Number(limit),
+                total,
+            )
 
             if (page > totalPage) {
                 return handleResponse({
@@ -139,12 +86,7 @@ export const readAllPost = new Elysia()
                     set.status = ResponseSuccessStatus.OK
                 },
                 data: postsRes,
-                attributes: {
-                    total,
-                    page: Number(page),
-                    limit: Number(limit),
-                    totalPage,
-                },
+                attributes,
                 path,
             })
         },

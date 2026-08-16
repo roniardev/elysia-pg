@@ -1,4 +1,3 @@
-import bearer from "@elysiajs/bearer"
 import { eq } from "drizzle-orm"
 import { Elysia } from "elysia"
 
@@ -11,71 +10,20 @@ import {
 import { Scope } from "@/common/enum/scopes"
 import { db } from "@/db"
 import { posts } from "@/db/schema"
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
-import { getScope } from "@/src/general/usecase/get-scope"
-import { getUser } from "@/src/general/usecase/get-user"
-import { verifyPermission } from "@/src/general/usecase/verify-permission"
-import { updatePostModel } from "@/src/posts/data/posts.model"
+import { requirePermission } from "@/src/general/setup/require-permission"
+import { readPostModel, updatePostModel } from "@/src/posts/data/posts.model"
 import { handleResponse } from "@/utils/handle-response"
 import { verrou } from "@/utils/services/locks"
 
 export const updatePost = new Elysia()
     .use(updatePostModel)
-    .use(jwtAccessSetup)
-    .use(bearer())
+    .use(readPostModel)
+    .use(requirePermission(PostPermission.UPDATE_POST, { scope: true }))
     .put(
         "/post/:id",
-        async ({ body, params, bearer, set, jwtAccess }) => {
+        async ({ body, params, set, store }) => {
             const path = "posts.update.usecase"
-            // CHECK VALID TOKEN
-            const validToken = await jwtAccess.verify(bearer)
-
-            if (!validToken) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
-
-            // CHECK EXISTING USER
-            const existingUser = await getUser({
-                identifier: validToken.id,
-                type: "id",
-                condition: {
-                    deleted: false,
-                },
-            })
-
-            // CHECK EXISTING UPDATE POST PERMISSION
-            const { valid, permission } = await verifyPermission(
-                PostPermission.UPDATE_POST,
-                validToken.id,
-            )
-
-            if (!valid || !permission) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
-
-            const scope = await getScope(permission)
-
-            if (!existingUser) {
-                return handleResponse({
-                    message: ErrorMessage.INVALID_USER,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.BAD_REQUEST
-                    },
-                    path,
-                })
-            }
+            const { userId, scope } = store.auth
 
             // CHECK EXISTING POST
             const existingPost = await db.query.posts.findFirst({
@@ -83,10 +31,7 @@ export const updatePost = new Elysia()
                     if (scope === Scope.PERSONAL) {
                         return and(
                             eq(table.id, params.id),
-                            eq(
-                                table.userId,
-                                existingUser.user?.id || validToken.id,
-                            ),
+                            eq(table.userId, userId),
                         )
                     }
                     return eq(table.id, params.id)
@@ -96,18 +41,6 @@ export const updatePost = new Elysia()
             if (!existingPost) {
                 return handleResponse({
                     message: ErrorMessage.POST_NOT_FOUND,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.BAD_REQUEST
-                    },
-                    path,
-                })
-            }
-
-            if (
-                existingPost.userId !== (existingUser.user?.id || validToken.id)
-            ) {
-                return handleResponse({
-                    message: ErrorMessage.INVALID_USER,
                     callback: () => {
                         set.status = ResponseErrorStatus.BAD_REQUEST
                     },

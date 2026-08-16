@@ -1,6 +1,6 @@
-import bearer from "@elysiajs/bearer"
 import { Elysia } from "elysia"
 import { ulid } from "ulid"
+
 import { verifyEmailTemplate } from "@/common/email-templates/verify-email"
 import { UserPermission } from "@/common/enum/permissions"
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
@@ -11,47 +11,20 @@ import {
 import { db } from "@/db"
 import { emailVerificationTokens, userPermissions, users } from "@/db/schema"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
+import { requirePermission } from "@/src/general/setup/require-permission"
 import { getUser } from "@/src/general/usecase/get-user"
-import { verifyPermission } from "@/src/general/usecase/verify-permission"
 import { createUserModel } from "@/src/users/data/users.model"
 import { handleResponse } from "@/utils/handle-response"
 import { sendEmail } from "@/utils/send-email"
 
 export const createUser = new Elysia()
     .use(createUserModel)
+    .use(requirePermission(UserPermission.CREATE_USER))
     .use(jwtAccessSetup)
-    .use(bearer())
     .post(
         "/user",
-        async ({ body, bearer, set, jwtAccess }) => {
+        async ({ body, set, jwtAccess }) => {
             const path = "users.create.usecase"
-            // CHECK VALID TOKEN
-            const validToken = await jwtAccess.verify(bearer)
-
-            if (!validToken) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
-
-            const { valid } = await verifyPermission(
-                UserPermission.CREATE_USER,
-                validToken.id,
-            )
-
-            if (!valid) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
 
             // CHECK EXISTING USER
             const existingUser = await getUser({

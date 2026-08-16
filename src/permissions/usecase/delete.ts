@@ -1,6 +1,6 @@
-import bearer from "@elysiajs/bearer"
 import { eq } from "drizzle-orm"
 import { Elysia } from "elysia"
+
 import { ManagePermission } from "@/common/enum/permissions"
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
 import {
@@ -9,66 +9,19 @@ import {
 } from "@/common/enum/response-status"
 import { db } from "@/db"
 import { permissions } from "@/db/schema/permission"
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
-import { getUser } from "@/src/general/usecase/get-user"
-import { verifyPermission } from "@/src/general/usecase/verify-permission"
+import { requirePermission } from "@/src/general/setup/require-permission"
 import { deletePermissionModel } from "@/src/permissions/data/permissions.model"
 import { handleResponse } from "@/utils/handle-response"
 import { verrou } from "@/utils/services/locks"
 
 export const deletePermission = new Elysia()
     .use(deletePermissionModel)
-    .use(jwtAccessSetup)
-    .use(bearer())
+    .use(requirePermission(ManagePermission.DELETE_PERMISSION))
     .delete(
         "/permission/:id",
-        async ({ params, bearer, set, jwtAccess }) => {
+        async ({ params, set, store }) => {
             const path = "permissions.delete.usecase"
-            const validToken = await jwtAccess.verify(bearer)
-            if (!validToken) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
-
-            // CHECK EXISTING USER
-            const existingUser = await getUser({
-                identifier: validToken.id,
-                type: "id",
-                condition: {
-                    deleted: false,
-                },
-            })
-
-            if (!existingUser.user) {
-                return handleResponse({
-                    message: ErrorMessage.INVALID_USER,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.BAD_REQUEST
-                    },
-                    path,
-                })
-            }
-
-            // VERIFY IF USER HAS PERMISSION TO DELETE PERMISSIONS
-            const { valid } = await verifyPermission(
-                ManagePermission.DELETE_PERMISSION,
-                existingUser.user.id,
-            )
-
-            if (!valid) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
+            const { userId } = store.auth
 
             // CHECK IF PERMISSION EXISTS
             const existingPermission = await db.query.permissions.findFirst({
@@ -87,16 +40,14 @@ export const deletePermission = new Elysia()
                 })
             }
 
-            // SOFT DELETE PERMISSION
+            // DELETE PERMISSION
             await verrou
-                .createLock(`${existingUser.user?.id}:delete-permission`)
+                .createLock(`${userId}:delete-permission`)
                 .run(async () => {
                     try {
                         await db
                             .update(permissions)
-                            .set({
-                                deletedAt: new Date(),
-                            })
+                            .set({ deletedAt: new Date() })
                             .where(eq(permissions.id, params.id))
                     } catch (error) {
                         console.error(error)
