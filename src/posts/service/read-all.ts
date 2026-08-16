@@ -41,9 +41,31 @@ export const readAllPost = (
             orderBy = asc(posts.createdAt)
         }
 
+        if (input.page === 0) {
+            return yield* Effect.fail(
+                new ServiceError(
+                    ErrorMessage.PAGE_INVALID,
+                    ResponseErrorStatus.BAD_REQUEST,
+                ),
+            )
+        }
+
         const data = yield* Effect.tryPromise({
-            try: () =>
-                db.query.posts.findMany({
+            try: () => {
+                if (input.page === -1) {
+                    return db.query.posts.findMany({
+                        where: buildPostWhere(input.search),
+                        orderBy,
+                        with: {
+                            user: {
+                                columns: {
+                                    id: true,
+                                },
+                            },
+                        },
+                    })
+                }
+                return db.query.posts.findMany({
                     where: buildPostWhere(input.search),
                     limit: input.limit,
                     offset: (input.page - 1) * input.limit,
@@ -55,7 +77,8 @@ export const readAllPost = (
                             },
                         },
                     },
-                }),
+                })
+            },
             catch: (error) => {
                 console.error(error)
                 return new ServiceError(

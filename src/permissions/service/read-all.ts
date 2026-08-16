@@ -34,14 +34,30 @@ export const readAllPermission = (input: ReadAllPermissionInput) =>
             orderBy = asc(permissions.createdAt)
         }
 
+        if (input.page === 0) {
+            return yield* Effect.fail(
+                new ServiceError(
+                    ErrorMessage.PAGE_INVALID,
+                    ResponseErrorStatus.BAD_REQUEST,
+                ),
+            )
+        }
+
         const data = yield* Effect.tryPromise({
-            try: () =>
-                db.query.permissions.findMany({
+            try: () => {
+                if (input.page === -1) {
+                    return db.query.permissions.findMany({
+                        where: buildPermissionWhere(input.search),
+                        orderBy,
+                    })
+                }
+                return db.query.permissions.findMany({
                     where: buildPermissionWhere(input.search),
                     orderBy,
                     limit: Number(input.limit),
                     offset: (Number(input.page) - 1) * Number(input.limit),
-                }),
+                })
+            },
             catch: (error) => {
                 console.error(error)
                 return new ServiceError(

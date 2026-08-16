@@ -17,6 +17,7 @@ export enum ErrorMessage {
     UNAUTHORIZED_PERMISSION = "Unauthorized permission",
     POST_NOT_FOUND = "Post not found",
     PAGE_NOT_FOUND = "Page not found",
+    PAGE_INVALID = "Page number is invalid",
     FAILED_TO_READ_POST = "Failed to read post",
     FAILED_TO_UPDATE_POST = "Failed to update post",
     FAILED_TO_CREATE_USER = "Failed to create user",

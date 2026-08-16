@@ -19,7 +19,7 @@ export const readUserModel = new Elysia().model({
 
 export const readAllUserModel = new Elysia().model({
     readAllUserModel: t.Object({
-        page: t.Integer({ minimum: 1 }),
+        page: t.Integer({ minimum: -1 }),
         limit: t.Integer({ minimum: 1, maximum: 100 }),
     }),
 })

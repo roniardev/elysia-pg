@@ -34,9 +34,27 @@ export const readAllUserPermission = (input: ReadAllUserPermissionInput) =>
             input.includeRevoked ?? false,
         )
 
+        if (input.page === 0) {
+            return yield* Effect.fail(
+                new ServiceError(
+                    ErrorMessage.PAGE_INVALID,
+                    ResponseErrorStatus.BAD_REQUEST,
+                ),
+            )
+        }
+
         const list = yield* Effect.tryPromise({
-            try: () =>
-                db.query.userPermissions.findMany({
+            try: () => {
+                if (input.page === -1) {
+                    return db.query.userPermissions.findMany({
+                        where: () => whereClause,
+                        with: {
+                            permission: true,
+                        },
+                        orderBy: [desc(userPermissions.createdAt)],
+                    })
+                }
+                return db.query.userPermissions.findMany({
                     where: () => whereClause,
                     with: {
                         permission: true,
@@ -44,7 +62,8 @@ export const readAllUserPermission = (input: ReadAllUserPermissionInput) =>
                     limit: Number(input.limit),
                     offset: (Number(input.page) - 1) * Number(input.limit),
                     orderBy: [desc(userPermissions.createdAt)],
-                }),
+                })
+            },
             catch: (error) => {
                 console.error(error)
                 return new ServiceError(

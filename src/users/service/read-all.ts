@@ -17,6 +17,15 @@ export const readAllUser = (input: ReadAllUserInput) =>
     Effect.gen(function* () {
         const notDeleted = and(isNull(users.deletedAt))
 
+        if (input.page === 0) {
+            return yield* Effect.fail(
+                new ServiceError(
+                    ErrorMessage.PAGE_INVALID,
+                    ResponseErrorStatus.BAD_REQUEST,
+                ),
+            )
+        }
+
         const total = yield* Effect.tryPromise({
             try: () => db.$count(users, notDeleted),
             catch: (error) => {
@@ -29,15 +38,24 @@ export const readAllUser = (input: ReadAllUserInput) =>
         })
 
         const data = yield* Effect.tryPromise({
-            try: () =>
-                db.query.users.findMany({
+            try: () => {
+                if (input.page === -1) {
+                    return db.query.users.findMany({
+                        where: notDeleted,
+                        with: {
+                            permissions: true,
+                        },
+                    })
+                }
+                return db.query.users.findMany({
                     where: notDeleted,
                     limit: Number(input.limit),
                     offset: (Number(input.page) - 1) * Number(input.limit),
                     with: {
                         permissions: true,
                     },
-                }),
+                })
+            },
             catch: (error) => {
                 console.error(error)
                 return new ServiceError(
