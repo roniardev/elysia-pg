@@ -54,16 +54,14 @@ describe("/permission/:id (DELETE)", () => {
       where: (table, { eq }) => eq(table.name, ManagePermission.DELETE_PERMISSION),
     });
 
+    deletePermissionId = deletePermission?.id ?? DELETE_PERMISSION_ID;
     if (!deletePermission) {
       // Create the permission if it doesn't exist
-      deletePermissionId = DELETE_PERMISSION_ID;
       await db.insert(permissions).values({
         id: deletePermissionId,
         name: ManagePermission.DELETE_PERMISSION,
         description: "Permission to delete permissions",
       });
-    } else {
-      deletePermissionId = deletePermission.id;
     }
 
     // Create a test permission to delete

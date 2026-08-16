@@ -62,16 +62,14 @@ describe("/permission/:id (PUT)", () => {
 						eq(table.name, ManagePermission.UPDATE_PERMISSION),
 				});
 
+    updatePermissionId = updatePermission?.id ?? UPDATE_PERMISSION_ID;
     if (!updatePermission) {
       // Create the permission if it doesn't exist
-      updatePermissionId = UPDATE_PERMISSION_ID;
       await db.insert(permissions).values({
         id: updatePermissionId,
         name: ManagePermission.UPDATE_PERMISSION,
         description: "Permission to update permissions",
       });
-    } else {
-      updatePermissionId = updatePermission.id;
     }
 
     // Create a test permission to update

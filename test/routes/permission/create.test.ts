@@ -57,16 +57,14 @@ describe("/permission", () => {
       where: (table, { eq }) => eq(table.name, ManagePermission.CREATE_PERMISSION),
     });
 
+    createPermissionId = createPermission?.id ?? CREATE_PERMISSION_ID;
     if (!createPermission) {
       // Create the permission if it doesn't exist
-      createPermissionId = CREATE_PERMISSION_ID;
       await db.insert(permissions).values({
         id: createPermissionId,
         name: ManagePermission.CREATE_PERMISSION,
         description: "Permission to create permissions",
       });
-    } else {
-      createPermissionId = createPermission.id;
     }
 
     // Assign permission to user

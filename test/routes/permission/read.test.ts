@@ -61,16 +61,14 @@ describe("/permission/:id", () => {
 						eq(table.name, ManagePermission.READ_PERMISSION),
 				});
 
+    readPermissionId = readPermission?.id ?? READ_PERMISSION_ID;
     if (!readPermission) {
       // Create the permission if it doesn't exist
-      readPermissionId = READ_PERMISSION_ID;
       await db.insert(permissions).values({
         id: readPermissionId,
         name: ManagePermission.READ_PERMISSION,
         description: "Permission to read permissions",
       });
-    } else {
-      readPermissionId = readPermission.id;
     }
 
     // Create a test permission to read
