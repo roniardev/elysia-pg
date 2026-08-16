@@ -1,3 +1,4 @@
+import { and, isNull } from "drizzle-orm"
 import { Effect } from "effect"
 
 import { ErrorMessage } from "@/common/enum/response-message"
@@ -14,8 +15,10 @@ export type ReadAllUserInput = {
 
 export const readAllUser = (input: ReadAllUserInput) =>
     Effect.gen(function* () {
+        const notDeleted = and(isNull(users.deletedAt))
+
         const total = yield* Effect.tryPromise({
-            try: () => db.$count(users),
+            try: () => db.$count(users, notDeleted),
             catch: (error) => {
                 console.error(error)
                 return new ServiceError(
@@ -28,6 +31,7 @@ export const readAllUser = (input: ReadAllUserInput) =>
         const data = yield* Effect.tryPromise({
             try: () =>
                 db.query.users.findMany({
+                    where: notDeleted,
                     limit: Number(input.limit),
                     offset: (Number(input.page) - 1) * Number(input.limit),
                     with: {
@@ -49,7 +53,7 @@ export const readAllUser = (input: ReadAllUserInput) =>
             total,
         )
 
-        if (input.page > totalPage) {
+        if (input.page > totalPage && totalPage > 0) {
             return yield* Effect.fail(
                 new ServiceError(
                     ErrorMessage.PAGE_NOT_FOUND,
@@ -58,5 +62,16 @@ export const readAllUser = (input: ReadAllUserInput) =>
             )
         }
 
-        return { data, attributes }
+        return {
+            data: data.map((user) => ({
+                id: user.id,
+                email: user.email,
+                emailVerified: user.emailVerified,
+                photo: user.photo,
+                permissions: user.permissions,
+                createdAt: user.createdAt.toISOString(),
+                updatedAt: user.updatedAt?.toISOString() ?? null,
+            })),
+            attributes,
+        }
     })

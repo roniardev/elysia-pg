@@ -65,11 +65,20 @@ export const readAllUserPermission = (input: ReadAllUserPermissionInput) =>
             },
         })
 
-        const { attributes } = getPagination(
+        const { totalPage, attributes } = getPagination(
             Number(input.page),
             Number(input.limit),
             total,
         )
+
+        if (input.page > totalPage && totalPage > 0) {
+            return yield* Effect.fail(
+                new ServiceError(
+                    ErrorMessage.PAGE_NOT_FOUND,
+                    ResponseErrorStatus.BAD_REQUEST,
+                ),
+            )
+        }
 
         return {
             data: list.map((userPermission) => ({

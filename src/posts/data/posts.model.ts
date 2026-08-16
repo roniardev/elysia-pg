@@ -5,8 +5,12 @@ export const createPostModel = new Elysia().model({
         title: t.String(),
         excerpt: t.String(),
         content: t.String(),
-        status: t.Optional(t.String()),
-        visibility: t.Optional(t.String()),
+        status: t.Optional(
+            t.Union([t.Literal("draft"), t.Literal("published")]),
+        ),
+        visibility: t.Optional(
+            t.Union([t.Literal("public"), t.Literal("private")]),
+        ),
         tags: t.Optional(t.String()),
     }),
 })
@@ -25,8 +29,12 @@ export const updatePostModel = new Elysia().model({
         title: t.Optional(t.String()),
         excerpt: t.Optional(t.String()),
         content: t.Optional(t.String()),
-        status: t.Optional(t.String()),
-        visibility: t.Optional(t.String()),
+        status: t.Optional(
+            t.Union([t.Literal("draft"), t.Literal("published")]),
+        ),
+        visibility: t.Optional(
+            t.Union([t.Literal("public"), t.Literal("private")]),
+        ),
         tags: t.Optional(t.String()),
     }),
 })

@@ -5,8 +5,8 @@ type GetUser = {
     identifier: string
     type: "email" | "id"
     condition?: {
-        verified?: boolean
         deleted?: boolean
+        emailVerified?: boolean
     }
     extend?: {
         permissions?: boolean
@@ -27,6 +27,12 @@ export const getUser = async ({
 }: GetUser): Promise<GetUserResponse> => {
     const withPermissions = extend?.permissions || undefined
 
+    let withOption: { permissions: true } | undefined
+
+    if (withPermissions) {
+        withOption = { permissions: true }
+    }
+
     const user = (await db.query.users.findFirst({
         where: (table, { eq, and, isNull }) => {
             const conditions = [eq(table[type], identifier)]
@@ -35,16 +41,14 @@ export const getUser = async ({
                 conditions.push(isNull(table.deletedAt))
             }
 
-            if (condition?.verified) {
+            if (condition?.emailVerified) {
                 conditions.push(eq(table.emailVerified, true))
             }
 
             return and(...conditions)
         },
-        with: {
-            permissions: withPermissions,
-        },
-    })) as unknown as User & { permissions?: Permission[] }
+        with: withOption,
+    })) as User & { permissions?: Permission[] }
 
     if (!user) {
         return {

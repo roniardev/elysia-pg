@@ -36,13 +36,12 @@ export const readAllPermission = (input: ReadAllPermissionInput) =>
 
         const data = yield* Effect.tryPromise({
             try: () =>
-                db
-                    .select()
-                    .from(permissions)
-                    .where(buildPermissionWhere(input.search))
-                    .orderBy(orderBy)
-                    .limit(Number(input.limit))
-                    .offset((Number(input.page) - 1) * Number(input.limit)),
+                db.query.permissions.findMany({
+                    where: buildPermissionWhere(input.search),
+                    orderBy,
+                    limit: Number(input.limit),
+                    offset: (Number(input.page) - 1) * Number(input.limit),
+                }),
             catch: (error) => {
                 console.error(error)
                 return new ServiceError(
@@ -51,15 +50,6 @@ export const readAllPermission = (input: ReadAllPermissionInput) =>
                 )
             },
         })
-
-        if (data.length === 0) {
-            return yield* Effect.fail(
-                new ServiceError(
-                    ErrorMessage.PERMISSION_NOT_FOUND,
-                    ResponseErrorStatus.NOT_FOUND,
-                ),
-            )
-        }
 
         const total = yield* Effect.tryPromise({
             try: () =>
@@ -73,11 +63,20 @@ export const readAllPermission = (input: ReadAllPermissionInput) =>
             },
         })
 
-        const { attributes } = getPagination(
+        const { totalPage, attributes } = getPagination(
             Number(input.page),
             Number(input.limit),
             total,
         )
+
+        if (input.page > totalPage && totalPage > 0) {
+            return yield* Effect.fail(
+                new ServiceError(
+                    ErrorMessage.PAGE_NOT_FOUND,
+                    ResponseErrorStatus.BAD_REQUEST,
+                ),
+            )
+        }
 
         return { data, attributes }
     })

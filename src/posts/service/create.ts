@@ -11,8 +11,8 @@ export type CreatePostInput = {
     title: string
     excerpt: string
     content: string
-    status?: string
-    visibility?: string
+    status?: "draft" | "published"
+    visibility?: "public" | "private"
     tags?: string
 }
 
