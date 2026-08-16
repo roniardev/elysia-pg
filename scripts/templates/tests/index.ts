@@ -1,5 +1,0 @@
-export * from '@/scripts/templates/tests/create.test.template'
-export * from '@/scripts/templates/tests/read.test.template'
-export * from '@/scripts/templates/tests/read-all.test.template'
-export * from '@/scripts/templates/tests/update.test.template'
-export * from '@/scripts/templates/tests/delete.test.template'

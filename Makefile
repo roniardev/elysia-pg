@@ -53,7 +53,6 @@ help: ## Show this help message
 	@echo "  make dev            - Start development server"
 	@echo "  make lint           - Run linting checks"
 	@echo "  make lint-fix       - Fix linting issues"
-	@echo "  make generate       - Generate CRUD operations"
 	@echo "  make test           - Run tests"
 	@echo ""
 	@echo "$(YELLOW)Utility Commands:$(NC)"
@@ -184,11 +183,6 @@ lint: ## Run linting checks
 lint-fix: ## Fix linting issues
 	@echo "$(GREEN)Fixing linting issues...$(NC)"
 	bun run lint:fix
-
-.PHONY: generate
-generate: ## Generate CRUD operations
-	@echo "$(GREEN)Generating CRUD operations...$(NC)"
-	bun run generate
 
 .PHONY: test
 test: ## Run tests

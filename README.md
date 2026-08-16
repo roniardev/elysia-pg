@@ -60,6 +60,16 @@ make shell-dev      # Access development database
 make clean          # Remove all containers, images, and volumes
 ```
 
+### 🐳 Production Image
+
+`make build` produces a production image with:
+
+- Base image `oven/bun:1.3.14` with `bun.lock` (text format) for reproducible installs
+- A `tsc --noEmit` typecheck gate during the build
+- Entrypoint `bun start` → `app/index.ts` (`NODE_ENV=production`)
+- **Secrets are never baked in** — inject `DATABASE_URL`, Redis, and JWT keys at runtime via environment (see `docker-compose.yml` / `.env.example`)
+- `.dockerignore` keeps local `.env*`, `node_modules`, and tests out of the build context
+
 ### 🗄️ Database Operations
 
 ```bash
@@ -84,12 +94,9 @@ make restore        # Restore database from backup
 # Development server
 make dev            # Start development server with hot reload
 
-# Code quality
+# Code quality (Biome 2.5.8 + no-ternary/no-else guard)
 make lint           # Run linting checks
 make lint-fix       # Fix linting issues automatically
-
-# Code generation
-make generate       # Generate CRUD operations
 
 # Testing
 make test           # Run test suite
@@ -131,8 +138,8 @@ make full-setup     # Complete development setup with database
 
 - **Web Framework**: [ElysiaJS](https://elysiajs.com/) - Fast, type-safe web framework
 - **Database**: [PostgreSQL](https://www.postgresql.org/) with [Drizzle ORM](https://orm.drizzle.team/)
-- **Runtime**: [Bun](https://bun.sh/) - Fast JavaScript runtime and package manager
-- **Linter**: [Biome](https://biomejs.dev/) - Fast formatter and linter
+- **Runtime**: [Bun](https://bun.sh/) 1.3.x - Fast JavaScript runtime and package manager
+- **Linter**: [Biome](https://biomejs.dev/) 2.5.8 - Fast formatter and linter
 - **Containerization**: [Docker](https://www.docker.com/) with [Docker Compose](https://docs.docker.com/compose/)
 - **Automation**: [Make](https://www.gnu.org/software/make/) - Build automation tool
 
@@ -145,10 +152,24 @@ make full-setup     # Complete development setup with database
 - [Bearer](https://elysiajs.com/plugins/bearer.html) - Bearer token authentication
 - [Server Timing](https://elysiajs.com/plugins/server-timing.html) - Performance monitoring
 
+## 🎨 Code Style
+
+This template enforces a strict, Raya-style convention:
+
+- **No ternary operators** — use lookup maps, guard clauses, or `??` fallbacks instead
+- **No `else` / `else if`** — use early returns and inverted guards (fail-fast first)
+
+Enforced by:
+
+- **Biome 2.x rules**: `noTernary`, `noNestedTernary`, `noUselessElse` (all `error`)
+- **[`scripts/check-no-else.ts`](./scripts/check-no-else.ts)** — custom scan for any `else` outside strings/comments; exits non-zero on violations
+
+`make lint` runs both checks. `make lint-fix` auto-fixes everything Biome can; the no-else scan is fixed by hand.
+
 ## 📋 Prerequisites
 
 - [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/)
-- [Bun](https://bun.sh/) (JavaScript runtime and package manager)
+- [Bun](https://bun.sh/) ≥ 1.2 (developed on 1.3.14)
 - [Make](https://www.gnu.org/software/make/) (Build automation tool)
 
 ## 🏗️ Project Structure
@@ -169,11 +190,12 @@ elysia-pg/
 ├── docs/                  # Generated documentation
 │   ├── CHANGELOG.md       # Project changelog
 │   └── RELEASE_NOTES_*.md # Release notes
-├── scripts/               # Utility scripts
+├── scripts/               # Utility scripts (no-else lint guard)
 ├── vibe-log/              # Project documentation
 ├── docker-compose.yml     # Production services
 ├── docker-compose.dev.yml # Development services
 ├── Dockerfile             # Application container
+├── .dockerignore          # Docker build context exclusions
 ├── Makefile               # Build automation
 └── package.json           # Project configuration
 ```
@@ -220,10 +242,10 @@ make db-seed
 
 ### Code Quality
 ```bash
-# Check code quality
+# Check code quality (Biome 2.5.8 + no-else scan)
 make lint
 
-# Fix issues automatically
+# Fix issues automatically (Biome --write; no-else scan is manual)
 make lint-fix
 
 # Run tests
@@ -332,7 +354,6 @@ git tag --sort=-version:refname  # Version tags
 
 - **`make help`** - Show all available commands
 - **`docs/CHANGELOG.md`** - Project changelog
-- **`scripts/release-demo.sh`** - Release workflow demonstration
 
 ## 🎯 Best Practices
 
