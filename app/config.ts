@@ -35,4 +35,9 @@ export const config = {
         .default(60 * 30)
         .asInt(),
     CORS_ORIGIN: env.get("CORS_ORIGIN").required().asString(),
+    OTLP_AXIOM_TOKEN: env.get("OTLP_AXIOM_TOKEN").default("").asString(),
+    OTLP_AXIOM_DATASET: env
+        .get("OTLP_AXIOM_DATASET")
+        .default("elysia_pg")
+        .asString(),
 }

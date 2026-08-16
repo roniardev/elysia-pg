@@ -14,6 +14,14 @@ import { users } from "@/src/users"
 import { encryptResponse } from "@/utils/encrypt-response"
 import logger from "@/utils/logger"
 
+const otlpHeaders: Record<string, string> = {
+    "X-Axiom-Dataset": config.OTLP_AXIOM_DATASET,
+}
+
+if (config.OTLP_AXIOM_TOKEN) {
+    otlpHeaders.Authorization = `Bearer ${config.OTLP_AXIOM_TOKEN}`
+}
+
 export const app = new Elysia({
     serve: {
         idleTimeout: 255,
@@ -27,10 +35,7 @@ export const app = new Elysia({
                 new BatchSpanProcessor(
                     new OTLPTraceExporter({
                         url: "https://api.axiom.co/v1/traces",
-                        headers: {
-                            Authorization: `Bearer xaat-REVOKED`,
-                            "X-Axiom-Dataset": "elysia_pg",
-                        },
+                        headers: otlpHeaders,
                     }),
                 ),
             ],
