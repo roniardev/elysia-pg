@@ -46,18 +46,13 @@ export const createUser = (input: CreateUserInput) =>
             )
         }
 
-        // CREATE USER
+        // PREPARE DATA — hashing and token signing stay outside the
+        // transaction so DB locks are not held during CPU-bound work
         const userId = ulid()
         const { email, emailVerified, password, permissions } = input
 
-        const newUser = yield* Effect.tryPromise({
-            try: async () =>
-                db.insert(users).values({
-                    id: userId,
-                    email,
-                    emailVerified,
-                    hashedPassword: await Bun.password.hash(password),
-                }),
+        const hashedPassword = yield* Effect.tryPromise({
+            try: () => Bun.password.hash(password),
             catch: (error) => {
                 console.error(error)
                 return new UserServiceError(
@@ -66,15 +61,6 @@ export const createUser = (input: CreateUserInput) =>
                 )
             },
         })
-
-        if (!newUser) {
-            return yield* Effect.fail(
-                new UserServiceError(
-                    ErrorMessage.FAILED_TO_CREATE_USER,
-                    ResponseErrorStatus.INTERNAL_SERVER_ERROR,
-                ),
-            )
-        }
 
         const emailToken = yield* Effect.tryPromise({
             try: () =>
@@ -103,26 +89,50 @@ export const createUser = (input: CreateUserInput) =>
             },
         })
 
-        if (!emailVerified) {
-            // CREATE EMAIL VERIFICATION TOKEN
-            yield* Effect.tryPromise({
-                try: () =>
-                    db.insert(emailVerificationTokens).values({
-                        id: ulid(),
+        // CREATE USER — every insert runs in one transaction; any failure
+        // rolls back the whole batch, no partial user is left behind
+        yield* Effect.tryPromise({
+            try: () =>
+                db.transaction(async (tx) => {
+                    await tx.insert(users).values({
+                        id: userId,
                         email,
-                        userId: userId,
-                        hashedToken,
-                        expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 HOUR,
-                    }),
-                catch: (error) => {
-                    console.error(error)
-                    return new UserServiceError(
-                        ErrorMessage.FAILED_TO_CREATE_EMAIL_VERIFICATION_TOKEN,
-                        ResponseErrorStatus.INTERNAL_SERVER_ERROR,
-                    )
-                },
-            })
+                        emailVerified,
+                        hashedPassword,
+                    })
 
+                    if (!emailVerified) {
+                        await tx.insert(emailVerificationTokens).values({
+                            id: ulid(),
+                            email,
+                            userId: userId,
+                            hashedToken,
+                            expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 HOUR,
+                        })
+                    }
+
+                    if (permissions) {
+                        for (const permission of permissions) {
+                            await tx.insert(userPermissions).values({
+                                id: ulid(),
+                                userId: userId,
+                                permissionId: permission,
+                            })
+                        }
+                    }
+                }),
+            catch: (error) => {
+                console.error(error)
+                return new UserServiceError(
+                    ErrorMessage.FAILED_TO_CREATE_USER,
+                    ResponseErrorStatus.INTERNAL_SERVER_ERROR,
+                )
+            },
+        })
+
+        // SEND EMAIL — external side effect, runs only after the
+        // transaction commits, never inside it
+        if (!emailVerified) {
             const emailResponse = yield* Effect.tryPromise({
                 try: () =>
                     sendEmail(
@@ -146,27 +156,6 @@ export const createUser = (input: CreateUserInput) =>
                         ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                     ),
                 )
-            }
-        }
-
-        // CREATE USER PERMISSIONS
-        if (permissions) {
-            for (const permission of permissions) {
-                yield* Effect.tryPromise({
-                    try: () =>
-                        db.insert(userPermissions).values({
-                            id: ulid(),
-                            userId: userId,
-                            permissionId: permission,
-                        }),
-                    catch: (error) => {
-                        console.error(error)
-                        return new UserServiceError(
-                            ErrorMessage.FAILED_TO_CREATE_USER,
-                            ResponseErrorStatus.INTERNAL_SERVER_ERROR,
-                        )
-                    },
-                })
             }
         }
 
