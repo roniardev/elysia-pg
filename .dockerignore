@@ -1,0 +1,13 @@
+.git
+node_modules
+.env
+.env.*
+*.log
+coverage
+test
+scripts
+docs
+Dockerfile
+.dockerignore
+schema.dbml
+schema.svg
