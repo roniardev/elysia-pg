@@ -64,28 +64,39 @@ export const register = new Elysia()
 
             const userId = ulid()
 
-            await verrou.createLock(`${email}:register`).run(async () => {
-                try {
-                    // CREATE USER
-                    const hashedPassword = await Bun.password.hash(password)
-                    await db.insert(users).values({
-                        id: userId,
-                        email,
-                        emailVerified: false,
-                        hashedPassword,
+            try {
+                const [didAcquire] = await verrou
+                    .createLock(`${email}:register`)
+                    .run(async () => {
+                        // CREATE USER
+                        const hashedPassword = await Bun.password.hash(password)
+                        await db.insert(users).values({
+                            id: userId,
+                            email,
+                            emailVerified: false,
+                            hashedPassword,
+                        })
                     })
-                } catch (error) {
-                    console.error(error)
+
+                if (!didAcquire) {
                     return handleResponse({
-                        message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                        message: ErrorMessage.USER_ALREADY_EXISTS,
                         callback: () => {
-                            set.status =
-                                ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                            set.status = ResponseErrorStatus.BAD_REQUEST
                         },
                         path,
                     })
                 }
-            })
+            } catch (error) {
+                console.error(error)
+                return handleResponse({
+                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                    },
+                    path,
+                })
+            }
 
             const emailToken = await jwtAccess.sign({
                 id: userId,
@@ -135,9 +146,6 @@ export const register = new Elysia()
                     set.status = ResponseSuccessStatus.CREATED
                 },
                 path,
-                data: {
-                    emailToken,
-                },
             })
         },
         {

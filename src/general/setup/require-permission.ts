@@ -49,10 +49,7 @@ export const requirePermission =
                         }
                     }
 
-                    const { valid: isAuthorized } = await verifyAuth(
-                        bearer,
-                        validToken,
-                    )
+                    const isAuthorized = await verifyAuth(bearer, validToken)
 
                     if (!isAuthorized) {
                         set.status = ResponseErrorStatus.UNAUTHORIZED

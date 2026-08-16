@@ -48,7 +48,7 @@ export const deleteUser = (id: string) =>
 
         yield* Effect.tryPromise({
             try: () =>
-                verrou.createLock(`user:${user.id}`).run(async () => {
+                verrou.createLock(`${user.id}:delete-user`).run(async () => {
                     // await 15s
                     await new Promise((resolve) => setTimeout(resolve, 15000))
 

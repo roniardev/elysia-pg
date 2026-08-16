@@ -1,6 +1,6 @@
 import bearer from "@elysiajs/bearer"
-import dayjs from "dayjs"
 import { Elysia } from "elysia"
+
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
 import {
     ResponseErrorStatus,
@@ -8,6 +8,7 @@ import {
 } from "@/common/enum/response-status"
 import { basicAuthModel } from "@/src/auth/data/auth.model"
 import { jwtAccessSetup, jwtRefreshSetup } from "@/src/auth/setup/auth"
+import { verifyAuth } from "@/src/general/usecase/verify-auth"
 import { handleResponse } from "@/utils/handle-response"
 import { verrou } from "@/utils/services/locks"
 import { redis } from "@/utils/services/redis"
@@ -33,52 +34,28 @@ export const logout = new Elysia()
         }
 
         // CHECK EXISTING SESSION
-        const existingRefreshToken = await redis.get(
-            `${validToken.id}:refreshToken`,
-        )
+        const isAuthorized = await verifyAuth(bearer, validToken)
 
-        const existingAccessToken = await redis.get(
-            `${validToken.id}:accessToken`,
-        )
-
-        if (validToken?.exp && validToken.exp < dayjs().unix()) {
+        if (!isAuthorized) {
             return handleResponse({
                 message: ErrorMessage.UNAUTHORIZED,
                 callback: () => {
                     set.status = ResponseErrorStatus.UNAUTHORIZED
-                },
-                path,
-            })
-        }
-
-        if (bearer !== existingAccessToken) {
-            return handleResponse({
-                message: ErrorMessage.UNAUTHORIZED,
-                callback: () => {
-                    set.status = ResponseErrorStatus.UNAUTHORIZED
-                },
-                path,
-            })
-        }
-
-        if (!existingRefreshToken || !existingAccessToken) {
-            return handleResponse({
-                message: ErrorMessage.FORBIDDEN,
-                callback: () => {
-                    set.status = ResponseErrorStatus.FORBIDDEN
                 },
                 path,
             })
         }
 
         // DELETE REFRESH & ACCESS TOKEN FROM REDIS
-        await verrou.createLock(`${validToken.id}:logout`).run(async () => {
-            // DELETE REFRESH & ACCESS TOKEN FROM REDIS
-            try {
-                await redis.del(`${validToken.id}:refreshToken`)
-                await redis.del(`${validToken.id}:accessToken`)
-            } catch (error) {
-                console.error(error)
+        try {
+            const [didAcquire] = await verrou
+                .createLock(`${validToken.id}:logout`)
+                .run(async () => {
+                    await redis.del(`${validToken.id}:refreshToken`)
+                    await redis.del(`${validToken.id}:accessToken`)
+                })
+
+            if (!didAcquire) {
                 return handleResponse({
                     message: ErrorMessage.INTERNAL_SERVER_ERROR,
                     callback: () => {
@@ -87,7 +64,16 @@ export const logout = new Elysia()
                     path,
                 })
             }
-        })
+        } catch (error) {
+            console.error(error)
+            return handleResponse({
+                message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                callback: () => {
+                    set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                },
+                path,
+            })
+        }
 
         return handleResponse({
             message: SuccessMessage.LOGOUT_SUCCESS,

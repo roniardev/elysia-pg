@@ -36,13 +36,9 @@ export const deletePost = (id: string, userId: string) =>
 
         yield* Effect.tryPromise({
             try: () =>
-                verrou
-                    .createLock(`deletePost:${existingPost.id}`)
-                    .run(async () => {
-                        await db
-                            .delete(posts)
-                            .where(eq(posts.id, existingPost.id))
-                    }),
+                verrou.createLock(`${userId}:delete-post`).run(async () => {
+                    await db.delete(posts).where(eq(posts.id, existingPost.id))
+                }),
             catch: (error) => {
                 console.error(error)
                 return new ServiceError(

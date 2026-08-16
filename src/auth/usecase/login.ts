@@ -1,7 +1,5 @@
-import dayjs from "dayjs"
 import { Elysia } from "elysia"
 
-import { config } from "@/app/config"
 import { ErrorMessage, SuccessMessage } from "@/common/enum/response-message"
 import {
     ResponseErrorStatus,
@@ -11,6 +9,7 @@ import RegexPattern from "@/common/regex-pattern"
 import { basicAuthModel } from "@/src/auth/data/auth.model"
 import { jwtAccessSetup, jwtRefreshSetup } from "@/src/auth/setup/auth"
 import { getUser } from "@/src/general/usecase/get-user"
+import { storeSession } from "@/src/general/usecase/store-session"
 import ExpiredTime from "@/utils/expired-time"
 import { handleResponse } from "@/utils/handle-response"
 import { verrou } from "@/utils/services/locks"
@@ -41,7 +40,6 @@ export const login = new Elysia()
                 identifier: body.email,
                 type: "email",
                 condition: {
-                    verified: false,
                     deleted: false,
                 },
             })
@@ -56,7 +54,17 @@ export const login = new Elysia()
                 })
             }
 
-            if (!existingUser.user?.emailVerified) {
+            if (!existingUser.user) {
+                return handleResponse({
+                    message: ErrorMessage.INVALID_CREDENTIALS,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.FORBIDDEN
+                    },
+                    path,
+                })
+            }
+
+            if (!existingUser.user.emailVerified) {
                 return handleResponse({
                     message: ErrorMessage.EMAIL_NOT_VERIFIED,
                     callback: () => {
@@ -65,10 +73,11 @@ export const login = new Elysia()
                     path,
                 })
             }
+
             // CHECK VALID PASSWORD
             const validPassword = await Bun.password.verify(
                 body.password,
-                existingUser.user?.hashedPassword || "",
+                existingUser.user.hashedPassword || "",
             )
 
             if (!validPassword) {
@@ -81,9 +90,11 @@ export const login = new Elysia()
                 })
             }
 
+            const { user } = existingUser
+
             // CHECK EXISTING REFRESH TOKEN
             const existingRefreshToken = await redis.get(
-                `${existingUser.user?.id}:refreshToken`,
+                `${user.id}:refreshToken`,
             )
 
             if (existingRefreshToken) {
@@ -98,51 +109,41 @@ export const login = new Elysia()
 
             // GENERATE REFRESH TOKEN & ACCESS TOKEN
             const refreshToken = await jwtRefresh.sign({
-                id: existingUser.user?.id,
+                id: user.id,
                 exp: ExpiredTime.getExpiredRefreshToken(),
             })
 
             const accessToken = await jwtAccess.sign({
-                id: String(existingUser.user?.id),
-                exp: dayjs().unix() + config.ACCESS_TOKEN_EXPIRE_TIME,
+                id: user.id,
+                exp: ExpiredTime.getExpiredAccessToken(),
             })
 
-            await verrou
-                .createLock(`${existingUser.user?.id}:login`)
-                .run(async () => {
-                    // SET REFRESH TOKEN & ACCESS TOKEN TO REDIS
-                    try {
-                        await redis.set(
-                            `${existingUser.user?.id}:refreshToken`,
-                            refreshToken,
-                        )
+            try {
+                const [didAcquire] = await verrou
+                    .createLock(`${user.id}:login`)
+                    .run(async () => {
+                        await storeSession(user.id, accessToken, refreshToken)
+                    })
 
-                        await redis.expire(
-                            `${existingUser.user?.id}:refreshToken`,
-                            config.REFRESH_TOKEN_EXPIRE_TIME,
-                        )
-
-                        await redis.set(
-                            `${existingUser.user?.id}:accessToken`,
-                            accessToken,
-                        )
-
-                        await redis.expire(
-                            `${existingUser.user?.id}:accessToken`,
-                            config.ACCESS_TOKEN_EXPIRE_TIME,
-                        )
-                    } catch (error) {
-                        console.error(error)
-                        return handleResponse({
-                            message: ErrorMessage.INTERNAL_SERVER_ERROR,
-                            callback: () => {
-                                set.status =
-                                    ResponseErrorStatus.INTERNAL_SERVER_ERROR
-                            },
-                            path,
-                        })
-                    }
+                if (!didAcquire) {
+                    return handleResponse({
+                        message: ErrorMessage.SESSION_ALREADY_EXISTS,
+                        callback: () => {
+                            set.status = ResponseErrorStatus.FORBIDDEN
+                        },
+                        path,
+                    })
+                }
+            } catch (error) {
+                console.error(error)
+                return handleResponse({
+                    message: ErrorMessage.INTERNAL_SERVER_ERROR,
+                    callback: () => {
+                        set.status = ResponseErrorStatus.INTERNAL_SERVER_ERROR
+                    },
+                    path,
                 })
+            }
 
             return handleResponse({
                 message: SuccessMessage.LOGIN_SUCCESS,

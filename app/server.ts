@@ -75,18 +75,12 @@ export const app = new Elysia({
                 logger.error(error)
                 return {
                     status: false,
-                    message: error.message,
-                    err: error,
+                    message: "Internal Server Error",
                 }
             }
         }
     })
-    .onAfterHandle(({ response, request }) => {
-        console.log({
-            from: "server",
-            response,
-            request,
-        })
+    .onAfterHandle(({ response }) => {
         return encryptResponse(response)
     })
     .use(auth)

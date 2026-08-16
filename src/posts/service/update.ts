@@ -13,8 +13,8 @@ export type UpdatePostInput = {
     title?: string
     excerpt?: string
     content?: string
-    status?: string
-    visibility?: string
+    status?: "draft" | "published"
+    visibility?: "public" | "private"
     tags?: string
 }
 
@@ -57,34 +57,44 @@ export const updatePost = (
             )
         }
 
-        yield* Effect.tryPromise({
+        const result = yield* Effect.tryPromise({
             try: () =>
-                verrou
-                    .createLock(`updatePost:${existingPost.id}`)
-                    .run(async () => {
-                        await db
-                            .update(posts)
-                            .set({
-                                title: input.title || existingPost.title,
-                                excerpt: input.excerpt || existingPost.excerpt,
-                                content: input.content || existingPost.content,
-                                status:
-                                    (input.status as "draft" | "published") ||
-                                    (existingPost.status as
-                                        | "draft"
-                                        | "published"),
-                                visibility:
-                                    (input.visibility as
-                                        | "public"
-                                        | "private") ||
-                                    (existingPost.visibility as
-                                        | "public"
-                                        | "private"),
-                                tags: input.tags || existingPost.tags,
-                                updatedAt: new Date(),
-                            })
-                            .where(eq(posts.id, existingPost.id))
-                    }),
+                verrou.createLock(`${userId}:update-post`).run(async () => {
+                    await db
+                        .update(posts)
+                        .set({
+                            title: input.title || existingPost.title,
+                            excerpt: input.excerpt || existingPost.excerpt,
+                            content: input.content || existingPost.content,
+                            status: input.status || existingPost.status,
+                            visibility:
+                                input.visibility || existingPost.visibility,
+                            tags: input.tags || existingPost.tags,
+                            updatedAt: new Date(),
+                        })
+                        .where(eq(posts.id, existingPost.id))
+
+                    const updatedPost = await db.query.posts.findFirst({
+                        where: (table, { eq: eqField }) =>
+                            eqField(table.id, existingPost.id),
+                    })
+
+                    if (!updatedPost) {
+                        return null
+                    }
+
+                    return {
+                        id: updatedPost.id,
+                        title: updatedPost.title,
+                        excerpt: updatedPost.excerpt,
+                        content: updatedPost.content,
+                        status: updatedPost.status,
+                        visibility: updatedPost.visibility,
+                        tags: updatedPost.tags,
+                        createdAt: updatedPost.createdAt.toISOString(),
+                        updatedAt: updatedPost.updatedAt?.toISOString() ?? null,
+                    }
+                }),
             catch: (error) => {
                 console.error(error)
                 return new ServiceError(
@@ -94,5 +104,17 @@ export const updatePost = (
             },
         })
 
-        return existingPost
+        const didAcquire = result[0]
+        const updatedPost = result[1]
+
+        if (!didAcquire || !updatedPost) {
+            return yield* Effect.fail(
+                new ServiceError(
+                    ErrorMessage.POST_NOT_FOUND,
+                    ResponseErrorStatus.BAD_REQUEST,
+                ),
+            )
+        }
+
+        return updatedPost
     })

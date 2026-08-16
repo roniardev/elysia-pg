@@ -43,7 +43,7 @@ export const forgotPassword = new Elysia()
                 type: "email",
                 condition: {
                     deleted: false,
-                    verified: true,
+                    emailVerified: true,
                 },
             })
 
