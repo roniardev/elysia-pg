@@ -4,8 +4,6 @@ import { readUserPermission } from "@/src/user-permissions/service/read"
 import { readAllUserPermission } from "@/src/user-permissions/service/read-all"
 import { updateUserPermission } from "@/src/user-permissions/service/update"
 
-export { UserPermissionServiceError } from "@/src/user-permissions/service/error"
-
 export const UserPermissionService = {
     create: createUserPermission,
     read: readUserPermission,

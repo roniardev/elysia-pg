@@ -25,7 +25,6 @@ export const config = {
     FRONTEND_URL: env.get("FRONTEND_URL").required().asString(),
     RESEND_API_KEY: env.get("RESEND_API_KEY").required().asString(),
     RESEND_FROM_EMAIL: env.get("RESEND_FROM_EMAIL").required().asString(),
-    REDIS_URL: env.get("REDIS_URL").required().asString(),
     REFRESH_TOKEN_EXPIRE_TIME: env
         .get("REFRESH_TOKEN_EXPIRE_TIME")
         .default(60 * 60 * 24 * 1)
@@ -35,6 +34,10 @@ export const config = {
         .default(60 * 30)
         .asInt(),
     CORS_ORIGIN: env.get("CORS_ORIGIN").required().asString(),
+    OTLP_TRACE_ENDPOINT: env
+        .get("OTLP_TRACE_ENDPOINT")
+        .default("https://api.axiom.co/v1/traces")
+        .asString(),
     OTLP_AXIOM_TOKEN: env.get("OTLP_AXIOM_TOKEN").default("").asString(),
     OTLP_AXIOM_DATASET: env
         .get("OTLP_AXIOM_DATASET")

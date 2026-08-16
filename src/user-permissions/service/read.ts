@@ -3,7 +3,7 @@ import { Effect } from "effect"
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
 import { db } from "@/db"
-import { UserPermissionServiceError } from "@/src/user-permissions/service/error"
+import { ServiceError } from "@/src/general/service-error"
 
 export const readUserPermission = (id: string) =>
     Effect.gen(function* () {
@@ -18,7 +18,7 @@ export const readUserPermission = (id: string) =>
                 }),
             catch: (error) => {
                 console.error(error)
-                return new UserPermissionServiceError(
+                return new ServiceError(
                     ErrorMessage.INTERNAL_SERVER_ERROR,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )
@@ -27,7 +27,7 @@ export const readUserPermission = (id: string) =>
 
         if (!userPermission) {
             return yield* Effect.fail(
-                new UserPermissionServiceError(
+                new ServiceError(
                     ErrorMessage.USER_PERMISSION_NOT_FOUND,
                     ResponseErrorStatus.NOT_FOUND,
                 ),

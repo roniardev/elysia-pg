@@ -1,3 +1,5 @@
+import { eq, inArray } from "drizzle-orm"
+
 import type {
     ManagePermission,
     ManageUserPermission,
@@ -5,6 +7,7 @@ import type {
     UserPermission,
 } from "@/common/enum/permissions"
 import { db } from "@/db"
+import { permissions } from "@/db/schema/permission"
 
 export const verifyPermission = async (
     permission:
@@ -14,39 +17,27 @@ export const verifyPermission = async (
         | ManageUserPermission,
     userId: string,
 ) => {
-    const existingUser = await db.query.users.findFirst({
-        where: (table, { eq }) => {
-            return eq(table.id, userId)
-        },
-    })
-
-    if (!existingUser) {
-        return {
-            valid: false,
-            message: "Unauthorized",
-        }
-    }
-
-    const getPermission = await db.query.permissions.findFirst({
-        where: (table, { eq }) => {
-            return eq(table.name, permission)
-        },
-    })
-
-    if (!getPermission) {
-        return {
-            valid: false,
-            message: "Unauthorized",
-        }
-    }
+    // ONE query hydrates user-permission, the permission-name match
+    // (IN subquery) and the optional scope; replaces the previous
+    // 4-query auth pipeline
+    const permissionSubquery = db
+        .select({ id: permissions.id })
+        .from(permissions)
+        .where(eq(permissions.name, permission))
 
     const userPermission = await db.query.userPermissions.findFirst({
-        where: (table, { eq, and }) => {
-            return and(
-                eq(table.userId, existingUser.id),
-                eq(table.permissionId, getPermission.id),
+        where: (table, { eq, and, inArray }) =>
+            and(
+                eq(table.userId, userId),
                 eq(table.revoked, false),
-            )
+                inArray(table.permissionId, permissionSubquery),
+            ),
+        with: {
+            scopeUserPermissions: {
+                with: {
+                    scope: true,
+                },
+            },
         },
     })
 
@@ -59,6 +50,7 @@ export const verifyPermission = async (
 
     return {
         permission: userPermission.id,
+        scope: userPermission.scopeUserPermissions[0]?.scope?.name ?? null,
         valid: true,
         message: "Authorized",
     }

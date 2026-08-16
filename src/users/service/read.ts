@@ -2,8 +2,8 @@ import { Effect } from "effect"
 
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
+import { ServiceError } from "@/src/general/service-error"
 import { getUser } from "@/src/general/usecase/get-user"
-import { UserServiceError } from "@/src/users/service/error"
 
 export const readUser = (id: string) =>
     Effect.gen(function* () {
@@ -18,7 +18,7 @@ export const readUser = (id: string) =>
                 }),
             catch: (error) => {
                 console.error(error)
-                return new UserServiceError(
+                return new ServiceError(
                     ErrorMessage.INTERNAL_SERVER_ERROR,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )
@@ -27,7 +27,7 @@ export const readUser = (id: string) =>
 
         if (!user.user) {
             return yield* Effect.fail(
-                new UserServiceError(
+                new ServiceError(
                     ErrorMessage.USER_NOT_FOUND,
                     ResponseErrorStatus.NOT_FOUND,
                 ),

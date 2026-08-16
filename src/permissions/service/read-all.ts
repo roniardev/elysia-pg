@@ -6,7 +6,7 @@ import { ResponseErrorStatus } from "@/common/enum/response-status"
 import Sorting from "@/common/enum/sorting"
 import { db } from "@/db"
 import { permissions } from "@/db/schema/permission"
-import { PermissionServiceError } from "@/src/permissions/service/error"
+import { ServiceError } from "@/src/general/service-error"
 import { getPagination } from "@/utils/pagination"
 
 export type ReadAllPermissionInput = {
@@ -45,7 +45,7 @@ export const readAllPermission = (input: ReadAllPermissionInput) =>
                     .offset((Number(input.page) - 1) * Number(input.limit)),
             catch: (error) => {
                 console.error(error)
-                return new PermissionServiceError(
+                return new ServiceError(
                     ErrorMessage.INTERNAL_SERVER_ERROR,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )
@@ -54,7 +54,7 @@ export const readAllPermission = (input: ReadAllPermissionInput) =>
 
         if (data.length === 0) {
             return yield* Effect.fail(
-                new PermissionServiceError(
+                new ServiceError(
                     ErrorMessage.PERMISSION_NOT_FOUND,
                     ResponseErrorStatus.NOT_FOUND,
                 ),
@@ -66,7 +66,7 @@ export const readAllPermission = (input: ReadAllPermissionInput) =>
                 db.$count(permissions, buildPermissionWhere(input.search)),
             catch: (error) => {
                 console.error(error)
-                return new PermissionServiceError(
+                return new ServiceError(
                     ErrorMessage.INTERNAL_SERVER_ERROR,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )

@@ -5,7 +5,7 @@ import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
 import { db } from "@/db"
 import { userPermissions } from "@/db/schema/user-permissions"
-import { UserPermissionServiceError } from "@/src/user-permissions/service/error"
+import { ServiceError } from "@/src/general/service-error"
 import { verrou } from "@/utils/services/locks"
 
 export type UpdateUserPermissionInput = {
@@ -26,7 +26,7 @@ export const updateUserPermission = (
                 }),
             catch: (error) => {
                 console.error(error)
-                return new UserPermissionServiceError(
+                return new ServiceError(
                     ErrorMessage.INTERNAL_SERVER_ERROR,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )
@@ -35,7 +35,7 @@ export const updateUserPermission = (
 
         if (!existingUserPermission) {
             return yield* Effect.fail(
-                new UserPermissionServiceError(
+                new ServiceError(
                     ErrorMessage.USER_PERMISSION_NOT_FOUND,
                     ResponseErrorStatus.NOT_FOUND,
                 ),
@@ -61,7 +61,7 @@ export const updateUserPermission = (
                     }),
             catch: (error) => {
                 console.error(error)
-                return new UserPermissionServiceError(
+                return new ServiceError(
                     ErrorMessage.INTERNAL_SERVER_ERROR,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )
@@ -73,7 +73,7 @@ export const updateUserPermission = (
 
         if (!didAcquire || !updatedUserPermission) {
             return yield* Effect.fail(
-                new UserPermissionServiceError(
+                new ServiceError(
                     ErrorMessage.USER_PERMISSION_NOT_FOUND,
                     ResponseErrorStatus.NOT_FOUND,
                 ),

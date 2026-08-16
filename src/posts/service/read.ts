@@ -4,7 +4,7 @@ import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
 import { Scope } from "@/common/enum/scopes"
 import { db } from "@/db"
-import { PostServiceError } from "@/src/posts/service/error"
+import { ServiceError } from "@/src/general/service-error"
 
 export const readPost = (id: string, userId: string, scope: string | null) =>
     Effect.gen(function* () {
@@ -24,7 +24,7 @@ export const readPost = (id: string, userId: string, scope: string | null) =>
                 }),
             catch: (error) => {
                 console.error(error)
-                return new PostServiceError(
+                return new ServiceError(
                     ErrorMessage.FAILED_TO_READ_POST,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )
@@ -33,7 +33,7 @@ export const readPost = (id: string, userId: string, scope: string | null) =>
 
         if (!post) {
             return yield* Effect.fail(
-                new PostServiceError(
+                new ServiceError(
                     ErrorMessage.POST_NOT_FOUND,
                     ResponseErrorStatus.BAD_REQUEST,
                 ),

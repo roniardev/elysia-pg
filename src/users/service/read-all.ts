@@ -4,7 +4,7 @@ import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
 import { db } from "@/db"
 import { users } from "@/db/schema"
-import { UserServiceError } from "@/src/users/service/error"
+import { ServiceError } from "@/src/general/service-error"
 import { getPagination } from "@/utils/pagination"
 
 export type ReadAllUserInput = {
@@ -18,7 +18,7 @@ export const readAllUser = (input: ReadAllUserInput) =>
             try: () => db.$count(users),
             catch: (error) => {
                 console.error(error)
-                return new UserServiceError(
+                return new ServiceError(
                     ErrorMessage.INTERNAL_SERVER_ERROR,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )
@@ -36,7 +36,7 @@ export const readAllUser = (input: ReadAllUserInput) =>
                 }),
             catch: (error) => {
                 console.error(error)
-                return new UserServiceError(
+                return new ServiceError(
                     ErrorMessage.INTERNAL_SERVER_ERROR,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )
@@ -51,7 +51,7 @@ export const readAllUser = (input: ReadAllUserInput) =>
 
         if (input.page > totalPage) {
             return yield* Effect.fail(
-                new UserServiceError(
+                new ServiceError(
                     ErrorMessage.PAGE_NOT_FOUND,
                     ResponseErrorStatus.BAD_REQUEST,
                 ),

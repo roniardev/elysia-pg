@@ -5,7 +5,7 @@ import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
 import { db } from "@/db"
 import { userPermissions } from "@/db/schema/user-permissions"
-import { UserPermissionServiceError } from "@/src/user-permissions/service/error"
+import { ServiceError } from "@/src/general/service-error"
 import { getPagination } from "@/utils/pagination"
 
 export type ReadAllUserPermissionInput = {
@@ -47,7 +47,7 @@ export const readAllUserPermission = (input: ReadAllUserPermissionInput) =>
                 }),
             catch: (error) => {
                 console.error(error)
-                return new UserPermissionServiceError(
+                return new ServiceError(
                     ErrorMessage.INTERNAL_SERVER_ERROR,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )
@@ -58,7 +58,7 @@ export const readAllUserPermission = (input: ReadAllUserPermissionInput) =>
             try: () => db.$count(userPermissions, whereClause),
             catch: (error) => {
                 console.error(error)
-                return new UserPermissionServiceError(
+                return new ServiceError(
                     ErrorMessage.INTERNAL_SERVER_ERROR,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )

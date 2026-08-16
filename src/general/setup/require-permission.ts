@@ -10,7 +10,6 @@ import type {
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
-import { getScope } from "@/src/general/usecase/get-scope"
 import { getUser } from "@/src/general/usecase/get-user"
 import { verifyAuth } from "@/src/general/usecase/verify-auth"
 import { verifyPermission } from "@/src/general/usecase/verify-permission"
@@ -79,8 +78,11 @@ export const requirePermission =
                         }
                     }
 
-                    const { valid, permission: userPermissionId } =
-                        await verifyPermission(permission, existingUser.user.id)
+                    const {
+                        valid,
+                        permission: userPermissionId,
+                        scope: userScope,
+                    } = await verifyPermission(permission, existingUser.user.id)
 
                     if (!valid || !userPermissionId) {
                         set.status = ResponseErrorStatus.FORBIDDEN
@@ -93,7 +95,7 @@ export const requirePermission =
                     let scope: string | null = null
 
                     if (options?.scope) {
-                        scope = await getScope(userPermissionId)
+                        scope = userScope
                     }
 
                     store.auth = {

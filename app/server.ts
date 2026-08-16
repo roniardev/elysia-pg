@@ -34,7 +34,7 @@ export const app = new Elysia({
             spanProcessors: [
                 new BatchSpanProcessor(
                     new OTLPTraceExporter({
-                        url: "https://api.axiom.co/v1/traces",
+                        url: config.OTLP_TRACE_ENDPOINT,
                         headers: otlpHeaders,
                     }),
                 ),

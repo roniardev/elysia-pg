@@ -5,7 +5,7 @@ import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
 import { db } from "@/db"
 import { posts } from "@/db/schema"
-import { PostServiceError } from "@/src/posts/service/error"
+import { ServiceError } from "@/src/general/service-error"
 import { verrou } from "@/utils/services/locks"
 
 export const deletePost = (id: string, userId: string) =>
@@ -18,7 +18,7 @@ export const deletePost = (id: string, userId: string) =>
                 }),
             catch: (error) => {
                 console.error(error)
-                return new PostServiceError(
+                return new ServiceError(
                     ErrorMessage.INTERNAL_SERVER_ERROR,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )
@@ -27,7 +27,7 @@ export const deletePost = (id: string, userId: string) =>
 
         if (!existingPost) {
             return yield* Effect.fail(
-                new PostServiceError(
+                new ServiceError(
                     ErrorMessage.POST_NOT_FOUND,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 ),
@@ -45,7 +45,7 @@ export const deletePost = (id: string, userId: string) =>
                     }),
             catch: (error) => {
                 console.error(error)
-                return new PostServiceError(
+                return new ServiceError(
                     ErrorMessage.INTERNAL_SERVER_ERROR,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )

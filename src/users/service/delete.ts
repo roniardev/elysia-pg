@@ -5,8 +5,8 @@ import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
 import { db } from "@/db"
 import { users } from "@/db/schema"
+import { ServiceError } from "@/src/general/service-error"
 import { getUser } from "@/src/general/usecase/get-user"
-import { UserServiceError } from "@/src/users/service/error"
 import { verrou } from "@/utils/services/locks"
 
 export const deleteUser = (id: string) =>
@@ -19,7 +19,7 @@ export const deleteUser = (id: string) =>
                 }),
             catch: (error) => {
                 console.error(error)
-                return new UserServiceError(
+                return new ServiceError(
                     ErrorMessage.INTERNAL_SERVER_ERROR,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )
@@ -28,7 +28,7 @@ export const deleteUser = (id: string) =>
 
         if (!existingUser.user) {
             return yield* Effect.fail(
-                new UserServiceError(
+                new ServiceError(
                     ErrorMessage.USER_NOT_FOUND,
                     ResponseErrorStatus.NOT_FOUND,
                 ),
@@ -37,7 +37,7 @@ export const deleteUser = (id: string) =>
 
         if (existingUser.user.deletedAt) {
             return yield* Effect.fail(
-                new UserServiceError(
+                new ServiceError(
                     ErrorMessage.USER_ALREADY_DELETED,
                     ResponseErrorStatus.BAD_REQUEST,
                 ),
@@ -61,7 +61,7 @@ export const deleteUser = (id: string) =>
                 }),
             catch: (error) => {
                 console.error(error)
-                return new UserServiceError(
+                return new ServiceError(
                     ErrorMessage.FAILED_TO_DELETE_USER,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )

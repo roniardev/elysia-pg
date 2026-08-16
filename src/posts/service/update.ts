@@ -6,7 +6,7 @@ import { ResponseErrorStatus } from "@/common/enum/response-status"
 import { Scope } from "@/common/enum/scopes"
 import { db } from "@/db"
 import { posts } from "@/db/schema"
-import { PostServiceError } from "@/src/posts/service/error"
+import { ServiceError } from "@/src/general/service-error"
 import { verrou } from "@/utils/services/locks"
 
 export type UpdatePostInput = {
@@ -41,7 +41,7 @@ export const updatePost = (
                 }),
             catch: (error) => {
                 console.error(error)
-                return new PostServiceError(
+                return new ServiceError(
                     ErrorMessage.FAILED_TO_UPDATE_POST,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )
@@ -50,7 +50,7 @@ export const updatePost = (
 
         if (!existingPost) {
             return yield* Effect.fail(
-                new PostServiceError(
+                new ServiceError(
                     ErrorMessage.POST_NOT_FOUND,
                     ResponseErrorStatus.BAD_REQUEST,
                 ),
@@ -87,7 +87,7 @@ export const updatePost = (
                     }),
             catch: (error) => {
                 console.error(error)
-                return new PostServiceError(
+                return new ServiceError(
                     ErrorMessage.FAILED_TO_UPDATE_POST,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )

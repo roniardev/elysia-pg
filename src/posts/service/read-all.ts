@@ -7,7 +7,7 @@ import { Scope } from "@/common/enum/scopes"
 import Sorting from "@/common/enum/sorting"
 import { db } from "@/db"
 import { posts } from "@/db/schema"
-import { PostServiceError } from "@/src/posts/service/error"
+import { ServiceError } from "@/src/general/service-error"
 import { getPagination } from "@/utils/pagination"
 
 export type ReadAllPostInput = {
@@ -58,7 +58,7 @@ export const readAllPost = (
                 }),
             catch: (error) => {
                 console.error(error)
-                return new PostServiceError(
+                return new ServiceError(
                     ErrorMessage.FAILED_TO_READ_POST,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )
@@ -69,7 +69,7 @@ export const readAllPost = (
             try: () => db.$count(posts, buildPostWhere(input.search)),
             catch: (error) => {
                 console.error(error)
-                return new PostServiceError(
+                return new ServiceError(
                     ErrorMessage.FAILED_TO_READ_POST,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )
@@ -84,7 +84,7 @@ export const readAllPost = (
 
         if (input.page > totalPage) {
             return yield* Effect.fail(
-                new PostServiceError(
+                new ServiceError(
                     ErrorMessage.PAGE_NOT_FOUND,
                     ResponseErrorStatus.BAD_REQUEST,
                 ),

@@ -4,8 +4,6 @@ import { readPost } from "@/src/posts/service/read"
 import { readAllPost } from "@/src/posts/service/read-all"
 import { updatePost } from "@/src/posts/service/update"
 
-export { PostServiceError } from "@/src/posts/service/error"
-
 export const PostService = {
     create: createPost,
     read: readPost,

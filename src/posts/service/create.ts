@@ -5,7 +5,7 @@ import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
 import { db } from "@/db"
 import { posts } from "@/db/schema"
-import { PostServiceError } from "@/src/posts/service/error"
+import { ServiceError } from "@/src/general/service-error"
 
 export type CreatePostInput = {
     title: string
@@ -38,7 +38,7 @@ export const createPost = (input: CreatePostInput, userId: string) =>
         },
         catch: (error) => {
             console.error(error)
-            return new PostServiceError(
+            return new ServiceError(
                 ErrorMessage.INTERNAL_SERVER_ERROR,
                 ResponseErrorStatus.INTERNAL_SERVER_ERROR,
             )

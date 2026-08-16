@@ -6,7 +6,7 @@ import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
 import { db } from "@/db"
 import { userPermissions } from "@/db/schema/user-permissions"
-import { UserPermissionServiceError } from "@/src/user-permissions/service/error"
+import { ServiceError } from "@/src/general/service-error"
 
 export type CreateUserPermissionInput = {
     userId: string
@@ -28,7 +28,7 @@ export const createUserPermission = (input: CreateUserPermissionInput) =>
                 }),
             catch: (error) => {
                 console.error(error)
-                return new UserPermissionServiceError(
+                return new ServiceError(
                     ErrorMessage.INTERNAL_SERVER_ERROR,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )
@@ -37,7 +37,7 @@ export const createUserPermission = (input: CreateUserPermissionInput) =>
 
         if (existingPermission) {
             return yield* Effect.fail(
-                new UserPermissionServiceError(
+                new ServiceError(
                     ErrorMessage.PERMISSION_ALREADY_ASSIGNED,
                     ResponseErrorStatus.BAD_REQUEST,
                 ),
@@ -56,7 +56,7 @@ export const createUserPermission = (input: CreateUserPermissionInput) =>
                 }),
             catch: (error) => {
                 console.error(error)
-                return new UserPermissionServiceError(
+                return new ServiceError(
                     ErrorMessage.INTERNAL_SERVER_ERROR,
                     ResponseErrorStatus.INTERNAL_SERVER_ERROR,
                 )
