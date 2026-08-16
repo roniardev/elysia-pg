@@ -1,8 +1,8 @@
 import { config } from "@/app/config"
 
 export const verifyEmailTemplate = (token: string): string => {
-	const url = `${config.FRONTEND_URL}/verify-email?token=${token}`
-	return `
+    const url = `${config.FRONTEND_URL}/verify-email?token=${token}`
+    return `
     <!DOCTYPE html>
 <html lang="en" xmlns:v="urn:schemas-microsoft-com:vml">
 <head>

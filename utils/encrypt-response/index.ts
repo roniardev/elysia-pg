@@ -1,11 +1,11 @@
-import Crypto from "@/utils/crypto"
-import type { GeneralResponse } from "@/common/model/general-response"
 import { config } from "@/app/config"
+import type { GeneralResponse } from "@/common/model/general-response"
+import Crypto from "@/utils/crypto"
 
 export const encryptResponse = (response: GeneralResponse) => {
     if (!config.IS_ENCRYPT_RESPONSE) return response
     if (!response.data) return
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    // biome-ignore lint/suspicious/noExplicitAny: reflect-json data has unknown shape until encrypted
     const responseData: any = {
         data: response.data,
     }

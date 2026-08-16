@@ -26,10 +26,19 @@ const format = winston.format.combine(
 const devConsoleFormat = winston.format.combine(
     winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss:ms" }),
     winston.format.colorize({ all: true }),
-    winston.format.printf(
-        (info) =>
-            `${info.timestamp} ${info.level}: ${info.message} ${info.stack ? `\n${info.stack}` : ""} ${Object.keys(info.metadata || "").length > 0 ? `\n${JSON.stringify(info.metadata)}` : ""} ${info.path ? `\n${info.path}` : ""}`,
-    ),
+    winston.format.printf((info) => {
+        let line = `${info.timestamp} ${info.level}: ${info.message}`
+        if (info.stack) {
+            line += `\n${info.stack}`
+        }
+        if (Object.keys(info.metadata || "").length > 0) {
+            line += `\n${JSON.stringify(info.metadata)}`
+        }
+        if (info.path) {
+            line += `\n${info.path}`
+        }
+        return line
+    }),
 )
 
 winston.addColors(colors)

@@ -5,26 +5,29 @@
  * `else` after a returning `if`). This script is the hard ban: early
  * returns / guard clauses only, no else branches.
  *
- * Usage: bun ./scripts/check-no-else.ts [paths...]   (default: src)
+ * Usage: bun ./scripts/check-no-else.ts [paths...]   (default: repo dirs)
  * Exit 0 when clean, 1 with a report when `else` tokens are found.
+ *
+ * Known limitation: regex literals are NOT masked. A pattern such as
+ * `/else/` in code is a false positive — the tokenizer only masks
+ * comments and string literals.
  */
 
-import { readFileSync, readdirSync, statSync } from "node:fs"
+import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join, resolve } from "node:path"
 
-const DEFAULT_ROOTS = ["src"]
+const DEFAULT_ROOTS = ["app", "common", "db", "src", "test"]
 
-function walk(dir: string, out: string[]): void {
-    for (const entry of readdirSync(dir)) {
-        const path = join(dir, entry)
-        const stat = statSync(path)
-        if (stat.isDirectory()) {
-            walk(path, out)
-            continue
+function walk(target: string, out: string[]): void {
+    const stat = statSync(target)
+    if (stat.isDirectory()) {
+        for (const entry of readdirSync(target)) {
+            walk(join(target, entry), out)
         }
-        if (path.endsWith(".ts")) {
-            out.push(path)
-        }
+        return
+    }
+    if (target.endsWith(".ts")) {
+        out.push(target)
     }
 }
 
@@ -39,6 +42,13 @@ function maskLiterals(code: string): string {
 
     const mask = (count: number): void => {
         out += " ".repeat(count)
+    }
+
+    const maskChar = (ch: string | undefined): string => {
+        if (ch === "\n") {
+            return "\n"
+        }
+        return " "
     }
 
     while (i < n) {
@@ -57,7 +67,7 @@ function maskLiterals(code: string): string {
             mask(2)
             i += 2
             while (i < n && !(code[i] === "*" && code[i + 1] === "/")) {
-                out += code[i] === "\n" ? "\n" : " "
+                out += maskChar(code[i])
                 i++
             }
             if (i < n) {
@@ -83,7 +93,7 @@ function maskLiterals(code: string): string {
                     i++
                     break
                 }
-                out += ch === "\n" ? "\n" : " "
+                out += maskChar(ch)
                 i++
             }
             continue
@@ -95,9 +105,13 @@ function maskLiterals(code: string): string {
     return out
 }
 
-const roots = process.argv.length > 2 ? process.argv.slice(2) : DEFAULT_ROOTS
+const roots = process.argv.slice(2).filter((arg) => !arg.startsWith("-"))
+let targets = roots
+if (roots.length === 0) {
+    targets = DEFAULT_ROOTS
+}
 const files: string[] = []
-for (const root of roots) {
+for (const root of targets) {
     walk(resolve(root), files)
 }
 
@@ -115,7 +129,9 @@ for (const file of files) {
 }
 
 if (violations.length > 0) {
-    console.error("check-no-else: found `else` statements (use early returns / guard clauses):")
+    console.error(
+        "check-no-else: found `else` statements (use early returns / guard clauses):",
+    )
     for (const v of violations) {
         console.error(`  ${v.file}:${v.line}: ${v.code}`)
     }

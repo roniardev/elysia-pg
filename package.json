@@ -4,7 +4,7 @@
     "scripts": {
         "dev": "bun --watch app/index.ts",
         "start": "NODE_ENV=production bun run ./app/index.ts",
-        "lint": "bun x @biomejs/biome check src && bun ./scripts/check-no-else.ts",
+        "lint": "bun x @biomejs/biome check . && bun ./scripts/check-no-else.ts",
         "lint:fix": "bun lint --write",
         "db:generate": "bun x drizzle-kit generate",
         "db:push": "bun x drizzle-kit push",

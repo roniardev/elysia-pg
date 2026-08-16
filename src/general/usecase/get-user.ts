@@ -39,10 +39,6 @@ export const getUser = async ({
                 conditions.push(eq(table.emailVerified, true))
             }
 
-            if (conditions.length === 1) {
-                return conditions[0]
-            }
-
             return and(...conditions)
         },
         with: {

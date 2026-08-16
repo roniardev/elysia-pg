@@ -1,14 +1,14 @@
-import * as schema from "@/db/schema";
-import { pgGenerate } from "drizzle-dbml-generator"; // Using Postgres for this example
+import { pgGenerate } from "drizzle-dbml-generator" // Using Postgres for this example
+import * as schema from "@/db/schema"
 
-const out = "./schema.dbml";
-const relational = true;
+const out = "./schema.dbml"
+const relational = true
 
 try {
-	console.log("Generating DBML...");
-	pgGenerate({ schema, out, relational });
-	console.log("DBML generated successfully");
+    console.log("Generating DBML...")
+    pgGenerate({ schema, out, relational })
+    console.log("DBML generated successfully")
 } catch (error) {
-	console.log("Error generating DBML");
-	console.error(error);
+    console.log("Error generating DBML")
+    console.error(error)
 }

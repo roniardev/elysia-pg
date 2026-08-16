@@ -77,26 +77,26 @@ export const readAllPost = new Elysia()
                 })
             }
 
+            // WHERE BUILDER: shared by list and total-count queries
+            // (user was verified non-null above; capture id before the closure)
+            const userId = existingUser.user.id
+            const buildPostWhere = (
+                scope: string | null,
+                search: string | undefined,
+            ): SQL | undefined => {
+                const conditions = []
+                if (scope === Scope.PERSONAL) {
+                    conditions.push(eq(posts.userId, userId))
+                }
+                if (search) {
+                    conditions.push(like(posts.title, `%${search}%`))
+                }
+                return and(...conditions)
+            }
+
             // GET ALL POSTS
             const postsRes = await db.query.posts.findMany({
-                where: (table, { eq, like, and }) => {
-                    const whereConditions = []
-                    if (scope === Scope.PERSONAL) {
-                        whereConditions.push(
-                            eq(
-                                table.userId,
-                                existingUser.user?.id || validToken.id,
-                            ),
-                        )
-                    }
-                    if (search) {
-                        whereConditions.push(like(table.title, `%${search}%`))
-                    }
-                    if (whereConditions.length === 1) {
-                        return whereConditions[0]
-                    }
-                    return and(...whereConditions)
-                },
+                where: buildPostWhere(scope, search),
                 limit: Number(limit),
                 offset: (Number(page) - 1) * Number(limit),
                 orderBy: (table, { desc: descFn, asc: ascFn }) => {
@@ -115,23 +115,10 @@ export const readAllPost = new Elysia()
             })
 
             // Get total count based on scope and search
-            const whereConditions = []
-            if (scope === Scope.PERSONAL) {
-                whereConditions.push(eq(posts.userId, existingUser.user.id))
-            }
-            if (search) {
-                whereConditions.push(like(posts.title, `%${search}%`))
-            }
-
-            let totalWhere: SQL | undefined
-            if (whereConditions.length > 0) {
-                totalWhere = and(...whereConditions)
-            }
-
             const totalAllData = await db
                 .select({ count: sql<number>`count(*)` })
                 .from(posts)
-                .where(totalWhere)
+                .where(buildPostWhere(scope, search))
 
             const total = Number(totalAllData[0]?.count || 0)
             const totalPage = Math.ceil(total / Number(limit))

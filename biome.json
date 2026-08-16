@@ -7,7 +7,12 @@
     },
     "files": {
         "ignoreUnknown": false,
-        "includes": ["**"]
+        "includes": [
+            "**",
+            "!schema.svg",
+            "!schema.dbml",
+            "!**/db/migrations/meta/*_snapshot.json"
+        ]
     },
     "formatter": {
         "enabled": true,
