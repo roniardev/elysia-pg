@@ -1,4 +1,3 @@
-import bearer from "@elysiajs/bearer"
 import { Elysia } from "elysia"
 
 import { ManageUserPermission } from "@/common/enum/permissions"
@@ -8,65 +7,17 @@ import {
     ResponseSuccessStatus,
 } from "@/common/enum/response-status"
 import { db } from "@/db"
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
-import { getUser } from "@/src/general/usecase/get-user"
-import { verifyPermission } from "@/src/general/usecase/verify-permission"
+import { requirePermission } from "@/src/general/setup/require-permission"
 import { readUserPermissionModel } from "@/src/user-permissions/data/user-permissions.model"
 import { handleResponse } from "@/utils/handle-response"
 
 export const readUserPermission = new Elysia()
     .use(readUserPermissionModel)
-    .use(jwtAccessSetup)
-    .use(bearer())
+    .use(requirePermission(ManageUserPermission.READ_USER_PERMISSION))
     .get(
         "/user-permission/:id",
-        async ({ params, bearer, set, jwtAccess }) => {
+        async ({ params, set }) => {
             const path = "user-permissions.read.usecase"
-            const validToken = await jwtAccess.verify(bearer)
-            if (!validToken) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
-
-            // CHECK EXISTING USER
-            const existingUser = await getUser({
-                identifier: validToken.id,
-                type: "id",
-                condition: {
-                    deleted: false,
-                },
-            })
-
-            if (!existingUser) {
-                return handleResponse({
-                    message: ErrorMessage.INVALID_USER,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.BAD_REQUEST
-                    },
-                    path,
-                })
-            }
-
-            // Verify if user has permission to read user permissions
-            const { valid } = await verifyPermission(
-                ManageUserPermission.READ_USER_PERMISSION,
-                existingUser.user?.id || validToken.id,
-            )
-
-            if (!valid) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
 
             // READ USER PERMISSION
             const userPermission = await db.query.userPermissions.findFirst({

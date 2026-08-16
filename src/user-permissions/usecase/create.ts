@@ -1,4 +1,3 @@
-import bearer from "@elysiajs/bearer"
 import { Elysia } from "elysia"
 import { ulid } from "ulid"
 
@@ -10,66 +9,17 @@ import {
 } from "@/common/enum/response-status"
 import { db } from "@/db"
 import { userPermissions } from "@/db/schema/user-permissions"
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
-import { getUser } from "@/src/general/usecase/get-user"
-import { verifyPermission } from "@/src/general/usecase/verify-permission"
+import { requirePermission } from "@/src/general/setup/require-permission"
 import { createUserPermissionModel } from "@/src/user-permissions/data/user-permissions.model"
 import { handleResponse } from "@/utils/handle-response"
 
 export const createUserPermission = new Elysia()
     .use(createUserPermissionModel)
-    .use(jwtAccessSetup)
-    .use(bearer())
+    .use(requirePermission(ManageUserPermission.CREATE_USER_PERMISSION))
     .post(
         "/user-permission",
-        async ({ body, bearer, set, jwtAccess }) => {
+        async ({ body, set }) => {
             const path = "user-permissions.create.usecase"
-            const validToken = await jwtAccess.verify(bearer)
-
-            if (!validToken) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
-
-            // CHECK EXISTING USER
-            const existingUser = await getUser({
-                identifier: validToken.id,
-                type: "id",
-                condition: {
-                    deleted: false,
-                },
-            })
-
-            if (!existingUser.user) {
-                return handleResponse({
-                    message: ErrorMessage.INVALID_USER,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.BAD_REQUEST
-                    },
-                    path,
-                })
-            }
-
-            // Verify if user has permission to create user permissions
-            const { valid } = await verifyPermission(
-                ManageUserPermission.CREATE_USER_PERMISSION,
-                existingUser.user?.id || validToken.id,
-            )
-
-            if (!valid) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
 
             // Check if permission already exists and not revoked
             const existingPermission = await db.query.userPermissions.findFirst(

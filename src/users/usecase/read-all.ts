@@ -1,4 +1,3 @@
-import bearer from "@elysiajs/bearer"
 import { Elysia } from "elysia"
 
 import { UserPermission } from "@/common/enum/permissions"
@@ -8,73 +7,43 @@ import {
     ResponseSuccessStatus,
 } from "@/common/enum/response-status"
 import { db } from "@/db"
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
-import { verifyPermission } from "@/src/general/usecase/verify-permission"
+import { users } from "@/db/schema"
+import { requirePermission } from "@/src/general/setup/require-permission"
 import { readAllUserModel } from "@/src/users/data/users.model"
 import { handleResponse } from "@/utils/handle-response"
+import { getPagination } from "@/utils/pagination"
 
 export const readAllUser = new Elysia()
     .use(readAllUserModel)
-    .use(jwtAccessSetup)
-    .use(bearer())
+    .use(requirePermission(UserPermission.READ_ALL_USER))
     .get(
         "/user",
-        async ({ bearer, set, jwtAccess, query }) => {
+        async ({ set, query }) => {
             const path = "users.read-all.usecase"
-            // CHECK VALID TOKEN
-            const validToken = await jwtAccess.verify(bearer)
+            const { page, limit } = query
 
-            if (!validToken) {
-                return handleResponse({
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    message: ErrorMessage.UNAUTHORIZED,
-                    path,
-                })
-            }
+            const total = await db.$count(users)
 
-            const { limit, page } = query
-
-            const { valid } = await verifyPermission(
-                UserPermission.READ_ALL_USER,
-                validToken.id,
-            )
-
-            if (!valid) {
-                return handleResponse({
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    path,
-                })
-            }
-
-            const users = await db.query.users.findMany({
+            const usersList = await db.query.users.findMany({
+                limit: Number(limit),
+                offset: (Number(page) - 1) * Number(limit),
                 with: {
                     permissions: true,
                 },
             })
 
-            if (!users) {
-                return handleResponse({
-                    callback: () => {
-                        set.status = ResponseErrorStatus.NOT_FOUND
-                    },
-                    message: ErrorMessage.USER_NOT_FOUND,
-                    path,
-                })
-            }
-
-            const totalPage = Math.ceil(users.length / Number(limit))
+            const { totalPage, attributes } = getPagination(
+                Number(page),
+                Number(limit),
+                total,
+            )
 
             if (page > totalPage) {
                 return handleResponse({
+                    message: ErrorMessage.PAGE_NOT_FOUND,
                     callback: () => {
                         set.status = ResponseErrorStatus.BAD_REQUEST
                     },
-                    message: ErrorMessage.PAGE_NOT_FOUND,
                     path,
                 })
             }
@@ -84,7 +53,8 @@ export const readAllUser = new Elysia()
                 callback: () => {
                     set.status = ResponseSuccessStatus.OK
                 },
-                data: users,
+                data: usersList,
+                attributes,
                 path,
             })
         },

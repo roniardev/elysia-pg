@@ -1,4 +1,3 @@
-import bearer from "@elysiajs/bearer"
 import { eq } from "drizzle-orm"
 import { Elysia } from "elysia"
 
@@ -10,47 +9,19 @@ import {
 } from "@/common/enum/response-status"
 import { db } from "@/db"
 import { users } from "@/db/schema"
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
+import { requirePermission } from "@/src/general/setup/require-permission"
 import { getUser } from "@/src/general/usecase/get-user"
-import { verifyPermission } from "@/src/general/usecase/verify-permission"
 import { deleteUserModel } from "@/src/users/data/users.model"
 import { handleResponse } from "@/utils/handle-response"
 import { verrou } from "@/utils/services/locks"
+
 export const deleteUser = new Elysia()
     .use(deleteUserModel)
-    .use(jwtAccessSetup)
-    .use(bearer())
+    .use(requirePermission(UserPermission.DELETE_USER))
     .delete(
         "/user/:id",
-        async ({ bearer, set, jwtAccess, params }) => {
+        async ({ set, params }) => {
             const path = "users.delete.usecase"
-            // CHECK VALID TOKEN
-            const validToken = await jwtAccess.verify(bearer)
-
-            if (!validToken) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
-
-            const { valid } = await verifyPermission(
-                UserPermission.DELETE_USER,
-                validToken.id,
-            )
-
-            if (!valid) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
 
             const existingUser = await getUser({
                 identifier: params.id,

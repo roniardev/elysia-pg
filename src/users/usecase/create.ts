@@ -10,7 +10,6 @@ import {
 } from "@/common/enum/response-status"
 import { db } from "@/db"
 import { emailVerificationTokens, userPermissions, users } from "@/db/schema"
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
 import { requirePermission } from "@/src/general/setup/require-permission"
 import { getUser } from "@/src/general/usecase/get-user"
 import { createUserModel } from "@/src/users/data/users.model"
@@ -20,7 +19,6 @@ import { sendEmail } from "@/utils/send-email"
 export const createUser = new Elysia()
     .use(createUserModel)
     .use(requirePermission(UserPermission.CREATE_USER))
-    .use(jwtAccessSetup)
     .post(
         "/user",
         async ({ body, set, jwtAccess }) => {

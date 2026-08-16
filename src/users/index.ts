@@ -1,38 +1,12 @@
-import bearer from "@elysiajs/bearer"
 import { Elysia } from "elysia"
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
 
-import { verifyAuth } from "@/src/general/usecase/verify-auth"
 import { createUser } from "@/src/users/usecase/create"
 import { deleteUser } from "@/src/users/usecase/delete"
 import { readUser } from "@/src/users/usecase/read"
 import { readAllUser } from "@/src/users/usecase/read-all"
 
 export const users = new Elysia()
-    .use(jwtAccessSetup)
-    .use(bearer())
-    .guard(
-        {
-            beforeHandle: async ({ bearer, jwtAccess, set }) => {
-                const token = await jwtAccess.verify(bearer)
-                let valid = false
-                let message = "Unauthorized"
-
-                if (token && bearer) {
-                    const { valid: isAuthorized, message: authMessage } =
-                        await verifyAuth(bearer, token)
-                    valid = isAuthorized
-                    message = authMessage
-                }
-
-                if (!valid) {
-                    set.status = 401
-                    return {
-                        message,
-                    }
-                }
-            },
-        },
-        (app) =>
-            app.use(createUser).use(readUser).use(deleteUser).use(readAllUser),
-    )
+    .use(createUser)
+    .use(readUser)
+    .use(deleteUser)
+    .use(readAllUser)

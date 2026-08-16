@@ -1,5 +1,4 @@
-import bearer from "@elysiajs/bearer"
-import { and, desc, eq, type SQL, sql } from "drizzle-orm"
+import { and, desc, eq, type SQL } from "drizzle-orm"
 import { Elysia } from "elysia"
 
 import { ManageUserPermission } from "@/common/enum/permissions"
@@ -10,86 +9,33 @@ import {
 } from "@/common/enum/response-status"
 import { db } from "@/db"
 import { userPermissions } from "@/db/schema/user-permissions"
-import { jwtAccessSetup } from "@/src/auth/setup/auth"
-import { getUser } from "@/src/general/usecase/get-user"
-import { verifyPermission } from "@/src/general/usecase/verify-permission"
+import { requirePermission } from "@/src/general/setup/require-permission"
 import { readAllUserPermissionModel } from "@/src/user-permissions/data/user-permissions.model"
 import { handleResponse } from "@/utils/handle-response"
+import { getPagination } from "@/utils/pagination"
 
 export const readAllUserPermission = new Elysia()
     .use(readAllUserPermissionModel)
-    .use(jwtAccessSetup)
-    .use(bearer())
+    .use(requirePermission(ManageUserPermission.READ_USER_PERMISSION))
     .get(
         "/user-permission",
-        async ({ query, bearer, set, jwtAccess }) => {
+        async ({ query, set }) => {
             const path = "user-permissions.read-all.usecase"
-            const validToken = await jwtAccess.verify(bearer)
-            if (!validToken) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
-
-            // CHECK EXISTING USER
-            const existingUser = await getUser({
-                identifier: validToken.id,
-                type: "id",
-                condition: {
-                    deleted: false,
-                },
-            })
-
-            if (!existingUser.user) {
-                return handleResponse({
-                    message: ErrorMessage.INVALID_USER,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.BAD_REQUEST
-                    },
-                    path,
-                })
-            }
-
-            // Verify if user has permission to read user permissions
-            const { valid } = await verifyPermission(
-                ManageUserPermission.READ_USER_PERMISSION,
-                existingUser.user?.id || validToken.id,
-            )
-
-            if (!valid) {
-                return handleResponse({
-                    message: ErrorMessage.UNAUTHORIZED_PERMISSION,
-                    callback: () => {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                    },
-                    path,
-                })
-            }
-
-            // READ ALL USER PERMISSIONS
             const { page = 1, limit = 10, includeRevoked = false } = query
-            const offset = (page - 1) * limit
 
-            let whereClause: SQL<unknown> = eq(
-                userPermissions.userId,
-                query.userId,
-            )
-
-            if (!includeRevoked) {
-                whereClause = and(
-                    whereClause,
-                    eq(userPermissions.revoked, false),
-                ) as SQL<unknown>
+            // WHERE BUILDER: shared by list and total-count queries
+            const buildWhereClause = (
+                userId: string,
+                includeRevoked: boolean,
+            ): SQL<unknown> => {
+                const conditions = [eq(userPermissions.userId, userId)]
+                if (!includeRevoked) {
+                    conditions.push(eq(userPermissions.revoked, false))
+                }
+                return and(...conditions) as SQL<unknown>
             }
 
-            const [userPermissionsCount] = await db
-                .select({ count: sql<number>`count(*)` })
-                .from(userPermissions)
-                .where(whereClause)
+            const whereClause = buildWhereClause(query.userId, includeRevoked)
 
             const userPermissionsList = await db.query.userPermissions.findMany(
                 {
@@ -97,14 +43,18 @@ export const readAllUserPermission = new Elysia()
                     with: {
                         permission: true,
                     },
-                    limit,
-                    offset,
+                    limit: Number(limit),
+                    offset: (Number(page) - 1) * Number(limit),
                     orderBy: [desc(userPermissions.createdAt)],
                 },
             )
 
-            const totalPages = Math.ceil(
-                (userPermissionsCount?.count || 0) / limit,
+            const total = await db.$count(userPermissions, whereClause)
+
+            const { attributes } = getPagination(
+                Number(page),
+                Number(limit),
+                total,
             )
 
             const response = {
@@ -121,12 +71,6 @@ export const readAllUserPermission = new Elysia()
                         description: userPermission.permission.description,
                     },
                 })),
-                pagination: {
-                    page,
-                    limit,
-                    totalItems: userPermissionsCount?.count || 0,
-                    totalPages,
-                },
             }
 
             return handleResponse({
@@ -135,7 +79,7 @@ export const readAllUserPermission = new Elysia()
                     set.status = ResponseSuccessStatus.OK
                 },
                 data: response.data,
-                attributes: response.pagination,
+                attributes,
                 path,
             })
         },
