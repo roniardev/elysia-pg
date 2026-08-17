@@ -3,9 +3,9 @@ import { Effect } from "effect"
 
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
-import { Scope } from "@/common/enum/scopes"
 import { db } from "@/db"
 import { posts } from "@/db/schema"
+import { scopeWhere } from "@/src/general/scope-where"
 import { ServiceError } from "@/src/general/service-error"
 import { verrou } from "@/utils/services/locks"
 
@@ -28,16 +28,7 @@ export const updatePost = (
         const existingPost = yield* Effect.tryPromise({
             try: () =>
                 db.query.posts.findFirst({
-                    where: (table, { eq, and }) => {
-                        if (scope === Scope.PERSONAL) {
-                            return and(
-                                eq(table.id, id),
-                                eq(table.userId, userId),
-                            )
-                        }
-
-                        return eq(table.id, id)
-                    },
+                    where: scopeWhere(posts, id, userId, scope),
                 }),
             catch: (error) => {
                 console.error(error)
