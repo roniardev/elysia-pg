@@ -2,25 +2,25 @@ import { Elysia } from "elysia"
 
 import { SuccessMessage } from "@/common/enum/response-message"
 import { ResponseSuccessStatus } from "@/common/enum/response-status"
-import { forgotPasswordModel } from "@/src/auth/data/auth.model"
+import { resetPasswordModel } from "@/src/auth/data/auth.model"
 import { AuthService } from "@/src/auth/service"
 import { runService } from "@/src/general/run-service"
 
-export const forgotPassword = new Elysia().use(forgotPasswordModel).post(
-    "/forgot-password",
+export const resetPassword = new Elysia().use(resetPasswordModel).post(
+    "/reset-password",
     async ({ body, set }) => {
-        const path = "auth.forgot-password.usecase"
+        const path = "auth.reset-password.usecase"
 
-        return runService(AuthService.forgotPassword(body), {
+        return runService(AuthService.resetPassword(body), {
             set,
             path,
             success: {
-                message: SuccessMessage.EMAIL_SENT,
+                message: SuccessMessage.PASSWORD_RESET_SUCCESS,
                 status: ResponseSuccessStatus.OK,
             },
         })
     },
     {
-        body: "forgotPasswordModel",
+        body: "resetPasswordModel",
     },
 )

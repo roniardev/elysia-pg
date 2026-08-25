@@ -6,17 +6,18 @@ import { ResponseSuccessStatus } from "@/common/enum/response-status"
 import { AuthService } from "@/src/auth/service"
 import { runService } from "@/src/general/run-service"
 
-export const logout = new Elysia()
+export const regenerateAccessToken = new Elysia()
     .use(bearer())
-    .post("/logout", async ({ bearer, set }) => {
-        const path = "auth.logout.usecase"
+    .get("/regenerate-access-token", async ({ bearer, set }) => {
+        const path = "auth.regenerate-access-token.usecase"
 
-        return runService(AuthService.logout(bearer), {
+        return runService(AuthService.regenerateAccessToken(bearer), {
             set,
             path,
             success: {
-                message: SuccessMessage.LOGOUT_SUCCESS,
-                status: ResponseSuccessStatus.ACCEPTED,
+                message: SuccessMessage.ACCESS_TOKEN_REGENERATED,
+                status: ResponseSuccessStatus.OK,
+                data: (result) => result,
             },
         })
     })
