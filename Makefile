@@ -308,14 +308,18 @@ changelog: ## Generate changelog from git commits
 	@echo "### Fixed" >> docs/CHANGELOG.md
 	@echo "### Security" >> docs/CHANGELOG.md
 	@echo "" >> docs/CHANGELOG.md
-	@if [ "$$(git tag --sort=-version:refname | wc -l)" -gt 0 ]; then \
-		git tag --sort=-version:refname | head -20 | while read tag; do \
-			if [ "$$tag" != "" ]; then \
-				echo "## [$$tag]" >> docs/CHANGELOG.md; \
-				echo "" >> docs/CHANGELOG.md; \
-				git log --pretty=format:"- %s" $$tag^..$$tag >> docs/CHANGELOG.md; \
-				echo "" >> docs/CHANGELOG.md; \
+	@if [ "$$(git tag --sort=version:refname | wc -l)" -gt 0 ]; then \
+		prev=""; \
+		for tag in $$(git tag --sort=version:refname | head -20); do \
+			echo "## [$$tag]" >> docs/CHANGELOG.md; \
+			echo "" >> docs/CHANGELOG.md; \
+			if [ -n "$$prev" ]; then \
+				git log --pretty=format:"- %s" $$prev..$$tag >> docs/CHANGELOG.md; \
+			else \
+				git log --pretty=format:"- %s" $$tag >> docs/CHANGELOG.md; \
 			fi; \
+			echo "" >> docs/CHANGELOG.md; \
+			prev="$$tag"; \
 		done; \
 	else \
 		echo "$(YELLOW)No git tags found. Initial changelog created with unreleased changes.$(NC)"; \
@@ -344,14 +348,18 @@ changelog-preview: ## Preview changelog without writing to file
 	@echo "### Fixed"
 	@echo "### Security"
 	@echo ""
-	@if [ "$$(git tag --sort=-version:refname | wc -l)" -gt 0 ]; then \
-		git tag --sort=-version:refname | head -10 | while read tag; do \
-			if [ "$$tag" != "" ]; then \
-				echo "## [$$tag]"; \
-				echo ""; \
-				git log --pretty=format:"- %s" $$tag^..$$tag; \
-				echo ""; \
+	@if [ "$$(git tag --sort=version:refname | wc -l)" -gt 0 ]; then \
+		prev=""; \
+		for tag in $$(git tag --sort=version:refname | head -10); do \
+			echo "## [$$tag]"; \
+			echo ""; \
+			if [ -n "$$prev" ]; then \
+				git log --pretty=format:"- %s" $$prev..$$tag; \
+			else \
+				git log --pretty=format:"- %s" $$tag; \
 			fi; \
+			echo ""; \
+			prev="$$tag"; \
 		done; \
 	else \
 		echo "$(YELLOW)No git tags found. This preview shows initial changelog structure.$(NC)"; \
@@ -362,6 +370,7 @@ changelog-preview: ## Preview changelog without writing to file
 release-notes: ## Generate release notes for the latest version
 	@echo "$(GREEN)Generating release notes for latest version...$(NC)"
 	@$(eval LATEST_TAG := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "No tags found"))
+	@$(eval PREV_TAG := $(shell git describe --tags --abbrev=0 $(LATEST_TAG)^ 2>/dev/null || echo ""))
 	@if [ "$(LATEST_TAG)" != "No tags found" ]; then \
 		echo "# Release Notes - $(LATEST_TAG)" > docs/RELEASE_NOTES_$(LATEST_TAG).md; \
 		echo "" >> docs/RELEASE_NOTES_$(LATEST_TAG).md; \
@@ -369,7 +378,11 @@ release-notes: ## Generate release notes for the latest version
 		echo "" >> docs/RELEASE_NOTES_$(LATEST_TAG).md; \
 		echo "## Changes" >> docs/RELEASE_NOTES_$(LATEST_TAG).md; \
 		echo "" >> docs/RELEASE_NOTES_$(LATEST_TAG).md; \
-		git log --pretty=format:"- %s" $(LATEST_TAG)^..$(LATEST_TAG) >> docs/RELEASE_NOTES_$(LATEST_TAG).md; \
+		if [ -n "$(PREV_TAG)" ]; then \
+		git log --pretty=format:"- %s" $(PREV_TAG)..$(LATEST_TAG) >> docs/RELEASE_NOTES_$(LATEST_TAG).md; \
+	else \
+		git log --pretty=format:"- %s" $(LATEST_TAG) >> docs/RELEASE_NOTES_$(LATEST_TAG).md; \
+	fi; \
 		echo "$(GREEN)Release notes generated at docs/RELEASE_NOTES_$(LATEST_TAG).md$(NC)"; \
 	else \
 		echo "$(RED)No tags found. Create a release first with make release-patch/minor/major$(NC)"; \
