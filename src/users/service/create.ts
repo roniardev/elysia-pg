@@ -68,7 +68,7 @@ export const createUser = (input: CreateUserInput) =>
                     .setProtectedHeader({ alg: "HS256" })
                     .setIssuedAt()
                     .setExpirationTime("25m")
-                    .sign(new TextEncoder().encode(config.JWT_ACCESS_SECRET)),
+                    .sign(new TextEncoder().encode(config.JWT_EMAIL_SECRET)),
             catch: (error) => {
                 console.error(error)
                 return new ServiceError(
