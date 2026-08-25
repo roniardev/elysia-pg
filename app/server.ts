@@ -80,9 +80,7 @@ export const app = new Elysia({
             }
         }
     })
-    .onAfterHandle(({ response }) => {
-        return encryptResponse(response)
-    })
+    .onAfterHandle(({ response }) => encryptResponse(response))
     .use(auth)
     .use(posts)
     .use(users)

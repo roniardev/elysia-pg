@@ -7,10 +7,7 @@ export type PaginationAttributes = {
 
 export const getPagination = (page: number, limit: number, total: number) => {
     if (page === -1) {
-        let totalPage = 1
-        if (total === 0) {
-            totalPage = 0
-        }
+        const totalPage = Number(total > 0)
 
         return {
             offset: 0,

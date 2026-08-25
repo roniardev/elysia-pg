@@ -55,12 +55,10 @@ export const resetPassword = new Elysia()
 
             // CHECK EXISTING PASSWORD RESET TOKEN
             const existingToken = await db.query.passwordResetTokens.findFirst({
-                where: (table, { eq, and }) => {
-                    return and(
-                        eq(table.userId, emailToken.id),
-                        eq(table.revoked, false),
-                    )
-                },
+                where: (table, { eq, and }) => and(
+                    eq(table.userId, emailToken.id),
+                    eq(table.revoked, false),
+                ),
             })
 
             if (!existingToken) {

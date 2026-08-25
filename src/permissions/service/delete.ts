@@ -14,9 +14,7 @@ export const deletePermission = (id: string, userId: string) =>
         const existingPermission = yield* Effect.tryPromise({
             try: () =>
                 db.query.permissions.findFirst({
-                    where: (table, { eq, and, isNull }) => {
-                        return and(eq(table.id, id), isNull(table.deletedAt))
-                    },
+                    where: (table, { eq, and, isNull }) => and(eq(table.id, id), isNull(table.deletedAt)),
                 }),
             catch: (error) => {
                 console.error(error)

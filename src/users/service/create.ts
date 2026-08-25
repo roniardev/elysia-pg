@@ -132,6 +132,7 @@ export const createUser = (input: CreateUserInput) =>
 
         // SEND EMAIL — external side effect, runs only after the
         // transaction commits, never inside it
+        let emailSendFailed = false
         if (!emailVerified) {
             const emailResponse = yield* Effect.tryPromise({
                 try: () =>
@@ -148,15 +149,16 @@ export const createUser = (input: CreateUserInput) =>
                     )
                 },
             })
+            emailSendFailed = !emailResponse
+        }
 
-            if (!emailResponse) {
-                return yield* Effect.fail(
-                    new ServiceError(
-                        ErrorMessage.FAILED_TO_SEND_EMAIL,
-                        ResponseErrorStatus.INTERNAL_SERVER_ERROR,
-                    ),
-                )
-            }
+        if (emailSendFailed) {
+            return yield* Effect.fail(
+                new ServiceError(
+                    ErrorMessage.FAILED_TO_SEND_EMAIL,
+                    ResponseErrorStatus.INTERNAL_SERVER_ERROR,
+                ),
+            )
         }
 
         return { id: userId }

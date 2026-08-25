@@ -139,7 +139,7 @@ make full-setup     # Complete development setup with database
 - **Web Framework**: [ElysiaJS](https://elysiajs.com/) - Fast, type-safe web framework
 - **Database**: [PostgreSQL](https://www.postgresql.org/) with [Drizzle ORM](https://orm.drizzle.team/)
 - **Runtime**: [Bun](https://bun.sh/) 1.3.x - Fast JavaScript runtime and package manager
-- **Linter**: [Biome](https://biomejs.dev/) 2.5.8 - Fast formatter and linter
+- **Linter**: [ESLint](https://eslint.org/) 9 (flat config) with TypeScript, stylistic, and essential plugins
 - **Containerization**: [Docker](https://www.docker.com/) with [Docker Compose](https://docs.docker.com/compose/)
 - **Automation**: [Make](https://www.gnu.org/software/make/) - Build automation tool
 
@@ -154,17 +154,18 @@ make full-setup     # Complete development setup with database
 
 ## 🎨 Code Style
 
-This template enforces a strict, Raya-style convention:
+This template enforces a strict
 
 - **No ternary operators** — use lookup maps, guard clauses, or `??` fallbacks instead
 - **No `else` / `else if`** — use early returns and inverted guards (fail-fast first)
+- **4-space indent, double quotes, no semicolons** — consistent formatting
 
 Enforced by:
 
-- **Biome 2.x rules**: `noTernary`, `noNestedTernary`, `noUselessElse` (all `error`)
-- **[`scripts/check-no-else.ts`](./scripts/check-no-else.ts)** — custom scan for any `else` outside strings/comments; exits non-zero on violations
+- **ESLint 9** with `@typescript-eslint`, `@stylistic/eslint-plugin`, `eslint-plugin-essential`, and `eslint-plugin-low-complexity`
+- Rules: `no-ternary`, `no-nested-ternary`, `eslint-plugin-essential/no-else`, `eslint-plugin-essential/max-alternative-conditions` (maxElseIf: 0), plus naming conventions and stylistic formatting
 
-`make lint` runs both checks. `make lint-fix` auto-fixes everything Biome can; the no-else scan is fixed by hand.
+`make lint` runs ESLint. `make lint-fix` auto-fixes what ESLint can.
 
 ## 📋 Prerequisites
 
@@ -176,28 +177,57 @@ Enforced by:
 
 ```
 elysia-pg/
-├── app/                    # Application entry points
-├── src/                    # Source code
-│   ├── auth/              # Authentication system
-│   ├── users/             # User management
-│   ├── permissions/       # Permission system
-│   ├── posts/             # Post management
-│   └── general/           # General utilities
-├── db/                    # Database configuration
-│   ├── migrations/        # Database migrations
-│   ├── schema/            # Database schemas
-│   └── seeds/             # Database seeders
-├── docs/                  # Generated documentation
-│   ├── CHANGELOG.md       # Project changelog
-│   └── RELEASE_NOTES_*.md # Release notes
-├── scripts/               # Utility scripts (no-else lint guard)
-├── vibe-log/              # Project documentation
-├── docker-compose.yml     # Production services
-├── docker-compose.dev.yml # Development services
-├── Dockerfile             # Application container
-├── .dockerignore          # Docker build context exclusions
-├── Makefile               # Build automation
-└── package.json           # Project configuration
+├── app/                        # Application entry points (server.ts, config.ts)
+├── common/                     # Shared domain primitives
+│   ├── enum/                   # Scope, sorting, response-message enums
+│   ├── model/                  # Base model types
+│   ├── regex-pattern/          # Validation regexes
+│   ├── routes/                 # Auth/permission/post route definitions
+│   └── email-templates/        # Email HTML templates
+├── src/                        # Feature modules (one per domain)
+│   ├── auth/                   # Authentication (login, register, forgot/reset password)
+│   ├── users/                  # Users CRUD (soft-delete, email verification)
+│   ├── permissions/            # Permissions CRUD
+│   ├── posts/                  # Posts CRUD (scope-aware, PERSONAL/ORGANIZATION)
+│   ├── user-permissions/       # User-permissions CRUD (revocable)
+│   └── general/                # Cross-cutting concerns
+│       ├── run-service.ts      # Effect runner + response formatter
+│       ├── scope-where.ts      # Scope-aware where-clause helper
+│       ├── service-error.ts    # Standardized service errors
+│       ├── setup/              # require-permission plugin
+│       └── usecase/            # verify-auth, verify-permission, store-session
+│
+│   Each feature module (users/permissions/posts/user-permissions) follows:
+│       data/     — Drizzle model + response schemas
+│       service/  — Effect-based business logic (create/read/read-all/update/delete)
+│       usecase/  — Route handlers wired to services via runService
+│       index.ts  — Elysia plugin registration
+├── db/                         # Database layer
+│   ├── migrations/             # Drizzle migration files
+│   ├── schema/                 # Schema definitions
+│   └── seeds/                  # Seed data
+├── utils/                      # Shared utilities
+│   ├── crypto/                 # Hashing helpers
+│   ├── encrypt-response/       # Response encryption
+│   ├── decrypt-response/       # Response decryption
+│   ├── expired-time/           # TTL helpers
+│   ├── handle-response/        # Response shaping
+│   ├── logger/                 # Pino-based logger
+│   ├── pagination/             # getPagination + attributes
+│   ├── send-email/             # SMTP mailer
+│   ├── services/               # Redis + distributed locks (verrou)
+│   └── ulid/                   # ID generation
+├── test/                       # Bun test suites (auth + features)
+├── logs/                       # Runtime application logs
+├── docs/                       # Generated docs (CHANGELOG.md, release notes)
+├── drizzle.config.ts           # Drizzle ORM config
+├── schema.dbml / schema.svg    # Database ERD
+├── eslint.config.mjs           # ESLint 9 flat config (no-ternary, no-else, stylistic)
+├── docker-compose.yml          # Production services
+├── docker-compose.dev.yml      # Development services (PG 5432, Redis 6379)
+├── Dockerfile                  # Production image (oven/bun:1.3.14)
+├── Makefile                    # Build, dev, DB, release automation
+└── package.json                # Project configuration
 ```
 
 ## 🗄️ Database Schema
@@ -242,10 +272,10 @@ make db-seed
 
 ### Code Quality
 ```bash
-# Check code quality (Biome 2.5.8 + no-else scan)
+# Check code quality (ESLint 9 with no-ternary/no-else rules)
 make lint
 
-# Fix issues automatically (Biome --write; no-else scan is manual)
+# Fix issues automatically (ESLint --fix)
 make lint-fix
 
 # Run tests

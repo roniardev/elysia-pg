@@ -7,50 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [v0.1.4] - 2026-08-16
-
-### Added
-- ULID id format validation on all route params (invalid id rejected with 400 before hitting the DB)
-- Query param constraints on read-all endpoints: page, limit, sort, search
-- `page=-1` now returns all records without limit/offset
-
-### Changed
-- `verifyPermission` no longer uses an IN subquery; permission-name matching moved to application code
-
-## [v0.1.3] - 2026-08-16
-
-### Changed
-- Upgrade all libraries to latest version
-- Pin PostgreSQL to a specific version in Docker setup
-
-### Fixed
-- Fix all Biome lint errors
-
-## [v0.1.2] - 2025-08-28
-
-### Added
-- Makefile targets for release and changelog management
-
-## [v0.1.1]
-
-### Fixed
-- Version alignment fixes
-
-## [v0.1.0]
-
 ### Added
 - Initial project setup
 - Docker containerization
 - Database migrations with Drizzle ORM
-- User authentication system (register, login, logout, verify-email, forgot-password, reset-password, regenerate-access-token)
+- User authentication system
 - Permission management system
-- Posts CRUD with pagination
-- CRUD generator scripts (`bun run generate <name>`)
-- Winston logging with daily rotate
-- OpenTelemetry tracer
-- Verrou locking on auth, permission, and user-permission usecases
-- Common regex patterns
-- Environment flag to enable/disable encrypted responses
 - Comprehensive Makefile automation
 - Release management and changelog generation
-- Response envelope (`handleResponse`) with status codes
+
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+## [v0.1.5]
+
+- chore: bump version to v0.1.5
+## [v0.1.4]
+
+- chore: bump version to v0.1.4
+## [v0.1.3]
+
+- chore: bump version to v0.1.3
+## [v0.1.2]
+
+- chore: bump version to v0.1.2
+## [v0.1.1]
+
+- chore: bump version to v0.1.1
+## [v0.1.0]
+
+- chore: bump version to v0.1.0

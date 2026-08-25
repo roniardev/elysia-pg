@@ -54,12 +54,10 @@ export const verifyEmail = new Elysia()
 
             // CHECK EXISTING EMAIL VERIFICATION TOKEN
             const userToken = await db.query.emailVerificationTokens.findFirst({
-                where: (table, { eq, and }) => {
-                    return and(
-                        eq(table.userId, emailToken.id),
-                        eq(table.revoked, false),
-                    )
-                },
+                where: (table, { eq, and }) => and(
+                    eq(table.userId, emailToken.id),
+                    eq(table.revoked, false),
+                ),
             })
 
             const validToken = await Bun.password.verify(

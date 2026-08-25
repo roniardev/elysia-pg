@@ -32,72 +32,72 @@ export const requirePermission =
             scope?: boolean
         },
     ) =>
-    (app: Elysia) =>
-        app
-            .use(jwtAccessSetup)
-            .use(bearer())
-            .state("auth", {} as AuthContext)
-            .guard({
-                beforeHandle: async ({ bearer, jwtAccess, set, store }) => {
-                    const validToken = await jwtAccess.verify(bearer)
+        (app: Elysia) =>
+            app
+                .use(jwtAccessSetup)
+                .use(bearer())
+                .state("auth", {} as AuthContext)
+                .guard({
+                    beforeHandle: async ({ bearer, jwtAccess, set, store }) => {
+                        const validToken = await jwtAccess.verify(bearer)
 
-                    if (!validToken || !bearer) {
-                        set.status = ResponseErrorStatus.UNAUTHORIZED
-                        return {
-                            status: false,
-                            message: ErrorMessage.UNAUTHORIZED,
+                        if (!validToken || !bearer) {
+                            set.status = ResponseErrorStatus.UNAUTHORIZED
+                            return {
+                                status: false,
+                                message: ErrorMessage.UNAUTHORIZED,
+                            }
                         }
-                    }
 
-                    const isAuthorized = await verifyAuth(bearer, validToken)
+                        const isAuthorized = await verifyAuth(bearer, validToken)
 
-                    if (!isAuthorized) {
-                        set.status = ResponseErrorStatus.UNAUTHORIZED
-                        return {
-                            status: false,
-                            message: ErrorMessage.UNAUTHORIZED,
+                        if (!isAuthorized) {
+                            set.status = ResponseErrorStatus.UNAUTHORIZED
+                            return {
+                                status: false,
+                                message: ErrorMessage.UNAUTHORIZED,
+                            }
                         }
-                    }
 
-                    const existingUser = await getUser({
-                        identifier: validToken.id,
-                        type: "id",
-                        condition: {
-                            deleted: false,
-                        },
-                    })
+                        const existingUser = await getUser({
+                            identifier: validToken.id,
+                            type: "id",
+                            condition: {
+                                deleted: false,
+                            },
+                        })
 
-                    if (!existingUser.user) {
-                        set.status = ResponseErrorStatus.BAD_REQUEST
-                        return {
-                            status: false,
-                            message: ErrorMessage.INVALID_USER,
+                        if (!existingUser.user) {
+                            set.status = ResponseErrorStatus.BAD_REQUEST
+                            return {
+                                status: false,
+                                message: ErrorMessage.INVALID_USER,
+                            }
                         }
-                    }
 
-                    const {
-                        valid,
-                        permission: userPermissionId,
-                        scope: userScope,
-                    } = await verifyPermission(permission, existingUser.user.id)
+                        const {
+                            valid,
+                            permission: userPermissionId,
+                            scope: userScope,
+                        } = await verifyPermission(permission, existingUser.user.id)
 
-                    if (!valid || !userPermissionId) {
-                        set.status = ResponseErrorStatus.FORBIDDEN
-                        return {
-                            status: false,
-                            message: ErrorMessage.UNAUTHORIZED_PERMISSION,
+                        if (!valid || !userPermissionId) {
+                            set.status = ResponseErrorStatus.FORBIDDEN
+                            return {
+                                status: false,
+                                message: ErrorMessage.UNAUTHORIZED_PERMISSION,
+                            }
                         }
-                    }
 
-                    let scope: string | null = null
+                        let scope: string | null = null
 
-                    if (options?.scope) {
-                        scope = userScope
-                    }
+                        if (options?.scope) {
+                            scope = userScope
+                        }
 
-                    store.auth = {
-                        userId: existingUser.user.id,
-                        scope,
-                    }
-                },
-            })
+                        store.auth = {
+                            userId: existingUser.user.id,
+                            scope,
+                        }
+                    },
+                })

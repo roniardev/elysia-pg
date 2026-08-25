@@ -100,9 +100,7 @@ describe("/register", () => {
         expect(json.message).toBe(SuccessMessage.USER_REGISTERED)
 
         const user = await db.query.users.findFirst({
-            where: (table, { eq: eqFn }) => {
-                return eqFn(table.email, "test2@test.com")
-            },
+            where: (table, { eq: eqFn }) => eqFn(table.email, "test2@test.com"),
         })
 
         expect(user).toBeDefined()
