@@ -3,4 +3,5 @@ import { config } from "@/app/config"
 
 export const redis = new Redis({
     host: config.REDIS_HOST,
+    port: config.REDIS_PORT,
 })
