@@ -4,9 +4,9 @@ import { Effect } from "effect"
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
 import Sorting from "@/common/enum/sorting"
-import { db } from "@/db"
 import { permissions } from "@/db/schema/permission"
 import { ServiceError } from "@/src/general/service-error"
+import { PermissionsDatabaseService } from "@/src/permissions/service/permissions-database"
 import { getPagination } from "@/utils/pagination"
 
 export type ReadAllPermissionInput = {
@@ -18,7 +18,7 @@ export type ReadAllPermissionInput = {
 
 export const readAllPermission = (input: ReadAllPermissionInput) =>
     Effect.gen(function* () {
-        // WHERE BUILDER: shared by list and total-count queries
+        const database = yield* PermissionsDatabaseService
         const buildPermissionWhere = (
             search: string | undefined,
         ): SQL | undefined => {
@@ -46,12 +46,12 @@ export const readAllPermission = (input: ReadAllPermissionInput) =>
         const data = yield* Effect.tryPromise({
             try: () => {
                 if (input.page === -1) {
-                    return db.query.permissions.findMany({
+                    return database.query.permissions.findMany({
                         where: buildPermissionWhere(input.search),
                         orderBy,
                     })
                 }
-                return db.query.permissions.findMany({
+                return database.query.permissions.findMany({
                     where: buildPermissionWhere(input.search),
                     orderBy,
                     limit: Number(input.limit),
@@ -69,7 +69,10 @@ export const readAllPermission = (input: ReadAllPermissionInput) =>
 
         const total = yield* Effect.tryPromise({
             try: () =>
-                db.$count(permissions, buildPermissionWhere(input.search)),
+                database.$count(
+                    permissions,
+                    buildPermissionWhere(input.search),
+                ),
             catch: (error) => {
                 console.error(error)
                 return new ServiceError(

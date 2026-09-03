@@ -2,6 +2,7 @@ import { Effect, Layer } from "effect"
 
 import { PostsDatabaseLive } from "@/src/posts/service/posts-database"
 import { UsersDatabaseLive } from "@/src/users/service/users-database"
+import { PermissionsDatabaseLive } from "@/src/permissions/service/permissions-database"
 import type { SuccessMessage } from "@/common/enum/response-message"
 import type { ServiceError } from "@/src/general/service-error"
 import { handleResponse } from "@/utils/handle-response"
@@ -22,7 +23,11 @@ export const runService = async <Data, Requirements = never>(
     },
 ) => {
     const { set, path, success } = options
-    const databaseLayer = Layer.mergeAll(PostsDatabaseLive, UsersDatabaseLive)
+    const databaseLayer = Layer.mergeAll(
+        PostsDatabaseLive,
+        UsersDatabaseLive,
+        PermissionsDatabaseLive,
+    )
     const providedEffect = Effect.provide(effect, databaseLayer)
     const result = await Effect.runPromise(
         Effect.either(providedEffect as Effect.Effect<Data, ServiceError>),

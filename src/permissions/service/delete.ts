@@ -3,18 +3,20 @@ import { Effect } from "effect"
 
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
-import { db } from "@/db"
+import { PermissionsDatabaseService } from "@/src/permissions/service/permissions-database"
 import { permissions } from "@/db/schema/permission"
 import { ServiceError } from "@/src/general/service-error"
 import { verrou } from "@/utils/services/locks"
 
 export const deletePermission = (id: string, userId: string) =>
     Effect.gen(function* () {
+        const database = yield* PermissionsDatabaseService
         // CHECK IF PERMISSION EXISTS
         const existingPermission = yield* Effect.tryPromise({
             try: () =>
-                db.query.permissions.findFirst({
-                    where: (table, { eq, and, isNull }) => and(eq(table.id, id), isNull(table.deletedAt)),
+                database.query.permissions.findFirst({
+                    where: (table, { eq, and, isNull }) =>
+                        and(eq(table.id, id), isNull(table.deletedAt)),
                 }),
             catch: (error) => {
                 console.error(error)
@@ -40,7 +42,7 @@ export const deletePermission = (id: string, userId: string) =>
                 verrou
                     .createLock(`${userId}:delete-permission`)
                     .run(async () => {
-                        await db
+                        await database
                             .update(permissions)
                             .set({ deletedAt: new Date() })
                             .where(eq(permissions.id, id))

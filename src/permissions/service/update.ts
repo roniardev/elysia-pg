@@ -3,7 +3,7 @@ import { Effect } from "effect"
 
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
-import { db } from "@/db"
+import { PermissionsDatabaseService } from "@/src/permissions/service/permissions-database"
 import { permissions } from "@/db/schema/permission"
 import { ServiceError } from "@/src/general/service-error"
 import { verrou } from "@/utils/services/locks"
@@ -19,11 +19,13 @@ export const updatePermission = (
     userId: string,
 ) =>
     Effect.gen(function* () {
+        const database = yield* PermissionsDatabaseService
         // CHECK IF PERMISSION EXISTS
         const existingPermission = yield* Effect.tryPromise({
             try: () =>
-                db.query.permissions.findFirst({
-                    where: (table, { eq, and, isNull }) => and(eq(table.id, id), isNull(table.deletedAt)),
+                database.query.permissions.findFirst({
+                    where: (table, { eq, and, isNull }) =>
+                        and(eq(table.id, id), isNull(table.deletedAt)),
                 }),
             catch: (error) => {
                 console.error(error)
@@ -49,7 +51,7 @@ export const updatePermission = (
                 verrou
                     .createLock(`${userId}:update-permission`)
                     .run(async () => {
-                        await db
+                        await database
                             .update(permissions)
                             .set({
                                 name: input.name || existingPermission.name,
@@ -61,7 +63,7 @@ export const updatePermission = (
                             .where(eq(permissions.id, id))
 
                         const updatedPermission =
-                            await db.query.permissions.findFirst({
+                            await database.query.permissions.findFirst({
                                 where: (table, { eq }) => eq(table.id, id),
                             })
 
