@@ -5,9 +5,9 @@ import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
 import { Scope } from "@/common/enum/scopes"
 import Sorting from "@/common/enum/sorting"
-import { db } from "@/db"
 import { posts } from "@/db/schema"
 import { ServiceError } from "@/src/general/service-error"
+import { PostsDatabaseService } from "@/src/posts/service/posts-database"
 import { getPagination } from "@/utils/pagination"
 
 export type ReadAllPostInput = {
@@ -23,6 +23,7 @@ export const readAllPost = (
     scope: string | null,
 ) =>
     Effect.gen(function* () {
+        const database = yield* PostsDatabaseService
         const buildPostWhere = (
             search: string | undefined,
         ): SQL | undefined => {
@@ -53,7 +54,7 @@ export const readAllPost = (
         const data = yield* Effect.tryPromise({
             try: () => {
                 if (input.page === -1) {
-                    return db.query.posts.findMany({
+                    return database.query.posts.findMany({
                         where: buildPostWhere(input.search),
                         orderBy,
                         with: {
@@ -65,7 +66,7 @@ export const readAllPost = (
                         },
                     })
                 }
-                return db.query.posts.findMany({
+                return database.query.posts.findMany({
                     where: buildPostWhere(input.search),
                     limit: input.limit,
                     offset: (input.page - 1) * input.limit,
@@ -89,7 +90,7 @@ export const readAllPost = (
         })
 
         const total = yield* Effect.tryPromise({
-            try: () => db.$count(posts, buildPostWhere(input.search)),
+            try: () => database.$count(posts, buildPostWhere(input.search)),
             catch: (error) => {
                 console.error(error)
                 return new ServiceError(

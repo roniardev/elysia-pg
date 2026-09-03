@@ -3,16 +3,17 @@ import { Effect } from "effect"
 
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
-import { db } from "@/db"
 import { posts } from "@/db/schema"
 import { ServiceError } from "@/src/general/service-error"
+import { PostsDatabaseService } from "@/src/posts/service/posts-database"
 import { verrou } from "@/utils/services/locks"
 
 export const deletePost = (id: string, userId: string) =>
     Effect.gen(function* () {
+        const database = yield* PostsDatabaseService
         const existingPost = yield* Effect.tryPromise({
             try: () =>
-                db.query.posts.findFirst({
+                database.query.posts.findFirst({
                     where: (table, { eq, and }) =>
                         and(eq(table.id, id), eq(table.userId, userId)),
                 }),
@@ -37,7 +38,9 @@ export const deletePost = (id: string, userId: string) =>
         yield* Effect.tryPromise({
             try: () =>
                 verrou.createLock(`${userId}:delete-post`).run(async () => {
-                    await db.delete(posts).where(eq(posts.id, existingPost.id))
+                    await database
+                        .delete(posts)
+                        .where(eq(posts.id, existingPost.id))
                 }),
             catch: (error) => {
                 console.error(error)

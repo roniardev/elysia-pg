@@ -3,10 +3,10 @@ import { Effect } from "effect"
 
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
-import { db } from "@/db"
 import { posts } from "@/db/schema"
 import { scopeWhere } from "@/src/general/scope-where"
 import { ServiceError } from "@/src/general/service-error"
+import { PostsDatabaseService } from "@/src/posts/service/posts-database"
 import { verrou } from "@/utils/services/locks"
 
 export type UpdatePostInput = {
@@ -25,9 +25,10 @@ export const updatePost = (
     scope: string | null,
 ) =>
     Effect.gen(function* () {
+        const database = yield* PostsDatabaseService
         const existingPost = yield* Effect.tryPromise({
             try: () =>
-                db.query.posts.findFirst({
+                database.query.posts.findFirst({
                     where: scopeWhere(posts, id, userId, scope),
                 }),
             catch: (error) => {
@@ -51,7 +52,7 @@ export const updatePost = (
         const result = yield* Effect.tryPromise({
             try: () =>
                 verrou.createLock(`${userId}:update-post`).run(async () => {
-                    await db
+                    await database
                         .update(posts)
                         .set({
                             title: input.title || existingPost.title,
@@ -65,7 +66,7 @@ export const updatePost = (
                         })
                         .where(eq(posts.id, existingPost.id))
 
-                    const updatedPost = await db.query.posts.findFirst({
+                    const updatedPost = await database.query.posts.findFirst({
                         where: (table, { eq: eqField }) =>
                             eqField(table.id, existingPost.id),
                     })
