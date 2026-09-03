@@ -5,18 +5,19 @@ import { jwtVerify } from "jose"
 import { config } from "@/app/config"
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
-import { db } from "@/db"
 import { emailVerificationTokens, users } from "@/db/schema"
 import { ServiceError } from "@/src/general/service-error"
+import { AuthDatabaseService } from "@/src/auth/service/auth-database"
 import { getUser } from "@/src/general/usecase/get-user"
 import { verrou } from "@/utils/services/locks"
 
 export type VerifyEmailInput = {
-    token: string;
+    token: string
 }
 
 export const verifyEmail = (input: VerifyEmailInput) =>
     Effect.gen(function* () {
+        const database = yield* AuthDatabaseService
         // CHECK VALID TOKEN
         const emailToken = yield* Effect.tryPromise({
             try: () =>
@@ -35,6 +36,7 @@ export const verifyEmail = (input: VerifyEmailInput) =>
         const existingUser = yield* Effect.tryPromise({
             try: () =>
                 getUser({
+                    database,
                     identifier: emailToken.payload.id,
                     type: "id",
                     condition: { deleted: false },
@@ -60,7 +62,7 @@ export const verifyEmail = (input: VerifyEmailInput) =>
         // CHECK EXISTING EMAIL VERIFICATION TOKEN
         const userToken = yield* Effect.tryPromise({
             try: () =>
-                db.query.emailVerificationTokens.findFirst({
+                database.query.emailVerificationTokens.findFirst({
                     where: (table, { eq, and }) =>
                         and(
                             eq(table.userId, emailToken.payload.id),
@@ -77,7 +79,8 @@ export const verifyEmail = (input: VerifyEmailInput) =>
         })
 
         const validToken = yield* Effect.tryPromise({
-            try: () => Bun.password.verify(input.token, userToken?.hashedToken || ""),
+            try: () =>
+                Bun.password.verify(input.token, userToken?.hashedToken || ""),
             catch: (error) => {
                 console.error(error)
                 return new ServiceError(
@@ -110,7 +113,7 @@ export const verifyEmail = (input: VerifyEmailInput) =>
         // REVOKE EMAIL VERIFICATION TOKEN
         yield* Effect.tryPromise({
             try: () =>
-                db
+                database
                     .update(emailVerificationTokens)
                     .set({ revoked: true })
                     .where(eq(emailVerificationTokens.id, userToken.id)),
@@ -126,12 +129,14 @@ export const verifyEmail = (input: VerifyEmailInput) =>
         // UPDATE USER EMAIL VERIFICATION
         yield* Effect.tryPromise({
             try: () =>
-                verrou.createLock(`${userToken.userId}:verify-email`).run(async () => {
-                    await db
-                        .update(users)
-                        .set({ emailVerified: true })
-                        .where(eq(users.id, userToken.userId))
-                }),
+                verrou
+                    .createLock(`${userToken.userId}:verify-email`)
+                    .run(async () => {
+                        await database
+                            .update(users)
+                            .set({ emailVerified: true })
+                            .where(eq(users.id, userToken.userId))
+                    }),
             catch: (error) => {
                 console.error(error)
                 return new ServiceError(

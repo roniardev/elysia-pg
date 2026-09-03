@@ -5,6 +5,7 @@ import { config } from "@/app/config"
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
 import { ServiceError } from "@/src/general/service-error"
+import { AuthDatabaseService } from "@/src/auth/service/auth-database"
 import { getUser } from "@/src/general/usecase/get-user"
 import { storeSession } from "@/src/general/usecase/store-session"
 import ExpiredTime from "@/utils/expired-time"
@@ -12,12 +13,13 @@ import { verrou } from "@/utils/services/locks"
 import { redis } from "@/utils/services/redis"
 
 export type RegenerateAccessTokenResult = {
-    accessToken: string;
-    refreshToken: string;
+    accessToken: string
+    refreshToken: string
 }
 
 export const regenerateAccessToken = (bearerToken: string | undefined) =>
     Effect.gen(function* () {
+        const database = yield* AuthDatabaseService
         // CHECK VALID TOKEN
         const validToken = yield* Effect.tryPromise({
             try: () =>
@@ -57,6 +59,7 @@ export const regenerateAccessToken = (bearerToken: string | undefined) =>
         const existingUser = yield* Effect.tryPromise({
             try: () =>
                 getUser({
+                    database,
                     identifier: validToken.payload.id,
                     type: "id",
                 }),
@@ -116,7 +119,9 @@ export const regenerateAccessToken = (bearerToken: string | undefined) =>
         yield* Effect.tryPromise({
             try: async () => {
                 const [acquired] = await verrou
-                    .createLock(`${validToken.payload.id}:regenerate-access-token`)
+                    .createLock(
+                        `${validToken.payload.id}:regenerate-access-token`,
+                    )
                     .run(async () => {
                         await storeSession(
                             validToken.payload.id,

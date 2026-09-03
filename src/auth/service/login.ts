@@ -6,6 +6,7 @@ import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
 import RegexPattern from "@/common/regex-pattern"
 import { ServiceError } from "@/src/general/service-error"
+import { AuthDatabaseService } from "@/src/auth/service/auth-database"
 import { getUser } from "@/src/general/usecase/get-user"
 import { storeSession } from "@/src/general/usecase/store-session"
 import ExpiredTime from "@/utils/expired-time"
@@ -13,17 +14,18 @@ import { verrou } from "@/utils/services/locks"
 import { redis } from "@/utils/services/redis"
 
 export type LoginInput = {
-    email: string;
-    password: string;
+    email: string
+    password: string
 }
 
 export type LoginResult = {
-    accessToken: string;
-    refreshToken: string;
+    accessToken: string
+    refreshToken: string
 }
 
 export const login = (input: LoginInput) =>
     Effect.gen(function* () {
+        const database = yield* AuthDatabaseService
         const isValidEmail = input.email.match(RegexPattern.EMAIL)
 
         if (!isValidEmail) {
@@ -39,6 +41,7 @@ export const login = (input: LoginInput) =>
         const existingUser = yield* Effect.tryPromise({
             try: () =>
                 getUser({
+                    database,
                     identifier: input.email,
                     type: "email",
                     condition: { deleted: false },
@@ -74,7 +77,8 @@ export const login = (input: LoginInput) =>
 
         // CHECK VALID PASSWORD
         const validPassword = yield* Effect.tryPromise({
-            try: () => Bun.password.verify(input.password, user.hashedPassword || ""),
+            try: () =>
+                Bun.password.verify(input.password, user.hashedPassword || ""),
             catch: (error) => {
                 console.error(error)
                 return new ServiceError(

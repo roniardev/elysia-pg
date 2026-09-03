@@ -7,19 +7,20 @@ import { resetPasswordTemplate } from "@/common/email-templates/reset-password"
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
 import RegexPattern from "@/common/regex-pattern"
-import { db } from "@/db"
 import { passwordResetTokens } from "@/db/schema"
 import { ServiceError } from "@/src/general/service-error"
+import { AuthDatabaseService } from "@/src/auth/service/auth-database"
 import { getUser } from "@/src/general/usecase/get-user"
 import { sendEmail } from "@/utils/send-email"
 import { verrou } from "@/utils/services/locks"
 
 export type ForgotPasswordInput = {
-    email: string;
+    email: string
 }
 
 export const forgotPassword = (input: ForgotPasswordInput) =>
     Effect.gen(function* () {
+        const database = yield* AuthDatabaseService
         const { email } = input
 
         if (!email.match(RegexPattern.EMAIL)) {
@@ -35,6 +36,7 @@ export const forgotPassword = (input: ForgotPasswordInput) =>
         const existingUser = yield* Effect.tryPromise({
             try: () =>
                 getUser({
+                    database,
                     identifier: email,
                     type: "email",
                     condition: { deleted: false, emailVerified: true },
@@ -90,9 +92,11 @@ export const forgotPassword = (input: ForgotPasswordInput) =>
         yield* Effect.tryPromise({
             try: () =>
                 verrou
-                    .createLock(`${email}:forgot-password:${user?.id}:generateToken`)
+                    .createLock(
+                        `${email}:forgot-password:${user?.id}:generateToken`,
+                    )
                     .run(async () => {
-                        await db.insert(passwordResetTokens).values({
+                        await database.insert(passwordResetTokens).values({
                             id: ulid(),
                             userId: String(user?.id),
                             hashedToken,
@@ -112,7 +116,9 @@ export const forgotPassword = (input: ForgotPasswordInput) =>
         yield* Effect.tryPromise({
             try: () =>
                 verrou
-                    .createLock(`${email}:forgot-password:${user?.id}:sendEmail`)
+                    .createLock(
+                        `${email}:forgot-password:${user?.id}:sendEmail`,
+                    )
                     .run(async () => {
                         await sendEmail(
                             email,

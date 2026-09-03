@@ -5,20 +5,21 @@ import { jwtVerify } from "jose"
 import { config } from "@/app/config"
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
-import { db } from "@/db"
 import { users } from "@/db/schema"
 import { ServiceError } from "@/src/general/service-error"
+import { AuthDatabaseService } from "@/src/auth/service/auth-database"
 import { getUser } from "@/src/general/usecase/get-user"
 import { verrou } from "@/utils/services/locks"
 
 export type ResetPasswordInput = {
-    token: string;
-    password: string;
-    confirmPassword: string;
+    token: string
+    password: string
+    confirmPassword: string
 }
 
 export const resetPassword = (input: ResetPasswordInput) =>
     Effect.gen(function* () {
+        const database = yield* AuthDatabaseService
         const { password, confirmPassword } = input
 
         // CHECK VALID TOKEN
@@ -39,6 +40,7 @@ export const resetPassword = (input: ResetPasswordInput) =>
         const existingUser = yield* Effect.tryPromise({
             try: () =>
                 getUser({
+                    database,
                     identifier: emailToken.payload.id,
                     type: "id",
                     condition: { deleted: false },
@@ -64,7 +66,7 @@ export const resetPassword = (input: ResetPasswordInput) =>
         // CHECK EXISTING PASSWORD RESET TOKEN
         const existingToken = yield* Effect.tryPromise({
             try: () =>
-                db.query.passwordResetTokens.findFirst({
+                database.query.passwordResetTokens.findFirst({
                     where: (table, { eq, and }) =>
                         and(
                             eq(table.userId, emailToken.payload.id),
@@ -92,7 +94,10 @@ export const resetPassword = (input: ResetPasswordInput) =>
         // CHECK PASSWORD RESET TOKEN
         const validToken = yield* Effect.tryPromise({
             try: () =>
-                Bun.password.verify(input.token, existingToken.hashedToken || ""),
+                Bun.password.verify(
+                    input.token,
+                    existingToken.hashedToken || "",
+                ),
             catch: (error) => {
                 console.error(error)
                 return new ServiceError(
@@ -157,7 +162,7 @@ export const resetPassword = (input: ResetPasswordInput) =>
                 verrou
                     .createLock(`${existingUser.user?.id}:reset-password`)
                     .run(async () => {
-                        await db
+                        await database
                             .update(users)
                             .set({ hashedPassword })
                             .where(eq(users.id, String(existingUser.user?.id)))

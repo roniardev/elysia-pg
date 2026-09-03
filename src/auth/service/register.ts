@@ -7,21 +7,22 @@ import { verifyEmailTemplate } from "@/common/email-templates/verify-email"
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
 import RegexPattern from "@/common/regex-pattern"
-import { db } from "@/db"
 import { emailVerificationTokens, users } from "@/db/schema"
 import { ServiceError } from "@/src/general/service-error"
+import { AuthDatabaseService } from "@/src/auth/service/auth-database"
 import { getUser } from "@/src/general/usecase/get-user"
 import { sendEmail } from "@/utils/send-email"
 import { verrou } from "@/utils/services/locks"
 
 export type RegisterInput = {
-    email: string;
-    password: string;
-    confirmPassword: string;
+    email: string
+    password: string
+    confirmPassword: string
 }
 
 export const register = (input: RegisterInput) =>
     Effect.gen(function* () {
+        const database = yield* AuthDatabaseService
         const { email, password, confirmPassword } = input
 
         if (!email.match(RegexPattern.EMAIL)) {
@@ -46,6 +47,7 @@ export const register = (input: RegisterInput) =>
         const existingUser = yield* Effect.tryPromise({
             try: () =>
                 getUser({
+                    database,
                     identifier: email,
                     type: "email",
                 }),
@@ -78,7 +80,7 @@ export const register = (input: RegisterInput) =>
                 const [acquired] = await verrou
                     .createLock(`${email}:register`)
                     .run(async () => {
-                        await db.insert(users).values({
+                        await database.insert(users).values({
                             id: userId,
                             email,
                             emailVerified: false,
@@ -135,7 +137,7 @@ export const register = (input: RegisterInput) =>
         // CREATE EMAIL VERIFICATION TOKEN
         yield* Effect.tryPromise({
             try: () =>
-                db.insert(emailVerificationTokens).values({
+                database.insert(emailVerificationTokens).values({
                     id: ulid(),
                     email,
                     userId,
@@ -153,7 +155,11 @@ export const register = (input: RegisterInput) =>
 
         const emailResponse = yield* Effect.tryPromise({
             try: () =>
-                sendEmail(email, "Verify your email", verifyEmailTemplate(emailToken)),
+                sendEmail(
+                    email,
+                    "Verify your email",
+                    verifyEmailTemplate(emailToken),
+                ),
             catch: (error) => {
                 console.error(error)
                 return new ServiceError(

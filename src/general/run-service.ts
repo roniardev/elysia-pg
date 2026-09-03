@@ -1,5 +1,6 @@
 import { Effect, Layer } from "effect"
 
+import { AuthDatabaseLive } from "@/src/auth/service/auth-database"
 import { PostsDatabaseLive } from "@/src/posts/service/posts-database"
 import { UsersDatabaseLive } from "@/src/users/service/users-database"
 import { PermissionsDatabaseLive } from "@/src/permissions/service/permissions-database"
@@ -25,6 +26,7 @@ export const runService = async <Data, Requirements = never>(
 ) => {
     const { set, path, success } = options
     const databaseLayer = Layer.mergeAll(
+        AuthDatabaseLive,
         PostsDatabaseLive,
         UsersDatabaseLive,
         PermissionsDatabaseLive,

@@ -1,7 +1,9 @@
 import { db } from "@/db"
+import type { AuthDatabase } from "@/src/auth/service/auth-database"
 import type { Permission, User } from "@/db/schema"
 
 type GetUser = {
+    database?: AuthDatabase
     identifier: string
     type: "email" | "id"
     condition?: {
@@ -20,6 +22,7 @@ type GetUserResponse = {
 }
 
 export const getUser = async ({
+    database = db,
     identifier,
     type,
     condition,
@@ -33,7 +36,7 @@ export const getUser = async ({
         withOption = { permissions: true }
     }
 
-    const user = (await db.query.users.findFirst({
+    const user = (await database.query.users.findFirst({
         where: (table, { eq, and, isNull }) => {
             const conditions = [eq(table[type], identifier)]
 
