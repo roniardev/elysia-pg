@@ -2,15 +2,17 @@ import { Effect } from "effect"
 
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
-import { db } from "@/db"
 import { ServiceError } from "@/src/general/service-error"
+import { UserPermissionsDatabaseService } from "@/src/user-permissions/service/user-permissions-database"
 
 export const readUserPermission = (id: string) =>
     Effect.gen(function* () {
+        const database = yield* UserPermissionsDatabaseService
+
         // READ USER PERMISSION
         const userPermission = yield* Effect.tryPromise({
             try: () =>
-                db.query.userPermissions.findFirst({
+                database.query.userPermissions.findFirst({
                     where: (fields, { eq }) => eq(fields.id, id),
                     with: {
                         permission: true,

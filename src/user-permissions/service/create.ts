@@ -4,10 +4,9 @@ import { ulid } from "ulid"
 
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
-import { db } from "@/db"
 import { userPermissions } from "@/db/schema/user-permissions"
 import { ServiceError } from "@/src/general/service-error"
-
+import { UserPermissionsDatabaseService } from "@/src/user-permissions/service/user-permissions-database"
 export type CreateUserPermissionInput = {
     userId: string
     permissionId: string
@@ -15,10 +14,12 @@ export type CreateUserPermissionInput = {
 
 export const createUserPermission = (input: CreateUserPermissionInput) =>
     Effect.gen(function* () {
+        const database = yield* UserPermissionsDatabaseService
+
         // Check if permission already exists and not revoked
         const existingPermission = yield* Effect.tryPromise({
             try: () =>
-                db.query.userPermissions.findFirst({
+                database.query.userPermissions.findFirst({
                     where: (fields, { eq, and }) =>
                         and(
                             eq(fields.userId, input.userId),
@@ -49,7 +50,7 @@ export const createUserPermission = (input: CreateUserPermissionInput) =>
 
         yield* Effect.tryPromise({
             try: () =>
-                db.insert(userPermissions).values({
+                database.insert(userPermissions).values({
                     id: userPermissionId,
                     userId: input.userId,
                     permissionId: input.permissionId,

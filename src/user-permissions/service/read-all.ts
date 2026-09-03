@@ -3,11 +3,10 @@ import { Effect } from "effect"
 
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
-import { db } from "@/db"
 import { userPermissions } from "@/db/schema/user-permissions"
 import { ServiceError } from "@/src/general/service-error"
+import { UserPermissionsDatabaseService } from "@/src/user-permissions/service/user-permissions-database"
 import { getPagination } from "@/utils/pagination"
-
 export type ReadAllUserPermissionInput = {
     userId: string
     page: number
@@ -17,6 +16,8 @@ export type ReadAllUserPermissionInput = {
 
 export const readAllUserPermission = (input: ReadAllUserPermissionInput) =>
     Effect.gen(function* () {
+        const database = yield* UserPermissionsDatabaseService
+
         // WHERE BUILDER: shared by list and total-count queries
         const buildWhereClause = (
             userId: string,
@@ -46,7 +47,7 @@ export const readAllUserPermission = (input: ReadAllUserPermissionInput) =>
         const list = yield* Effect.tryPromise({
             try: () => {
                 if (input.page === -1) {
-                    return db.query.userPermissions.findMany({
+                    return database.query.userPermissions.findMany({
                         where: () => whereClause,
                         with: {
                             permission: true,
@@ -54,7 +55,7 @@ export const readAllUserPermission = (input: ReadAllUserPermissionInput) =>
                         orderBy: [desc(userPermissions.createdAt)],
                     })
                 }
-                return db.query.userPermissions.findMany({
+                return database.query.userPermissions.findMany({
                     where: () => whereClause,
                     with: {
                         permission: true,
@@ -74,7 +75,7 @@ export const readAllUserPermission = (input: ReadAllUserPermissionInput) =>
         })
 
         const total = yield* Effect.tryPromise({
-            try: () => db.$count(userPermissions, whereClause),
+            try: () => database.$count(userPermissions, whereClause),
             catch: (error) => {
                 console.error(error)
                 return new ServiceError(

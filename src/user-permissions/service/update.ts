@@ -3,11 +3,10 @@ import { Effect } from "effect"
 
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
-import { db } from "@/db"
 import { userPermissions } from "@/db/schema/user-permissions"
 import { ServiceError } from "@/src/general/service-error"
+import { UserPermissionsDatabaseService } from "@/src/user-permissions/service/user-permissions-database"
 import { verrou } from "@/utils/services/locks"
-
 export type UpdateUserPermissionInput = {
     revoked: boolean
 }
@@ -18,10 +17,12 @@ export const updateUserPermission = (
     userId: string,
 ) =>
     Effect.gen(function* () {
+        const database = yield* UserPermissionsDatabaseService
+
         // Check if user permission exists
         const existingUserPermission = yield* Effect.tryPromise({
             try: () =>
-                db.query.userPermissions.findFirst({
+                database.query.userPermissions.findFirst({
                     where: (fields, { eq }) => eq(fields.id, id),
                 }),
             catch: (error) => {
@@ -48,7 +49,7 @@ export const updateUserPermission = (
                 verrou
                     .createLock(`${userId}:update-user-permission`)
                     .run(async () => {
-                        const [updated] = await db
+                        const [updated] = await database
                             .update(userPermissions)
                             .set({
                                 revoked: input.revoked,
