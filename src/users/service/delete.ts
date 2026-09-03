@@ -3,14 +3,15 @@ import { Effect } from "effect"
 
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
-import { db } from "@/db"
 import { users } from "@/db/schema"
 import { ServiceError } from "@/src/general/service-error"
 import { getUser } from "@/src/general/usecase/get-user"
+import { UsersDatabaseService } from "@/src/users/service/users-database"
 import { verrou } from "@/utils/services/locks"
 
 export const deleteUser = (id: string) =>
     Effect.gen(function* () {
+        const database = yield* UsersDatabaseService
         const existingUser = yield* Effect.tryPromise({
             try: () =>
                 getUser({
@@ -52,7 +53,7 @@ export const deleteUser = (id: string) =>
                     // await 15s
                     await new Promise((resolve) => setTimeout(resolve, 15000))
 
-                    await db
+                    await database
                         .update(users)
                         .set({
                             deletedAt: new Date(),

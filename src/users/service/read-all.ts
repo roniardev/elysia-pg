@@ -3,9 +3,10 @@ import { Effect } from "effect"
 
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
-import { db } from "@/db"
 import { users } from "@/db/schema"
 import { ServiceError } from "@/src/general/service-error"
+import type { UsersDatabase } from "@/src/users/service/users-database"
+import { UsersDatabaseService } from "@/src/users/service/users-database"
 import { getPagination } from "@/utils/pagination"
 
 export type ReadAllUserInput = {
@@ -15,6 +16,7 @@ export type ReadAllUserInput = {
 
 export const readAllUser = (input: ReadAllUserInput) =>
     Effect.gen(function* () {
+        const database = yield* UsersDatabaseService
         const notDeleted = and(isNull(users.deletedAt))
 
         if (input.page === 0) {
@@ -27,7 +29,7 @@ export const readAllUser = (input: ReadAllUserInput) =>
         }
 
         const total = yield* Effect.tryPromise({
-            try: () => db.$count(users, notDeleted),
+            try: () => database.$count(users, notDeleted),
             catch: (error) => {
                 console.error(error)
                 return new ServiceError(
@@ -40,14 +42,14 @@ export const readAllUser = (input: ReadAllUserInput) =>
         const data = yield* Effect.tryPromise({
             try: () => {
                 if (input.page === -1) {
-                    return db.query.users.findMany({
+                    return database.query.users.findMany({
                         where: notDeleted,
                         with: {
                             permissions: true,
                         },
                     })
                 }
-                return db.query.users.findMany({
+                return database.query.users.findMany({
                     where: notDeleted,
                     limit: Number(input.limit),
                     offset: (Number(input.page) - 1) * Number(input.limit),

@@ -6,10 +6,10 @@ import { config } from "@/app/config"
 import { verifyEmailTemplate } from "@/common/email-templates/verify-email"
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
-import { db } from "@/db"
 import { emailVerificationTokens, userPermissions, users } from "@/db/schema"
 import { ServiceError } from "@/src/general/service-error"
 import { getUser } from "@/src/general/usecase/get-user"
+import { UsersDatabaseService } from "@/src/users/service/users-database"
 import { sendEmail } from "@/utils/send-email"
 
 export type CreateUserInput = {
@@ -21,6 +21,8 @@ export type CreateUserInput = {
 
 export const createUser = (input: CreateUserInput) =>
     Effect.gen(function* () {
+        const database = yield* UsersDatabaseService
+
         // CHECK EXISTING USER
         const existingUser = yield* Effect.tryPromise({
             try: () =>
@@ -93,7 +95,7 @@ export const createUser = (input: CreateUserInput) =>
         // rolls back the whole batch, no partial user is left behind
         yield* Effect.tryPromise({
             try: () =>
-                db.transaction(async (tx) => {
+                database.transaction(async (tx) => {
                     await tx.insert(users).values({
                         id: userId,
                         email,

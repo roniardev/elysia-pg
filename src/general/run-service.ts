@@ -2,10 +2,21 @@ import { Effect } from "effect"
 
 import type { SuccessMessage } from "@/common/enum/response-message"
 import type { ServiceError } from "@/src/general/service-error"
+import {
+    PostsDatabaseLive,
+    PostsDatabaseService,
+} from "@/src/posts/service/posts-database"
+import {
+    UsersDatabaseLive,
+    UsersDatabaseService,
+} from "@/src/users/service/users-database"
 import { handleResponse } from "@/utils/handle-response"
 
-export const runService = async <Data>(
-    effect: Effect.Effect<Data, ServiceError>,
+export const runService = async <
+    Data,
+    Requirements extends PostsDatabaseService | UsersDatabaseService = never,
+>(
+    effect: Effect.Effect<Data, ServiceError, Requirements>,
     options: {
         set: { status?: number | string }
         path: string
@@ -20,7 +31,12 @@ export const runService = async <Data>(
     },
 ) => {
     const { set, path, success } = options
-    const result = await Effect.runPromise(Effect.either(effect))
+    const providedEffect = Effect.provide(effect, PostsDatabaseLive)
+    const providedWithUsers = Effect.provide(
+        providedEffect,
+        UsersDatabaseLive,
+    ) as Effect.Effect<Data, ServiceError>
+    const result = await Effect.runPromise(Effect.either(providedWithUsers))
 
     if (result._tag === "Left") {
         return handleResponse({
