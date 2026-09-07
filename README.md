@@ -1,6 +1,9 @@
-# Elysia PostgreSQL - Template
+# Elysia PostgreSQL API
 
-Opinionated template for building a REST API using [ElysiaJS](https://elysiajs.com/) and [PostgreSQL](https://www.postgresql.org/).
+An Effect-based REST API built with [ElysiaJS](https://elysiajs.com/),
+[PostgreSQL](https://www.postgresql.org/), and [Drizzle ORM](https://orm.drizzle.team/).
+The application is organized as feature modules and uses explicit Effect graphs
+for application behavior, failures, and dependencies.
 
 ## 👨‍💻 Developer
 
@@ -142,6 +145,8 @@ make full-setup     # Complete development setup with database
 - **Linter**: [ESLint](https://eslint.org/) 9 (flat config) with TypeScript, stylistic, and essential plugins
 - **Containerization**: [Docker](https://www.docker.com/) with [Docker Compose](https://docs.docker.com/compose/)
 - **Automation**: [Make](https://www.gnu.org/software/make/) - Build automation tool
+- **Application effects**: [Effect](https://effect.website/) - Typed success,
+  error, and dependency graphs
 
 ### Elysia Plugins
 - [CORS](https://elysiajs.com/plugins/cors.html) - Cross-origin resource sharing
@@ -169,9 +174,25 @@ Enforced by:
 
 ## 🧭 Architecture and Contributor Guides
 
-Application features follow a graph-first Effect architecture: service code
-expresses the success graph (`A`), tagged errors describe failure paths (`E`),
-and `Context` requirements make dependencies explicit (`R`).
+Application features follow a graph-first Effect architecture:
+
+```text
+input/param → use case graph → Effect<A, E, R>
+```
+
+- `A` is the successful domain result.
+- `E` contains tagged domain or repository errors.
+- `R` contains capabilities requested through Effect `Context` tags.
+
+Elysia is only the untrusted HTTP boundary. It validates request parameters,
+invokes the use case, and maps domain errors to HTTP responses. Domain use cases
+do not import Drizzle, Redis, environment configuration, token libraries, or
+other infrastructure concerns.
+
+Each persisted operation has a focused source under `data/source/`. Repository
+adapters wire those sources to domain repository capabilities; they do not own
+application orchestration. Production values enter the graph through the
+feature's layer composition.
 
 - Start with the [documentation index](docs/README.md).
 - Read the [Effect Design Thinking guide](docs/architecture/EFFECT_DESIGN_THINKING.md).
@@ -199,49 +220,35 @@ make check
 
 ```
 elysia-pg/
-├── app/                        # Application entry points (server.ts, config.ts)
-├── common/                     # Shared domain primitives
-│   ├── enum/                   # Scope, sorting, response-message enums
-│   ├── model/                  # Base model types
-│   ├── regex-pattern/          # Validation regexes
-│   ├── routes/                 # Auth/permission/post route definitions
-│   └── email-templates/        # Email HTML templates
-├── src/                        # Feature modules (one per domain)
-│   ├── auth/                   # Authentication (login, register, forgot/reset password)
-│   ├── users/                  # Users CRUD (soft-delete, email verification)
-│   ├── permissions/            # Permissions CRUD
-│   ├── posts/                  # Posts CRUD (scope-aware, PERSONAL/ORGANIZATION)
-│   ├── user-permissions/       # User-permissions CRUD (revocable)
-│   └── general/                # Cross-cutting concerns
-│       ├── run-service.ts      # Effect runner + response formatter
-│       ├── scope-where.ts      # Scope-aware where-clause helper
-│       ├── service-error.ts    # Standardized service errors
-│       ├── setup/              # require-permission plugin
-│       └── usecase/            # verify-auth, verify-permission, store-session
+├── app/                        # Application entry points and runtime setup
+├── src/                        # Feature modules
+│   ├── auth/                   # Login, registration, and password flows
+│   ├── authorization/          # Request authorization and scope checks
+│   ├── permissions/            # Permission management
+│   ├── posts/                  # Scope-aware post management
+│   ├── user-permissions/       # User-permission assignments
+│   ├── users/                  # User management and verification
+│   └── general/                # Shared domain and runtime capabilities
 │
-│   Each feature module (users/permissions/posts/user-permissions) follows:
-│       data/     — Drizzle model + response schemas
-│       service/  — Effect-based business logic (create/read/read-all/update/delete)
-│       usecase/  — Route handlers wired to services via runService
-│       index.ts  — Elysia plugin registration
+│   Each feature module follows:
+│       domain/entity/           — Framework-independent domain shapes
+│       domain/repository/       — Capability contracts and tagged errors
+│       domain/usecase/          — Effect application graphs
+│       data/model/              — Persistence-to-domain mapping
+│       data/source/             — One case-specific persistence operation
+│       data/repository/         — Repository adapter and layer wiring
+│       delivery/dto/            — HTTP parameter and response schemas
+│       delivery/presenter/http/ — Elysia route boundary
+│       layer.ts                 — Production dependency composition
+│       index.ts                 — Feature route registration
 ├── db/                         # Database layer
 │   ├── migrations/             # Drizzle migration files
 │   ├── schema/                 # Schema definitions
 │   └── seeds/                  # Seed data
-├── utils/                      # Shared utilities
-│   ├── crypto/                 # Hashing helpers
-│   ├── encrypt-response/       # Response encryption
-│   ├── decrypt-response/       # Response decryption
-│   ├── expired-time/           # TTL helpers
-│   ├── handle-response/        # Response shaping
-│   ├── logger/                 # Pino-based logger
-│   ├── pagination/             # getPagination + attributes
-│   ├── send-email/             # SMTP mailer
-│   ├── services/               # Redis + distributed locks (verrou)
-│   └── ulid/                   # ID generation
-├── test/                       # Bun test suites (auth + features)
+├── utils/                      # Shared infrastructure utilities
+├── test/                       # Bun unit test suites
 ├── logs/                       # Runtime application logs
-├── docs/                       # Generated docs (CHANGELOG.md, release notes)
+├── docs/                       # Architecture and operational documentation
 ├── drizzle.config.ts           # Drizzle ORM config
 ├── schema.dbml / schema.svg    # Database ERD
 ├── eslint.config.mjs           # ESLint 9 flat config (no-ternary, no-else, stylistic)
@@ -251,6 +258,25 @@ elysia-pg/
 ├── Makefile                    # Build, dev, DB, release automation
 └── package.json                # Project configuration
 ```
+
+### File and naming conventions
+
+Feature files use snake_case and name the operation they implement:
+
+```text
+get_list_post_usecase.ts
+get_post_by_id_persistent.ts
+post_repository_impl.ts
+create_post.ts
+```
+
+Use `get` for retrieval and explicit verbs such as `create`, `update`, and
+`delete` for mutations. Use `param` for untrusted request input at the HTTP
+boundary. Avoid generic `queries.ts`, `commands.ts`, `service.ts`, and
+`get_data` or `set_data` names when a case-specific name is available.
+
+See [CODE_STYLE.md](docs/architecture/CODE_STYLE.md) for the complete naming
+and dependency rules.
 
 ## 🗄️ Database Schema
 
