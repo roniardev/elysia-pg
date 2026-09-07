@@ -2,13 +2,13 @@ import { Elysia } from "elysia"
 import { rateLimit } from "elysia-rate-limit"
 
 import { config } from "@/app/config"
-import { forgotPassword } from "@/src/auth/usecase/forgot-password"
-import { login } from "@/src/auth/usecase/login"
-import { logout } from "@/src/auth/usecase/logout"
-import { regenerateAccessToken } from "@/src/auth/usecase/regenerate-access-token"
-import { register } from "@/src/auth/usecase/register"
-import { resetPassword } from "@/src/auth/usecase/reset-password"
-import { verifyEmail } from "@/src/auth/usecase/verify-email"
+import { forgotPassword } from "@/src/auth/delivery/presenter/http/forgot_password"
+import { login } from "@/src/auth/delivery/presenter/http/login"
+import { logout } from "@/src/auth/delivery/presenter/http/logout"
+import { regenerateAccessToken } from "@/src/auth/delivery/presenter/http/regenerate_access_token"
+import { register } from "@/src/auth/delivery/presenter/http/register"
+import { resetPassword } from "@/src/auth/delivery/presenter/http/reset_password"
+import { verifyEmail } from "@/src/auth/delivery/presenter/http/verify_email"
 
 const RATE_LIMIT_MAX: Readonly<Record<string, number>> = {
     test: 10000,

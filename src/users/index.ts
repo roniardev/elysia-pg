@@ -1,12 +1,12 @@
 import { Elysia } from "elysia"
 
-import { createUser } from "@/src/users/usecase/create"
-import { deleteUser } from "@/src/users/usecase/delete"
-import { readUser } from "@/src/users/usecase/read"
-import { readAllUser } from "@/src/users/usecase/read-all"
+import { createUser } from "@/src/users/delivery/presenter/http/create_user"
+import { deleteUser } from "@/src/users/delivery/presenter/http/delete_user"
+import { getListUsers } from "@/src/users/delivery/presenter/http/get_list_users"
+import { getUser } from "@/src/users/delivery/presenter/http/get_user"
 
 export const users = new Elysia()
     .use(createUser)
-    .use(readUser)
+    .use(getUser)
     .use(deleteUser)
-    .use(readAllUser)
+    .use(getListUsers)

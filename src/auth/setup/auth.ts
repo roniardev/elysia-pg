@@ -2,6 +2,7 @@ import { jwt } from "@elysiajs/jwt"
 import { Elysia, t } from "elysia"
 
 import { config } from "@/app/config"
+import { userIdSchema } from "@/src/general/delivery/entity-id-schema"
 
 export const jwtAccessSetup = new Elysia({
     name: "jwtAccess",
@@ -9,7 +10,7 @@ export const jwtAccessSetup = new Elysia({
     jwt({
         name: "jwtAccess",
         schema: t.Object({
-            id: t.String(),
+            id: userIdSchema,
         }),
         secret: config.JWT_ACCESS_SECRET,
         exp: "25m",
@@ -22,7 +23,7 @@ export const jwtRefreshSetup = new Elysia({
     jwt({
         name: "jwtRefresh",
         schema: t.Object({
-            id: t.String(),
+            id: userIdSchema,
         }),
         secret: config.JWT_REFRESH_SECRET,
         exp: "7d",
@@ -35,7 +36,7 @@ export const jwtEmailSetup = new Elysia({
     jwt({
         name: "jwtEmail",
         schema: t.Object({
-            id: t.String(),
+            id: userIdSchema,
         }),
         secret: config.JWT_EMAIL_SECRET,
         exp: "15m",

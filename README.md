@@ -167,6 +167,28 @@ Enforced by:
 
 `make lint` runs ESLint. `make lint-fix` auto-fixes what ESLint can.
 
+## 🧭 Architecture and Contributor Guides
+
+Application features follow a graph-first Effect architecture: service code
+expresses the success graph (`A`), tagged errors describe failure paths (`E`),
+and `Context` requirements make dependencies explicit (`R`).
+
+- Start with the [documentation index](docs/README.md).
+- Read the [Effect Design Thinking guide](docs/architecture/EFFECT_DESIGN_THINKING.md).
+- Follow the [feature implementation playbook](docs/architecture/FEATURE_IMPLEMENTATION_GUIDE.md).
+- Use the [testing guide](docs/architecture/TESTING_EFFECT_GRAPHS.md).
+- Check the [migration status and process](docs/architecture/MIGRATION_GUIDE.md).
+- Coding agents must also follow [AGENTS.md](AGENTS.md) and can use the
+  project-scoped skills in `.agents/skills/`.
+
+Run the complete architecture-aware local gate with:
+
+```bash
+bun run check
+# or
+make check
+```
+
 ## 📋 Prerequisites
 
 - [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/)
@@ -328,7 +350,7 @@ make release-clean
 - **Environment Isolation**: Clear separation between production and development
 - **Access Control**: Proper authentication and authorization
 - **Audit Trail**: Comprehensive logging for all operations
-- **Input Validation**: Secure handling of all user inputs
+- **Request Validation**: Secure handling of all user-supplied parameters
 
 ## 📊 Monitoring and Maintenance
 

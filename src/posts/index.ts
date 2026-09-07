@@ -1,14 +1,14 @@
 import { Elysia } from "elysia"
 
-import { createPost } from "@/src/posts/usecase/create"
-import { deletePost } from "@/src/posts/usecase/delete"
-import { readPost } from "@/src/posts/usecase/read"
-import { readAllPost } from "@/src/posts/usecase/read-all"
-import { updatePost } from "@/src/posts/usecase/update"
+import { createPost } from "@/src/posts/delivery/presenter/http/create_post"
+import { deletePost } from "@/src/posts/delivery/presenter/http/delete_post"
+import { getListPosts } from "@/src/posts/delivery/presenter/http/get_list_posts"
+import { getPost } from "@/src/posts/delivery/presenter/http/get_post"
+import { updatePost } from "@/src/posts/delivery/presenter/http/update_post"
 
 export const posts = new Elysia()
     .use(createPost)
-    .use(readAllPost)
+    .use(getListPosts)
     .use(deletePost)
-    .use(readPost)
+    .use(getPost)
     .use(updatePost)

@@ -1,7 +1,3 @@
-import { Redis } from "ioredis"
-import { config } from "@/app/config"
+import { makeRedis } from "@/utils/services/redis-client"
 
-export const redis = new Redis({
-    host: config.REDIS_HOST,
-    port: config.REDIS_PORT,
-})
+export const redis = makeRedis()

@@ -51,9 +51,12 @@ help: ## Show this help message
 	@echo ""
 	@echo "$(YELLOW)Development Commands:$(NC)"
 	@echo "  make dev            - Start development server"
+	@echo "  make typecheck      - Run TypeScript checks"
 	@echo "  make lint           - Run linting checks"
 	@echo "  make lint-fix       - Fix linting issues"
 	@echo "  make test           - Run tests"
+	@echo "  make test-unit      - Run Effect graph unit tests"
+	@echo "  make check          - Run typecheck, lint, and unit tests"
 	@echo ""
 	@echo "$(YELLOW)Utility Commands:$(NC)"
 	@echo "  make install        - Install dependencies"
@@ -184,10 +187,25 @@ lint-fix: ## Fix linting issues
 	@echo "$(GREEN)Fixing linting issues...$(NC)"
 	bun run lint:fix
 
+.PHONY: typecheck
+typecheck: ## Run TypeScript checks
+	@echo "$(GREEN)Running TypeScript checks...$(NC)"
+	bun run typecheck
+
 .PHONY: test
 test: ## Run tests
 	@echo "$(GREEN)Running tests...$(NC)"
 	bun test
+
+.PHONY: test-unit
+test-unit: ## Run Effect graph unit tests
+	@echo "$(GREEN)Running Effect graph unit tests...$(NC)"
+	bun run test:unit
+
+.PHONY: check
+check: ## Run typecheck, lint, and Effect graph unit tests
+	@echo "$(GREEN)Running project checks...$(NC)"
+	bun run check
 
 # Utility Commands
 .PHONY: install

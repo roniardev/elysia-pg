@@ -4,6 +4,9 @@
     "scripts": {
         "dev": "bun --watch app/index.ts",
         "start": "NODE_ENV=production bun run ./app/index.ts",
+        "typecheck": "tsc --noEmit",
+        "test:unit": "bun test test/unit",
+        "check": "bun run typecheck && bun run lint && bun run test:unit",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "db:generate": "bun x drizzle-kit generate",
