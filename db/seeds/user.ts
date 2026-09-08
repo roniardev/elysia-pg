@@ -1,14 +1,7 @@
-import { drizzle } from "drizzle-orm/postgres-js"
-import postgres from "postgres"
-import { config } from "@/app/config"
 import * as schema from "@/db/schema"
+import type { SeedDatabase } from "@/db/seeds/seed_database"
 
-export async function runUsersSeed() {
-    const connection = postgres(config.DATABASE_URL)
-    const db = drizzle(connection, { schema, logger: true })
-
-    console.log("⏳ Running users seeder...")
-
+export async function runUsersSeed(database: SeedDatabase) {
     const start = Date.now()
     const hashedPassword = await Bun.password.hash("satusatu")
     const hashedAdminPassword = await Bun.password.hash("kapitalis")
@@ -28,16 +21,6 @@ export async function runUsersSeed() {
         },
     ]
 
-    try {
-        const end = Date.now()
-
-        await db.insert(schema.users).values(data)
-        console.log(`✅ Users Seeding completed in ${end - start}ms`)
-    } catch (err) {
-        const end = Date.now()
-        console.error(`
-        ❌ Posts Seeding failed in ${end - start}ms
-        ${err}
-        `)
-    }
+    await database.insert(schema.users).values(data).onConflictDoNothing()
+    console.log(`✅ Users seeding completed in ${Date.now() - start}ms`)
 }

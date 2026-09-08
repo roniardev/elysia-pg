@@ -1,15 +1,7 @@
-import { drizzle } from "drizzle-orm/postgres-js"
-import postgres from "postgres"
-
-import { config } from "@/app/config"
 import * as schema from "@/db/schema"
+import type { SeedDatabase } from "@/db/seeds/seed_database"
 
-export async function runScopesSeed() {
-    const connection = postgres(config.DATABASE_URL)
-    const db = drizzle(connection, { schema, logger: true })
-
-    console.log("⏳ Running scopes seeder...")
-
+export async function runScopesSeed(database: SeedDatabase) {
     const start = Date.now()
     const data: (typeof schema.scopes.$inferInsert)[] = [
         {
@@ -29,16 +21,6 @@ export async function runScopesSeed() {
         },
     ]
 
-    try {
-        const end = Date.now()
-
-        await db.insert(schema.scopes).values(data)
-        console.log(`✅ Scopes Seeding completed in ${end - start}ms`)
-    } catch (err) {
-        const end = Date.now()
-        console.error(`
-        ❌ Scopes Seeding failed in ${end - start}ms
-        ${err}
-        `)
-    }
+    await database.insert(schema.scopes).values(data).onConflictDoNothing()
+    console.log(`✅ Scopes seeding completed in ${Date.now() - start}ms`)
 }

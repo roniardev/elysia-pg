@@ -1,15 +1,7 @@
-import { drizzle } from "drizzle-orm/postgres-js"
-import postgres from "postgres"
-
-import { config } from "@/app/config"
 import * as schema from "@/db/schema"
+import type { SeedDatabase } from "@/db/seeds/seed_database"
 
-export async function runScopeUserPermissionsSeed() {
-    const connection = postgres(config.DATABASE_URL)
-    const db = drizzle(connection, { schema, logger: true })
-
-    console.log("⏳ Running scope user permissions seeder...")
-
+export async function runScopeUserPermissionsSeed(database: SeedDatabase) {
     const start = Date.now()
     const data: (typeof schema.scopeUserPermissions.$inferInsert)[] = [
         // User Manage Post Permissions
@@ -81,24 +73,17 @@ export async function runScopeUserPermissionsSeed() {
             userPermissionId: "01JMBB83W4T1Q2NMZWKQ704YCZ",
         },
         {
-            id: "1JMBCCANBYVC2WCCE9VSZN02V",
+            id: "01JMBCCANBYVC2WCCE9VSZN02V",
             scopeId: "01JMBBHZS7Q3BW2DS33P97Z0RA",
             userPermissionId: "01JMBB83W46SYQFD3BS4TGD1CW",
         },
     ]
 
-    try {
-        const end = Date.now()
-
-        await db.insert(schema.scopeUserPermissions).values(data)
-        console.log(
-            `✅ Scope User Permissions Seeding completed in ${end - start}ms`,
-        )
-    } catch (err) {
-        const end = Date.now()
-        console.error(`
-        ❌ User Permissions Seeding failed in ${end - start}ms
-        ${err}
-        `)
-    }
+    await database
+        .insert(schema.scopeUserPermissions)
+        .values(data)
+        .onConflictDoNothing()
+    console.log(
+        `✅ Scope user permissions seeding completed in ${Date.now() - start}ms`,
+    )
 }

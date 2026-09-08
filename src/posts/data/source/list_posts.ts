@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, like, type SQL } from "drizzle-orm"
+import { and, asc, desc, eq, isNull, like, type SQL } from "drizzle-orm"
 
 import { Scope } from "@/common/enum/scopes"
 import Sorting from "@/common/enum/sorting"
@@ -13,7 +13,7 @@ export const buildPostWhere = (
     search: string | undefined,
     scope: PostScope,
 ): SQL | undefined => {
-    const conditions = []
+    const conditions = [isNull(posts.deletedAt)]
 
     if (scope.scope === Scope.PERSONAL) {
         conditions.push(eq(posts.userId, scope.userId))

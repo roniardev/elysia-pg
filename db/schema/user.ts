@@ -1,9 +1,10 @@
-import { relations } from "drizzle-orm"
+import { relations, sql } from "drizzle-orm"
 import {
     boolean,
     index,
     pgTable,
     timestamp,
+    uniqueIndex,
     varchar,
 } from "drizzle-orm/pg-core"
 
@@ -13,17 +14,23 @@ export const users = pgTable(
     "users",
     {
         id: varchar("id", { length: 26 }).primaryKey(),
-        email: varchar("email", { length: 255 }).unique().notNull(),
+        email: varchar("email", { length: 255 }).notNull(),
         emailVerified: boolean("email_verified").default(false).notNull(),
         hashedPassword: varchar("hashed_password", { length: 255 }),
         photo: varchar("photo", { length: 255 }),
         createdAt: timestamp("created_at").defaultNow().notNull(),
-        updatedAt: timestamp("updated_at", { mode: "date" }).$onUpdate(
-            () => new Date(),
-        ),
+        updatedAt: timestamp("updated_at", { mode: "date" })
+            .defaultNow()
+            .$onUpdate(() => new Date())
+            .notNull(),
         deletedAt: timestamp("deleted_at", { mode: "date" }),
     },
-    (t) => [index("user_email_idx").on(t.email)],
+    (t) => [
+        index("user_email_idx").on(t.email),
+        uniqueIndex("users_active_email_lower_unique")
+            .on(sql`lower(${t.email})`)
+            .where(sql`${t.deletedAt} IS NULL`),
+    ],
 )
 
 export type User = typeof users.$inferSelect

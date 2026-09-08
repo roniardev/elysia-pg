@@ -1,15 +1,7 @@
-import { drizzle } from "drizzle-orm/postgres-js"
-import postgres from "postgres"
-
-import { config } from "@/app/config"
 import * as schema from "@/db/schema"
+import type { SeedDatabase } from "@/db/seeds/seed_database"
 
-export async function runPermissionsSeed() {
-    const connection = postgres(config.DATABASE_URL)
-    const db = drizzle(connection, { schema, logger: true })
-
-    console.log("⏳ Running permissions seeder...")
-
+export async function runPermissionsSeed(database: SeedDatabase) {
     const start = Date.now()
     const data: (typeof schema.permissions.$inferInsert)[] = [
         {
@@ -64,16 +56,9 @@ export async function runPermissionsSeed() {
         },
     ]
 
-    try {
-        const end = Date.now()
-
-        await db.insert(schema.permissions).values(data)
-        console.log(`✅ Permissions Seeding completed in ${end - start}ms`)
-    } catch (err) {
-        const end = Date.now()
-        console.error(`
-        ❌ Permissions Seeding failed in ${end - start}ms
-        ${err}
-        `)
-    }
+    await database
+        .insert(schema.permissions)
+        .values(data)
+        .onConflictDoNothing()
+    console.log(`✅ Permissions seeding completed in ${Date.now() - start}ms`)
 }

@@ -1,5 +1,12 @@
-import { relations } from "drizzle-orm"
-import { boolean, pgTable, timestamp, varchar } from "drizzle-orm/pg-core"
+import { relations, sql } from "drizzle-orm"
+import {
+    boolean,
+    index,
+    pgTable,
+    timestamp,
+    uniqueIndex,
+    varchar,
+} from "drizzle-orm/pg-core"
 
 import { scopes } from "@/db/schema/scope"
 import { userPermissions } from "@/db/schema/user-permissions"
@@ -13,11 +20,18 @@ export const scopeUserPermissions = pgTable("scope_user_permissions", {
         .notNull()
         .references(() => userPermissions.id),
     createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { mode: "date" }).$onUpdate(
-        () => new Date(),
-    ),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+        .defaultNow()
+        .$onUpdate(() => new Date())
+        .notNull(),
     revoked: boolean("revoked").default(false).notNull(),
-})
+}, (t) => [
+    index("scope_user_permissions_scope_idx").on(t.scopeId),
+    index("scope_user_permissions_assignment_idx").on(t.userPermissionId),
+    uniqueIndex("scope_user_permissions_active_unique")
+        .on(t.scopeId, t.userPermissionId)
+        .where(sql`${t.revoked} = false`),
+])
 
 export const scopeUserPermissionsRelations = relations(
     scopeUserPermissions,

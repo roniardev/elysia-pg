@@ -12,7 +12,7 @@
         "db:generate": "bun x drizzle-kit generate",
         "db:push": "bun x drizzle-kit push",
         "db:migrate": "bun x drizzle-kit migrate",
-        "db:seed": " bun ./db/seeds/index.ts",
+        "db:seed": "bun ./db/seeds/index.ts",
         "db:diagram": "bun ./utils/dbml.ts && bun x dbml-renderer -i ./schema.dbml -o schema.svg",
         "db:reset": "bun ./db/reset.ts"
     },

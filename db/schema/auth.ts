@@ -1,9 +1,10 @@
-import { relations } from "drizzle-orm"
+import { relations, sql } from "drizzle-orm"
 import {
     boolean,
     index,
     pgTable,
     timestamp,
+    uniqueIndex,
     varchar,
 } from "drizzle-orm/pg-core"
 
@@ -14,7 +15,6 @@ export const emailVerificationTokens = pgTable(
     {
         id: varchar("id", { length: 26 }).primaryKey(),
         userId: varchar("user_id", { length: 26 })
-            .unique()
             .notNull()
             .references(() => users.id),
         email: varchar("email", { length: 255 }).notNull(),
@@ -33,6 +33,12 @@ export const emailVerificationTokens = pgTable(
     (t) => [
         index("verification_code_user_idx").on(t.userId),
         index("verification_code_email_idx").on(t.email),
+        index("verification_code_active_lookup_idx")
+            .on(t.userId, t.expiresAt)
+            .where(sql`${t.revoked} = false AND ${t.verifiedAt} IS NULL`),
+        uniqueIndex("verification_code_active_user_unique")
+            .on(t.userId)
+            .where(sql`${t.revoked} = false AND ${t.verifiedAt} IS NULL`),
     ],
 )
 
@@ -52,7 +58,12 @@ export const passwordResetTokens = pgTable(
             mode: "date",
         }).notNull(),
     },
-    (t) => [index("password_token_user_idx").on(t.userId)],
+    (t) => [
+        index("password_token_user_idx").on(t.userId),
+        index("password_token_active_lookup_idx")
+            .on(t.userId, t.expiresAt)
+            .where(sql`${t.revoked} = false`),
+    ],
 )
 
 export const emailVerificationTokenRelations = relations(

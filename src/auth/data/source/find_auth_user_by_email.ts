@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm"
 import type { Database } from "@/db/database"
 
 export const findAuthUserByEmail = (
@@ -7,7 +8,7 @@ export const findAuthUserByEmail = (
 ) => database.query.users.findFirst({
     where: (table, { and, eq, isNull }) => {
         const conditions = [
-            eq(table.email, email),
+            sql`lower(${table.email}) = lower(${email})`,
             isNull(table.deletedAt),
         ]
 

@@ -1,16 +1,8 @@
 import { faker } from "@faker-js/faker"
-import { drizzle } from "drizzle-orm/postgres-js"
-import postgres from "postgres"
-import { ulid } from "ulid"
-import { config } from "@/app/config"
 import * as schema from "@/db/schema"
+import type { SeedDatabase } from "@/db/seeds/seed_database"
 
-export async function runPostsSeed() {
-    const connection = postgres(config.DATABASE_URL)
-    const db = drizzle(connection, { schema, logger: true })
-
-    console.log("⏳ Running posts seeder...")
-
+export async function runPostsSeed(database: SeedDatabase) {
     const start = Date.now()
     const data: (typeof schema.posts.$inferInsert)[] = []
 
@@ -18,7 +10,7 @@ export async function runPostsSeed() {
         data.push({
             title: faker.lorem.sentence(10),
             userId: "01JM71SE4S1SHAW7YGS6SWQC2H",
-            id: ulid(),
+            id: `01JMBPST${String(i).padStart(18, "0")}`,
             status: faker.helpers.arrayElement(["draft", "published"]),
             tags: "random",
             visibility: faker.helpers.arrayElement(["public", "private"]),
@@ -27,16 +19,6 @@ export async function runPostsSeed() {
         })
     }
 
-    try {
-        const end = Date.now()
-
-        await db.insert(schema.posts).values(data)
-        console.log(`✅ Posts Seeding completed in ${end - start}ms`)
-    } catch (err) {
-        const end = Date.now()
-        console.error(`
-        ❌ Posts Seeding failed in ${end - start}ms
-        ${err}
-        `)
-    }
+    await database.insert(schema.posts).values(data).onConflictDoNothing()
+    console.log(`✅ Posts seeding completed in ${Date.now() - start}ms`)
 }
