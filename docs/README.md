@@ -17,6 +17,7 @@
 
 ## Operational references
 
+- [Logging](LOGGING.md) describes wide request events and safe logging.
 - [Changelog](CHANGELOG.md)
 - [Release notes v0.1.4](RELEASE_NOTES_v0.1.4.md)
 - [Short architecture policy](DESIGN_THINKING.md)

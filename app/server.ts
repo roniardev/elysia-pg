@@ -5,6 +5,7 @@ import { swagger } from "@elysiajs/swagger"
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto"
 import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-node"
 import { Elysia } from "elysia"
+import { compression } from "elysia-compress"
 import { config } from "@/app/config"
 import type { GeneralResponse } from "@/common/model/general-response"
 import { auth } from "@/src/auth"
@@ -47,6 +48,7 @@ export const app = new Elysia({
             ],
         }),
     )
+    .use(compression())
     .onRequest(({ request, set }) => {
         const context = createRequestLogContext(request)
         requestContexts.set(request, context)

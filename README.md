@@ -152,8 +152,8 @@ make full-setup     # Complete development setup with database
 - [CORS](https://elysiajs.com/plugins/cors.html) - Cross-origin resource sharing
 - [Swagger](https://elysiajs.com/plugins/swagger.html) - API documentation
 - [JWT](https://elysiajs.com/plugins/jwt.html) - JSON Web Token authentication
-- [Autoload](https://github.com/kravetsone/elysia-autoload) - Route autoloading
-- [Logger](https://github.com/bogeychan/elysia-logger) - Request logging
+- Compression - Response compression through `elysia-compress`
+- [Winston](https://github.com/winstonjs/winston) - Structured request logging
 - [Bearer](https://elysiajs.com/plugins/bearer.html) - Bearer token authentication
 - [Server Timing](https://elysiajs.com/plugins/server-timing.html) - Performance monitoring
 
