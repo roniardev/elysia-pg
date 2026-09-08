@@ -5,14 +5,18 @@ import { swagger } from "@elysiajs/swagger"
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto"
 import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-node"
 import { Elysia } from "elysia"
-import { Logestic } from "logestic"
 import { config } from "@/app/config"
+import type { GeneralResponse } from "@/common/model/general-response"
 import { auth } from "@/src/auth"
 import { permissions } from "@/src/permissions"
 import { posts } from "@/src/posts"
 import { users } from "@/src/users"
 import { encryptResponse } from "@/utils/encrypt-response"
-import logger from "@/utils/logger"
+import {
+    createRequestLogContext,
+    logHttpRequest,
+    type RequestLogContext,
+} from "@/utils/logger"
 
 const otlpHeaders: Record<string, string> = {
     "X-Axiom-Dataset": config.OTLP_AXIOM_DATASET,
@@ -21,6 +25,8 @@ const otlpHeaders: Record<string, string> = {
 if (config.OTLP_AXIOM_TOKEN) {
     otlpHeaders.Authorization = `Bearer ${config.OTLP_AXIOM_TOKEN}`
 }
+
+const requestContexts = new WeakMap<Request, RequestLogContext>()
 
 export const app = new Elysia({
     serve: {
@@ -41,7 +47,11 @@ export const app = new Elysia({
             ],
         }),
     )
-    .use(Logestic.preset("fancy"))
+    .onRequest(({ request, set }) => {
+        const context = createRequestLogContext(request)
+        requestContexts.set(request, context)
+        set.headers["x-request-id"] = context.requestId
+    })
     .use(swagger())
     .use(
         cors({
@@ -49,7 +59,15 @@ export const app = new Elysia({
         }),
     )
     .use(serverTiming())
-    .onError(({ error, code, set }) => {
+    .onError(({ error, code, set, request }) => {
+        const context = requestContexts.get(request)
+        if (context) {
+            requestContexts.set(request, {
+                ...context,
+                error,
+            })
+        }
+
         switch (code) {
             case "VALIDATION": {
                 const resError = error.all as unknown as Array<
@@ -72,7 +90,6 @@ export const app = new Elysia({
             }
 
             case "INTERNAL_SERVER_ERROR": {
-                logger.error(error)
                 return {
                     status: false,
                     message: "Internal Server Error",
@@ -80,7 +97,34 @@ export const app = new Elysia({
             }
         }
     })
-    .onAfterHandle(({ response }) => encryptResponse(response))
+    .onAfterResponse(({ request, response, set }) => {
+        const context = requestContexts.get(request)
+        if (!context) {
+            return
+        }
+
+        let statusCode = Number(set.status)
+        if (!statusCode && response instanceof Response) {
+            statusCode = response.status
+        }
+        if (!statusCode) {
+            statusCode = 200
+        }
+        let outcome: "success" | "error" = "success"
+        if (statusCode >= 400) {
+            outcome = "error"
+        }
+        logHttpRequest({
+            context,
+            statusCode,
+            outcome,
+            error: context.error,
+        })
+        requestContexts.delete(request)
+    })
+    .onAfterHandle(({ response }) =>
+        encryptResponse(response as GeneralResponse),
+    )
     .use(auth)
     .use(posts)
     .use(users)

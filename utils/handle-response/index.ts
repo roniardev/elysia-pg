@@ -2,7 +2,6 @@ import {
     ErrorMessage,
     type SuccessMessage,
 } from "@/common/enum/response-message"
-import logger from "@/utils/logger"
 
 export const handleResponse = (params: {
     message: ErrorMessage | SuccessMessage
@@ -11,19 +10,12 @@ export const handleResponse = (params: {
     attributes?: Record<string, unknown>
     path?: string
 }) => {
-    const { message, callback, data, attributes, path } = params
+    const { message, callback, data, attributes } = params
     callback()
 
     const isErrorMessage = Object.values(ErrorMessage).includes(
         message as ErrorMessage,
     )
-
-    logger.info({
-        message,
-        data,
-        attributes,
-        path: `Response:${path}`,
-    })
 
     return {
         status: !isErrorMessage,

@@ -4,6 +4,7 @@ import {
     initializeApplicationResources,
 } from "@/app/runtime"
 import { app } from "@/app/server"
+import logger from "@/utils/logger"
 
 const signals = ["SIGINT", "SIGTERM"]
 let shuttingDown = false
@@ -17,7 +18,11 @@ for (const signal of signals) {
         }
 
         shuttingDown = true
-        console.log(`Received ${signal}. Initiating graceful shutdown...`)
+        logger.info({
+            event: "application_shutdown",
+            signal,
+            outcome: "started",
+        })
         await app.stop()
         await closeApplicationResources()
         process.exit(0)
@@ -25,13 +30,25 @@ for (const signal of signals) {
 }
 
 process.on("uncaughtException", (error) => {
-    console.error(error)
+    logger.error({
+        event: "application_failure",
+        outcome: "uncaught_exception",
+        error,
+    })
 })
 
 process.on("unhandledRejection", (error) => {
-    console.error(error)
+    logger.error({
+        event: "application_failure",
+        outcome: "unhandled_rejection",
+        error,
+    })
 })
 
-app.listen(config.PORT, () =>
-    console.log(`🦊 Server started at ${app.server?.url.origin}`),
-)
+app.listen(config.PORT, () => {
+    logger.info({
+        event: "application_started",
+        address: app.server?.url.origin,
+        port: config.PORT,
+    })
+})

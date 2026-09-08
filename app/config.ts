@@ -44,4 +44,8 @@ export const config = {
         .get("OTLP_AXIOM_DATASET")
         .default("elysia_pg")
         .asString(),
+    APP_VERSION: env.get("APP_VERSION").default("0.1.6").asString(),
+    COMMIT_SHA: env.get("COMMIT_SHA").default("unknown").asString(),
+    REGION: env.get("REGION").default("unknown").asString(),
+    INSTANCE_ID: env.get("INSTANCE_ID").default("unknown").asString(),
 }

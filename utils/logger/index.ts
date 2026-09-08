@@ -1,5 +1,54 @@
 import winston from "winston"
 import DailyRotateFile from "winston-daily-rotate-file"
+import { config } from "@/app/config"
+
+export type RequestLogContext = {
+    requestId: string
+    method: string
+    path: string
+    startedAt: number
+    error?: unknown
+}
+
+export const createRequestLogContext = (request: Request): RequestLogContext => ({
+    requestId: crypto.randomUUID(),
+    method: request.method,
+    path: new URL(request.url).pathname,
+    startedAt: performance.now(),
+})
+
+export const logHttpRequest = (params: {
+    context: RequestLogContext
+    statusCode: number
+    outcome: "success" | "error"
+    error?: unknown
+}) => {
+    const { context, statusCode, outcome, error } = params
+    let errorDetails = error
+    if (error instanceof Error) {
+        errorDetails = {
+            type: error.name,
+            message: error.message,
+            stack: error.stack,
+        }
+    }
+
+    logger.info({
+        event: "http_request",
+        request_id: context.requestId,
+        method: context.method,
+        path: context.path,
+        status_code: statusCode,
+        outcome,
+        duration_ms: Math.round(performance.now() - context.startedAt),
+        environment: config.NODE_ENV,
+        service_version: config.APP_VERSION,
+        commit_sha: config.COMMIT_SHA,
+        region: config.REGION,
+        instance_id: config.INSTANCE_ID,
+        error: errorDetails,
+    })
+}
 
 const levels = {
     error: 0,
