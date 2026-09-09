@@ -6,7 +6,7 @@ live under `docs/architecture/`.
 
 ## Tech Stack
 
-Bun 1.3.x, TypeScript 5.8, Elysia 2.0.0-beta.14, Effect 3.22, Drizzle + PostgreSQL 18,
+Bun 1.4.x, TypeScript 5.8, Elysia 2.0.0-beta.14, Effect 3.22, Drizzle + PostgreSQL 18,
 ioredis, Verrou locks. Path alias `@/*` → repo root.
 
 ## Code Style
@@ -34,7 +34,7 @@ ESLint 9 (`eslint.config.mjs`) plus Prettier (`.prettierrc`) enforce this.
 - Dev: `make up-dev` then `make dev` (`bun --watch app/index.ts`, port 3000)
 - Full local setup: `make full-setup`
 - DB: `make db-generate` / `db-migrate` / `db-seed` / `db-reset`
-- Prod image: `make build` (`oven/bun:1.3.14`, entry `bun start`)
+- Prod image: `make build` (`oven/bun:1.4.2`, entry `bun start`)
 - Config: `app/config.ts` via `env-var`. Copy `.env.example`; it lists every
   `required()` key plus Redis/lock/encryption defaults.
 

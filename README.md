@@ -67,7 +67,7 @@ make clean          # Remove all containers, images, and volumes
 
 `make build` produces a production image with:
 
-- Base image `oven/bun:1.3.14` with `bun.lock` (text format) for reproducible installs
+- Base image `oven/bun:1.4.2` with `bun.lock` (text format) for reproducible installs
 - A `tsc --noEmit` typecheck gate during the build
 - Entrypoint `bun start` → `app/index.ts` (`NODE_ENV=production`)
 - **Secrets are never baked in** — inject `DATABASE_URL`, Redis, and JWT keys at runtime via environment (see `docker-compose.yml` / `.env.example`)
@@ -213,7 +213,7 @@ make check
 ## 📋 Prerequisites
 
 - [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/)
-- [Bun](https://bun.sh/) ≥ 1.2 (developed on 1.3.14)
+- [Bun](https://bun.sh/) ≥ 1.4 (developed on 1.4.2)
 - [Make](https://www.gnu.org/software/make/) (Build automation tool)
 
 ## 🏗️ Project Structure
@@ -254,7 +254,7 @@ elysia-pg/
 ├── eslint.config.mjs           # ESLint 9 flat config (no-ternary, no-else, stylistic)
 ├── docker-compose.yml          # Production services
 ├── docker-compose.dev.yml      # Development services (PG 5432, Redis 6379)
-├── Dockerfile                  # Production image (oven/bun:1.3.14)
+├── Dockerfile                  # Production image (oven/bun:1.4.2)
 ├── Makefile                    # Build, dev, DB, release automation
 └── package.json                # Project configuration
 ```

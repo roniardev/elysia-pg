@@ -1,8 +1,10 @@
 .git
+.delta
 node_modules
 .env
 .env.*
 *.log
+logs
 coverage
 test
 scripts

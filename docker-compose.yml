@@ -5,18 +5,27 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - .env
     environment:
-      - NODE_ENV=production
+      NODE_ENV: production
+      REDIS_HOST: redis
+      DATABASE_URL: postgresql://elysia-pg:Please-change-password@postgres:5432/elysia-pg
+    ports:
+      - 3000:3000
+    depends_on:
+      - postgres
+      - redis
   postgres:
     container_name: elysia-pg-postgres
-    image: postgres:latest
+    image: postgres:18-alpine
     restart: unless-stopped
     environment:
       - POSTGRES_USER=elysia-pg
       - POSTGRES_PASSWORD=Please-change-password
       - POSTGRES_DB=elysia-pg
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
   redis:
     container_name: elysia-pg-redis
     image: redis:latest

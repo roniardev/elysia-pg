@@ -1,7 +1,6 @@
-# use the official Bun image
-# see all versions at https://hub.docker.com/r/oven/bun/tags
 # bun >= 1.2 required: repo lockfile is bun.lock (text format), not bun.lockb
-FROM oven/bun:1.3.14 AS base
+# Elysia 2.0.0-beta.14 is developed against Bun 1.4
+FROM oven/bun:1.4.2 AS base
 WORKDIR /usr/src/app
 
 # install dependencies into temp directory
