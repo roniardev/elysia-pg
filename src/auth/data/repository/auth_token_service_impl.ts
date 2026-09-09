@@ -6,7 +6,7 @@ import {
     AuthTokenError,
     AuthTokens,
 } from "@/src/auth/domain/repository/auth_token_service"
-import { UserId } from "@/src/general/domain/entity-id"
+import { UserId } from "@/src/general/domain/entity_id"
 import ExpiredTime from "@/utils/expired-time"
 import { isUlid } from "@/utils/ulid"
 

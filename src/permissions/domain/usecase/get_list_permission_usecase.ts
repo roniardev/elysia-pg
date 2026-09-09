@@ -3,7 +3,7 @@ import { Effect } from "effect"
 import {
     applicationError,
     ApplicationErrorCode,
-} from "@/src/general/domain/application-error"
+} from "@/src/general/domain/application_error"
 import type { PermissionListQuery } from "@/src/permissions/domain/entity/permission"
 import { PermissionRepository } from "@/src/permissions/domain/repository/permission_repository"
 import { getPagination } from "@/utils/pagination"

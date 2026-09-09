@@ -2,11 +2,11 @@ import { describe, expect, test } from "bun:test"
 
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
-import { toApplicationErrorResponse } from "@/src/general/delivery/application-error-response"
+import { toApplicationErrorResponse } from "@/src/general/delivery/application_error_response"
 import {
     applicationError,
     ApplicationErrorCode,
-} from "@/src/general/domain/application-error"
+} from "@/src/general/domain/application_error"
 
 describe("Application error HTTP mapping", () => {
     test("maps domain absence without storing HTTP status in the error", () => {

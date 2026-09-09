@@ -97,7 +97,7 @@ make restore        # Restore database from backup
 # Development server
 make dev            # Start development server with hot reload
 
-# Code quality (Biome 2.5.8 + no-ternary/no-else guard)
+# Code quality (ESLint 9 + no-ternary/no-else guard)
 make lint           # Run linting checks
 make lint-fix       # Fix linting issues automatically
 

@@ -10,7 +10,7 @@ import type {
     UpdatedPost,
     UpdatePostParam,
 } from "@/src/posts/domain/entity/post"
-import type { PostId, UserId } from "@/src/general/domain/entity-id"
+import type { PostId, UserId } from "@/src/general/domain/entity_id"
 
 export class PostRepositoryError extends Data.TaggedError(
     "PostRepositoryError",

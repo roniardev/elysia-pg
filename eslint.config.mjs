@@ -13,6 +13,7 @@ export default [
             "logs/",
             "docs/",
             "db/migrations/",
+            ".delta/",
             "schema.svg",
             "schema.dbml",
             "bun.lock",

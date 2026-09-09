@@ -5,7 +5,7 @@ import {
     toPost,
     toUpdatedPost,
 } from "@/src/posts/data/model/post_model"
-import { UserId } from "@/src/general/domain/entity-id"
+import { UserId } from "@/src/general/domain/entity_id"
 import { getPostCount } from "@/src/posts/data/source/count_posts"
 import { createPost } from "@/src/posts/data/source/create_post"
 import { deletePost } from "@/src/posts/data/source/delete_post"

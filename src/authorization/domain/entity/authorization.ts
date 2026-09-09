@@ -8,7 +8,7 @@ import type { Scope } from "@/common/enum/scopes"
 import type {
     UserId,
     UserPermissionId,
-} from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/entity_id"
 
 export type PermissionName =
     | ManagePermission

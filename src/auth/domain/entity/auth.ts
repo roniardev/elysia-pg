@@ -2,7 +2,7 @@ import type { User } from "@/src/users/domain/entity/user"
 import type {
     AuthTokenId,
     UserId,
-} from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/entity_id"
 
 export type AuthUser = User
 

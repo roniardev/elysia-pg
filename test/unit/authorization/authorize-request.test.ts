@@ -9,11 +9,11 @@ import {
     type AuthorizationRepositoryService,
 } from "@/src/authorization/domain/repository/authorization_repository"
 import { authorizeRequestUsecase } from "@/src/authorization/domain/usecase/authorize_request_usecase"
-import { ApplicationErrorCode } from "@/src/general/domain/application-error"
+import { ApplicationErrorCode } from "@/src/general/domain/application_error"
 import {
     UserId,
     UserPermissionId,
-} from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/entity_id"
 
 const request = {
     accessToken: "access-token",

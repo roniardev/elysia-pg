@@ -4,7 +4,7 @@ import { AuthRepository } from "@/src/auth/domain/repository/auth_repository"
 import { AuthSessionRepository } from "@/src/auth/domain/repository/auth_session_repository"
 import { AuthTokens } from "@/src/auth/domain/repository/auth_token_service"
 import { authError, internalAuthError } from "@/src/auth/domain/usecase/errors"
-import { ApplicationErrorCode } from "@/src/general/domain/application-error"
+import { ApplicationErrorCode } from "@/src/general/domain/application_error"
 
 const unauthorized = () => authError(ApplicationErrorCode.UNAUTHORIZED)
 

@@ -3,7 +3,7 @@ import { Effect } from "effect"
 import {
     applicationError,
     ApplicationErrorCode,
-} from "@/src/general/domain/application-error"
+} from "@/src/general/domain/application_error"
 import { UserRepository } from "@/src/users/domain/repository/user_repository"
 import { getPagination } from "@/utils/pagination"
 

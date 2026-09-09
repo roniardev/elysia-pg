@@ -7,7 +7,7 @@ import {
     PermissionId,
     UserId,
     UserPermissionId,
-} from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/entity_id"
 
 type UserPermissionRow = Omit<
     UserPermission,

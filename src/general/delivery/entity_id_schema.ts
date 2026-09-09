@@ -6,7 +6,7 @@ import {
     PostId,
     UserId,
     UserPermissionId,
-} from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/entity_id"
 import { ULID_PATTERN } from "@/utils/ulid"
 
 const ulidSchema = t.String({ pattern: ULID_PATTERN })

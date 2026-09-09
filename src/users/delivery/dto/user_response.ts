@@ -1,6 +1,6 @@
 import { t } from "elysia"
 
-import { userIdSchema } from "@/src/general/delivery/entity-id-schema"
+import { userIdSchema } from "@/src/general/delivery/entity_id_schema"
 
 export const getUserResponse = t.Object({
     message: t.String(),

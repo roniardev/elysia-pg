@@ -4,7 +4,7 @@ import {
     permissionIdSchema,
     userIdSchema,
     userPermissionIdSchema,
-} from "@/src/general/delivery/entity-id-schema"
+} from "@/src/general/delivery/entity_id_schema"
 
 export const getUserPermissionResponse = t.Object({
     message: t.String(),

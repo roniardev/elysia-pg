@@ -1,7 +1,7 @@
 import { Context, Data, type Effect } from "effect"
 
 import type { AuthSession } from "@/src/auth/domain/entity/auth"
-import type { UserId } from "@/src/general/domain/entity-id"
+import type { UserId } from "@/src/general/domain/entity_id"
 
 export class AuthSessionError extends Data.TaggedError("AuthSessionError")<{
     cause: unknown

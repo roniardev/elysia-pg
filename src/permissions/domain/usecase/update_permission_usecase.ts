@@ -3,11 +3,11 @@ import { Effect } from "effect"
 import {
     applicationError,
     ApplicationErrorCode,
-} from "@/src/general/domain/application-error"
+} from "@/src/general/domain/application_error"
 import type {
     PermissionId,
     UserId,
-} from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/entity_id"
 import type { PermissionUpdate } from "@/src/permissions/domain/entity/permission"
 import { PermissionRepository } from "@/src/permissions/domain/repository/permission_repository"
 

@@ -4,14 +4,14 @@ import { verifyEmailTemplate } from "@/common/email-templates/verify-email"
 import {
     applicationError,
     ApplicationErrorCode,
-} from "@/src/general/domain/application-error"
+} from "@/src/general/domain/application_error"
 import {
     AuthTokenId,
     PermissionId,
     UserId,
     UserPermissionId,
     type PermissionId as PermissionIdType,
-} from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/entity_id"
 import { EmailSender } from "@/src/general/service/email_sender"
 import { EmailTokenSigner } from "@/src/general/service/email_token_signer"
 import { FrontendConfig } from "@/src/general/service/frontend_config"

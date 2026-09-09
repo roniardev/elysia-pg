@@ -1,6 +1,6 @@
 import { t } from "elysia"
 
-import { permissionIdSchema } from "@/src/general/delivery/entity-id-schema"
+import { permissionIdSchema } from "@/src/general/delivery/entity_id_schema"
 
 export const getPermissionResponse = t.Object({
     message: t.String(),

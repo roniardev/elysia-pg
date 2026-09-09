@@ -11,8 +11,8 @@ import { authorizeRequestUsecase } from "@/src/authorization/domain/usecase/auth
 import { ErrorMessage } from "@/common/enum/response-message"
 import { ResponseErrorStatus } from "@/common/enum/response-status"
 import { jwtAccessSetup } from "@/src/auth/setup/auth"
-import { toApplicationErrorResponse } from "@/src/general/delivery/application-error-response"
-import type { UserId } from "@/src/general/domain/entity-id"
+import { toApplicationErrorResponse } from "@/src/general/delivery/application_error_response"
+import type { UserId } from "@/src/general/domain/entity_id"
 
 export type AuthContext = {
     scope: AuthorizationScope | null

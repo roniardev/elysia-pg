@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test"
 import { Effect } from "effect"
 
-import { ApplicationErrorCode } from "@/src/general/domain/application-error"
+import { ApplicationErrorCode } from "@/src/general/domain/application_error"
 import {
     PermissionId,
     type PermissionId as PermissionIdType,
     UserId,
-} from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/entity_id"
 import { IdGenerator } from "@/src/general/service/id_generator"
 import type {
     CreatePermissionRecord,

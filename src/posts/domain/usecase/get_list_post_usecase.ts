@@ -4,8 +4,8 @@ import type { AuthorizationScope } from "@/src/authorization/domain/entity/autho
 import {
     applicationError,
     ApplicationErrorCode,
-} from "@/src/general/domain/application-error"
-import type { UserId } from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/application_error"
+import type { UserId } from "@/src/general/domain/entity_id"
 import type { PostListQuery } from "@/src/posts/domain/entity/post"
 import { PostRepository } from "@/src/posts/domain/repository/post_repository"
 import { getPagination } from "@/utils/pagination"

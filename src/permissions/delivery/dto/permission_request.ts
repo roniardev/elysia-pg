@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia"
 
-import { permissionIdSchema } from "@/src/general/delivery/entity-id-schema"
+import { permissionIdSchema } from "@/src/general/delivery/entity_id_schema"
 
 export const createPermissionModel = new Elysia().model({
     createPermissionModel: t.Object({

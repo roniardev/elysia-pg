@@ -7,7 +7,7 @@ import type {
 import type {
     AuthTokenId,
     UserId,
-} from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/entity_id"
 
 export class AuthRepositoryError extends Data.TaggedError(
     "AuthRepositoryError",

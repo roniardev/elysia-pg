@@ -3,11 +3,11 @@ import { Effect } from "effect"
 import {
     applicationError,
     ApplicationErrorCode,
-} from "@/src/general/domain/application-error"
+} from "@/src/general/domain/application_error"
 import type {
     UserId,
     UserPermissionId,
-} from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/entity_id"
 import { UserPermissionRepository } from "@/src/user-permissions/domain/repository/user_permission_repository"
 
 export const deleteUserPermissionUsecase = (

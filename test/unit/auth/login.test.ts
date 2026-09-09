@@ -6,7 +6,7 @@ import { AuthRepository } from "@/src/auth/domain/repository/auth_repository"
 import { AuthSessionRepository } from "@/src/auth/domain/repository/auth_session_repository"
 import { AuthTokens } from "@/src/auth/domain/repository/auth_token_service"
 import { loginUsecase } from "@/src/auth/domain/usecase/login_usecase"
-import { UserId } from "@/src/general/domain/entity-id"
+import { UserId } from "@/src/general/domain/entity_id"
 import { PasswordHasher } from "@/src/general/service/password_hasher"
 
 const user: AuthUser = {

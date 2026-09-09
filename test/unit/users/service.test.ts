@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test"
 import { Effect } from "effect"
 
-import { ApplicationErrorCode } from "@/src/general/domain/application-error"
+import { ApplicationErrorCode } from "@/src/general/domain/application_error"
 import {
     UserId,
     type UserId as UserIdType,
-} from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/entity_id"
 import { EmailSender } from "@/src/general/service/email_sender"
 import { EmailTokenSigner } from "@/src/general/service/email_token_signer"
 import { FrontendConfig } from "@/src/general/service/frontend_config"

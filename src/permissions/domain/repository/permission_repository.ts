@@ -6,7 +6,7 @@ import type {
     PermissionListQuery,
     PermissionUpdate,
 } from "@/src/permissions/domain/entity/permission"
-import type { PermissionId } from "@/src/general/domain/entity-id"
+import type { PermissionId } from "@/src/general/domain/entity_id"
 
 export class PermissionRepositoryError extends Data.TaggedError(
     "PermissionRepositoryError",

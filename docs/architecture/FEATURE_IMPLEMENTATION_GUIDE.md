@@ -43,15 +43,15 @@ one result and `Stream<A, E, R>` for values over time. Pagination is one Effect.
 src/widgets/
   domain/
     entity/widget.ts
-    repository/widget-repository.ts
-    usecase/read-widget.ts
+    repository/widget_repository.ts
+    usecase/get_widget_usecase.ts
   data/
-    model/widget-model.ts
-    source/find-active-widget-by-id.ts
-    repository/widget-repository.ts
+    model/widget_model.ts
+    source/get_widget_by_id_persistent.ts
+    repository/widget_repository_impl.ts
   delivery/
-    dto/widget-request.ts
-    presenter/http/read-widget.ts
+    dto/widget_request.ts
+    presenter/http/get_widget.ts
   layer.ts
   index.ts
 ```
@@ -132,8 +132,8 @@ export const findActiveWidgetById = async (
 })
 ```
 
-Prefer `find-active-widget-by-id.ts`, `create-widget.ts`, and
-`soft-delete-widget.ts`. Do not create generic `queries.ts`, `commands.ts`, or
+Prefer `get_widget_by_id_persistent.ts`, `create_widget.ts`, and
+`soft_delete_widget.ts`. Do not create generic `queries.ts`, `commands.ts`, or
 one large source file. Specific case names preserve filtering and scope.
 
 ## 7. Map persistence models
@@ -225,7 +225,7 @@ splits resource ownership across HTTP handlers.
 
 ```ts
 import type { Database } from "@/db/database"
-import { makeWidgetRepositoryLayer } from "./data/repository/widget-repository"
+import { makeWidgetRepositoryLayer } from "./data/repository/widget_repository_impl"
 
 export const makeWidgetLayer = (database: Database) =>
     makeWidgetRepositoryLayer(database)

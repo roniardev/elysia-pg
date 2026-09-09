@@ -2,7 +2,7 @@ import { jwt } from "@elysiajs/jwt"
 import { Elysia, t } from "elysia"
 
 import { config } from "@/app/config"
-import { userIdSchema } from "@/src/general/delivery/entity-id-schema"
+import { userIdSchema } from "@/src/general/delivery/entity_id_schema"
 
 export const jwtAccessSetup = new Elysia({
     name: "jwtAccess",

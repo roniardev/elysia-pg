@@ -7,7 +7,7 @@ import { AuthorizationRepository } from "@/src/authorization/domain/repository/a
 import {
     applicationError,
     ApplicationErrorCode,
-} from "@/src/general/domain/application-error"
+} from "@/src/general/domain/application_error"
 
 export const authorizeRequestUsecase = (request: AuthorizationRequest) =>
     Effect.gen(function* () {

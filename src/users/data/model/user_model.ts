@@ -6,7 +6,7 @@ import {
     PermissionId,
     UserId,
     UserPermissionId,
-} from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/entity_id"
 import type { UserWithPermissions } from "@/src/users/domain/entity/user"
 
 export type UserWithPermissionsRow = UserRow & {

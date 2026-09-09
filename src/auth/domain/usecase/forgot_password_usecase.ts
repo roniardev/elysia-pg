@@ -6,8 +6,8 @@ import { AuthNotification } from "@/src/auth/domain/repository/auth_notification
 import { AuthRepository } from "@/src/auth/domain/repository/auth_repository"
 import { AuthTokens } from "@/src/auth/domain/repository/auth_token_service"
 import { authError, internalAuthError } from "@/src/auth/domain/usecase/errors"
-import { ApplicationErrorCode } from "@/src/general/domain/application-error"
-import { AuthTokenId } from "@/src/general/domain/entity-id"
+import { ApplicationErrorCode } from "@/src/general/domain/application_error"
+import { AuthTokenId } from "@/src/general/domain/entity_id"
 import { IdGenerator } from "@/src/general/service/id_generator"
 import { PasswordHasher } from "@/src/general/service/password_hasher"
 

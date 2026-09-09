@@ -65,7 +65,7 @@ validated create-user param
                     → return user ID
 ```
 
-The sequence is visible in `src/users/domain/usecase/create-user.ts`. The data
+The sequence is visible in `src/users/domain/usecase/create_user_usecase.ts`. The data
 repository owns the transaction; the domain use case owns the ordering of
 business operations.
 
@@ -133,7 +133,7 @@ No service import silently adds PostgreSQL, Resend, JWT secrets, or ULID.
 POST /user
   → Elysia createUserModel
     → requirePermission(CREATE_USER)
-      → UserService.create
+      → UserUsecase.create
         → shared application runtime
           → makeUserLayer(scoped resources)
             → UserRepository layer
@@ -154,7 +154,7 @@ POST /user
 
 ```ts
 CreateUserParam fixture
-  → createUser
+  → createUserUsecase
     → in-memory UserRepository
     → deterministic IdGenerator
     → deterministic PasswordHasher

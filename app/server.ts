@@ -12,6 +12,7 @@ import { auth } from "@/src/auth"
 import { permissions } from "@/src/permissions"
 import { posts } from "@/src/posts"
 import { users } from "@/src/users"
+import { userPermissions } from "@/src/user-permissions"
 import { encryptResponse } from "@/utils/encrypt-response"
 import {
     createRequestLogContext,
@@ -131,5 +132,6 @@ export const app = new Elysia({
     .use(posts)
     .use(users)
     .use(permissions)
+    .use(userPermissions)
 
 export type ElysiaApp = typeof app

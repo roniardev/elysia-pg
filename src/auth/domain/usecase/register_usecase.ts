@@ -6,11 +6,11 @@ import type { RegisterParam } from "@/src/auth/domain/entity/auth"
 import { AuthRepository } from "@/src/auth/domain/repository/auth_repository"
 import { AuthTokens } from "@/src/auth/domain/repository/auth_token_service"
 import { authError, internalAuthError } from "@/src/auth/domain/usecase/errors"
-import { ApplicationErrorCode } from "@/src/general/domain/application-error"
+import { ApplicationErrorCode } from "@/src/general/domain/application_error"
 import {
     AuthTokenId,
     UserId,
-} from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/entity_id"
 import { EmailSender } from "@/src/general/service/email_sender"
 import { FrontendConfig } from "@/src/general/service/frontend_config"
 import { IdGenerator } from "@/src/general/service/id_generator"

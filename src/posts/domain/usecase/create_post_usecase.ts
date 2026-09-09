@@ -3,11 +3,11 @@ import { Effect } from "effect"
 import {
     applicationError,
     ApplicationErrorCode,
-} from "@/src/general/domain/application-error"
+} from "@/src/general/domain/application_error"
 import {
     PostId,
     type UserId,
-} from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/entity_id"
 import { IdGenerator } from "@/src/general/service/id_generator"
 import type { CreatePostParam } from "@/src/posts/domain/entity/post"
 import { PostRepository } from "@/src/posts/domain/repository/post_repository"

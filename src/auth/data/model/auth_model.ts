@@ -5,7 +5,7 @@ import type {
 import {
     AuthTokenId,
     UserId,
-} from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/entity_id"
 
 type AuthUserRow = Omit<AuthUser, "id"> & {
     id: string

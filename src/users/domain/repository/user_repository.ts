@@ -5,7 +5,7 @@ import type {
     UserListQuery,
     UserWithPermissions,
 } from "@/src/users/domain/entity/user"
-import type { UserId } from "@/src/general/domain/entity-id"
+import type { UserId } from "@/src/general/domain/entity_id"
 
 export class UserRepositoryError extends Data.TaggedError(
     "UserRepositoryError",

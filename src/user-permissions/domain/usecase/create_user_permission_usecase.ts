@@ -3,8 +3,8 @@ import { Effect } from "effect"
 import {
     applicationError,
     ApplicationErrorCode,
-} from "@/src/general/domain/application-error"
-import { UserPermissionId } from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/application_error"
+import { UserPermissionId } from "@/src/general/domain/entity_id"
 import { IdGenerator } from "@/src/general/service/id_generator"
 import type { CreateUserPermissionParam } from "@/src/user-permissions/domain/entity/user_permission"
 import { UserPermissionRepository } from "@/src/user-permissions/domain/repository/user_permission_repository"

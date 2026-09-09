@@ -3,8 +3,8 @@ import { Effect } from "effect"
 import {
     applicationError,
     ApplicationErrorCode,
-} from "@/src/general/domain/application-error"
-import type { PermissionId } from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/application_error"
+import type { PermissionId } from "@/src/general/domain/entity_id"
 import { PermissionRepository } from "@/src/permissions/domain/repository/permission_repository"
 
 export const getPermissionUsecase = (id: PermissionId) =>

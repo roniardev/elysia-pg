@@ -3,7 +3,7 @@ import { ResponseErrorStatus } from "@/common/enum/response-status"
 import {
     ApplicationError,
     ApplicationErrorCode,
-} from "@/src/general/domain/application-error"
+} from "@/src/general/domain/application_error"
 
 type ErrorResponse = {
     message: ErrorMessage

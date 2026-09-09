@@ -7,8 +7,8 @@ import {
 import type { SuccessMessage } from "@/common/enum/response-message"
 import {
     toApplicationErrorResponse,
-} from "@/src/general/delivery/application-error-response"
-import type { ApplicationError } from "@/src/general/domain/application-error"
+} from "@/src/general/delivery/application_error_response"
+import type { ApplicationError } from "@/src/general/domain/application_error"
 import { handleResponse } from "@/utils/handle-response"
 
 export const runService = async <

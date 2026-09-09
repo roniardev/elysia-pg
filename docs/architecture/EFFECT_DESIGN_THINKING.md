@@ -161,7 +161,7 @@ export type WidgetRepositoryService = {
 export const WidgetRepository =
     Context.GenericTag<WidgetRepositoryService>("WidgetRepository")
 
-// data/repository/widget-repository.ts
+// data/repository/widget_repository_impl.ts
 export const makeWidgetRepositoryLayer = (database: Database) =>
     Layer.succeed(WidgetRepository, {
         getById: (id) =>
@@ -183,7 +183,7 @@ resources. Elysia only submits the service graph:
 
 ```ts
 return runService(
-    WidgetService.read(params.id),
+    WidgetUsecase.get(params.id),
     responseOptions,
 )
 ```

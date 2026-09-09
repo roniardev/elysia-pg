@@ -1,6 +1,6 @@
 import { Context, Data, type Effect } from "effect"
 
-import type { UserId } from "@/src/general/domain/entity-id"
+import type { UserId } from "@/src/general/domain/entity_id"
 
 import type { AuthTokenKind } from "@/src/auth/domain/entity/auth"
 

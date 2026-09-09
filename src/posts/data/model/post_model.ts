@@ -2,7 +2,7 @@ import type { Post as PostRow } from "@/db/schema"
 import {
     PostId,
     UserId,
-} from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/entity_id"
 import type {
     Post,
     UpdatedPost,

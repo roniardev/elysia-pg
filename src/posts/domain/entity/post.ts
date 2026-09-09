@@ -1,5 +1,5 @@
-import type { PostId, UserId } from "@/src/general/domain/entity-id"
-import type { SortDirection } from "@/src/general/domain/sort-direction"
+import type { PostId, UserId } from "@/src/general/domain/entity_id"
+import type { SortDirection } from "@/src/general/domain/sort_direction"
 import type { AuthorizationScope } from "@/src/authorization/domain/entity/authorization"
 
 export type PostStatus = "draft" | "published"

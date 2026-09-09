@@ -4,7 +4,7 @@ import type { ResetPasswordParam } from "@/src/auth/domain/entity/auth"
 import { AuthRepository } from "@/src/auth/domain/repository/auth_repository"
 import { AuthTokens } from "@/src/auth/domain/repository/auth_token_service"
 import { authError, internalAuthError } from "@/src/auth/domain/usecase/errors"
-import { ApplicationErrorCode } from "@/src/general/domain/application-error"
+import { ApplicationErrorCode } from "@/src/general/domain/application_error"
 import { PasswordHasher } from "@/src/general/service/password_hasher"
 
 export const resetPasswordUsecase = (param: ResetPasswordParam) =>

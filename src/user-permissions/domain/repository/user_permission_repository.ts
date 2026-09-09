@@ -8,7 +8,7 @@ import type {
     UserPermissionDetail,
     UserPermissionListQuery,
 } from "@/src/user-permissions/domain/entity/user_permission"
-import type { UserPermissionId } from "@/src/general/domain/entity-id"
+import type { UserPermissionId } from "@/src/general/domain/entity_id"
 
 export class UserPermissionRepositoryError extends Data.TaggedError(
     "UserPermissionRepositoryError",

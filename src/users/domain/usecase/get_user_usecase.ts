@@ -3,8 +3,8 @@ import { Effect } from "effect"
 import {
     applicationError,
     ApplicationErrorCode,
-} from "@/src/general/domain/application-error"
-import type { UserId } from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/application_error"
+import type { UserId } from "@/src/general/domain/entity_id"
 import { UserRepository } from "@/src/users/domain/repository/user_repository"
 
 const requireUser = <User>(user: User | null) => {

@@ -4,7 +4,7 @@ import type {
     PermissionGrant,
     PermissionName,
 } from "@/src/authorization/domain/entity/authorization"
-import type { UserId } from "@/src/general/domain/entity-id"
+import type { UserId } from "@/src/general/domain/entity_id"
 
 export class AuthorizationRepositoryError extends Data.TaggedError(
     "AuthorizationRepositoryError",

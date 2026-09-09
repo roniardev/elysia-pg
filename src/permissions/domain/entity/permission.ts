@@ -1,5 +1,5 @@
-import type { PermissionId } from "@/src/general/domain/entity-id"
-import type { SortDirection } from "@/src/general/domain/sort-direction"
+import type { PermissionId } from "@/src/general/domain/entity_id"
+import type { SortDirection } from "@/src/general/domain/sort_direction"
 
 export type Permission = {
     createdAt: Date

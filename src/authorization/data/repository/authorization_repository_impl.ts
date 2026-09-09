@@ -9,7 +9,7 @@ import {
     AuthorizationRepository,
     AuthorizationRepositoryError,
 } from "@/src/authorization/domain/repository/authorization_repository"
-import { UserPermissionId } from "@/src/general/domain/entity-id"
+import { UserPermissionId } from "@/src/general/domain/entity_id"
 import type { RedisClient } from "@/utils/services/redis-client"
 
 const repositoryError =

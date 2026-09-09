@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia"
 
-import { postIdSchema } from "@/src/general/delivery/entity-id-schema"
+import { postIdSchema } from "@/src/general/delivery/entity_id_schema"
 
 export const createPostModel = new Elysia().model({
     createPostModel: t.Object({

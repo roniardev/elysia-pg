@@ -3,7 +3,7 @@ import type {
     PermissionId,
     UserId,
     UserPermissionId,
-} from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/entity_id"
 
 export type UserPermission = {
     createdAt: Date

@@ -1,7 +1,7 @@
 import { Context, Data, Effect, Layer } from "effect"
 import { SignJWT } from "jose"
 
-import type { UserId } from "@/src/general/domain/entity-id"
+import type { UserId } from "@/src/general/domain/entity_id"
 
 export class EmailTokenSignerError extends Data.TaggedError(
     "EmailTokenSignerError",

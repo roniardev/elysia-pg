@@ -3,8 +3,8 @@ import { Effect } from "effect"
 import {
     applicationError,
     ApplicationErrorCode,
-} from "@/src/general/domain/application-error"
-import type { PostId, UserId } from "@/src/general/domain/entity-id"
+} from "@/src/general/domain/application_error"
+import type { PostId, UserId } from "@/src/general/domain/entity_id"
 import { PostRepository } from "@/src/posts/domain/repository/post_repository"
 
 export const deletePostUsecase = (id: PostId, userId: UserId) =>
