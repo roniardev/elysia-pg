@@ -1,4 +1,5 @@
 import { t } from "elysia"
+import { type Static } from "typebox"
 
 import { userIdSchema } from "@/src/general/delivery/entity_id_schema"
 
@@ -15,4 +16,4 @@ export const getUserResponse = t.Object({
     ),
 })
 
-export type IGetUserResponse = typeof getUserResponse.static
+export type IGetUserResponse = Static<typeof getUserResponse>

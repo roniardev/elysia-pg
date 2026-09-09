@@ -11,22 +11,22 @@ import { ULID_PATTERN } from "@/utils/ulid"
 
 const ulidSchema = t.String({ pattern: ULID_PATTERN })
 
-export const userIdSchema = t.Transform(ulidSchema)
+export const userIdSchema = t.Codec(ulidSchema)
     .Decode(UserId)
     .Encode((value) => value)
 
-export const postIdSchema = t.Transform(ulidSchema)
+export const postIdSchema = t.Codec(ulidSchema)
     .Decode(PostId)
     .Encode((value) => value)
 
-export const permissionIdSchema = t.Transform(ulidSchema)
+export const permissionIdSchema = t.Codec(ulidSchema)
     .Decode(PermissionId)
     .Encode((value) => value)
 
-export const userPermissionIdSchema = t.Transform(ulidSchema)
+export const userPermissionIdSchema = t.Codec(ulidSchema)
     .Decode(UserPermissionId)
     .Encode((value) => value)
 
-export const authTokenIdSchema = t.Transform(ulidSchema)
+export const authTokenIdSchema = t.Codec(ulidSchema)
     .Decode(AuthTokenId)
     .Encode((value) => value)

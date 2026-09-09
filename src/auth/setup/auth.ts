@@ -1,4 +1,4 @@
-import { jwt } from "@elysiajs/jwt"
+import { jwt } from "@elysia/jwt"
 import { Elysia, t } from "elysia"
 
 import { config } from "@/app/config"
@@ -15,7 +15,7 @@ export const jwtAccessSetup = new Elysia({
         secret: config.JWT_ACCESS_SECRET,
         exp: "25m",
     }),
-)
+).as("plugin")
 
 export const jwtRefreshSetup = new Elysia({
     name: "jwtRefresh",
@@ -28,7 +28,7 @@ export const jwtRefreshSetup = new Elysia({
         secret: config.JWT_REFRESH_SECRET,
         exp: "7d",
     }),
-)
+).as("plugin")
 
 export const jwtEmailSetup = new Elysia({
     name: "jwtEmail",
@@ -41,4 +41,4 @@ export const jwtEmailSetup = new Elysia({
         secret: config.JWT_EMAIL_SECRET,
         exp: "15m",
     }),
-)
+).as("plugin")

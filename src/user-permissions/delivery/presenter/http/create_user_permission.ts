@@ -11,7 +11,9 @@ import { UserPermissionUsecase } from "@/src/user-permissions/domain/usecase"
 export const createUserPermission = new Elysia()
     .use(createUserPermissionModel)
     .use(requirePermission(ManageUserPermission.CREATE_USER_PERMISSION))
-    .post("/user-permission", async ({ body, set }) =>
+    .post("/user-permission", {
+        body: "createUserPermissionModel",
+    }, async ({ body, set }) =>
         runService(UserPermissionUsecase.create(body), {
             set,
             path: "user-permissions.create.usecase",
@@ -20,6 +22,4 @@ export const createUserPermission = new Elysia()
                 status: ResponseSuccessStatus.CREATED,
                 data: (result) => result,
             },
-        }), {
-        body: "createUserPermissionModel",
-    })
+        }))

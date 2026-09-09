@@ -21,7 +21,7 @@ export const auth = new Elysia()
         rateLimit({
             max: RATE_LIMIT_MAX[config.NODE_ENV] ?? 100,
             duration: 60000,
-            scoping: "scoped",
+            scoping: "plugin",
         }),
     )
     .use(login)

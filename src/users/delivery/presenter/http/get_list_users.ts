@@ -11,26 +11,22 @@ import { UserUsecase } from "@/src/users/domain/usecase"
 export const getListUsers = new Elysia()
     .use(getListUserModel)
     .use(requirePermission(UserPermission.READ_ALL_USER))
-    .get(
-        "/user",
-        async ({ query, set }) => {
-            const path = "users.get-list.usecase"
+    .get("/user", {
+        query: "getListUserModel",
+    }, async ({ query, set }) => {
+        const path = "users.get-list.usecase"
 
-            return runService(
-                UserUsecase.getList(query),
-                {
-                    set,
-                    path,
-                    success: {
-                        message: SuccessMessage.USER_FETCHED,
-                        status: ResponseSuccessStatus.OK,
-                        data: (result) => result.data,
-                        attributes: (result) => result.attributes,
-                    },
+        return runService(
+            UserUsecase.getList(query),
+            {
+                set,
+                path,
+                success: {
+                    message: SuccessMessage.USER_FETCHED,
+                    status: ResponseSuccessStatus.OK,
+                    data: (result) => result.data,
+                    attributes: (result) => result.attributes,
                 },
-            )
-        },
-        {
-            query: "getListUserModel",
-        },
-    )
+            },
+        )
+    })

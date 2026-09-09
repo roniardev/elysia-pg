@@ -1,4 +1,5 @@
 import { t } from "elysia"
+import { type Static } from "typebox"
 
 import { permissionIdSchema } from "@/src/general/delivery/entity_id_schema"
 
@@ -15,4 +16,4 @@ export const getPermissionResponse = t.Object({
     ),
 })
 
-export type IGetPermissionResponse = typeof getPermissionResponse.static
+export type IGetPermissionResponse = Static<typeof getPermissionResponse>

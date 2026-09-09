@@ -11,22 +11,18 @@ import { PermissionUsecase } from "@/src/permissions/domain/usecase"
 export const createPermission = new Elysia()
     .use(createPermissionModel)
     .use(requirePermission(ManagePermission.CREATE_PERMISSION))
-    .post(
-        "/permission",
-        async ({ body, set }) => {
-            const path = "permissions.create.usecase"
+    .post("/permission", {
+        body: "createPermissionModel",
+    }, async ({ body, set }) => {
+        const path = "permissions.create.usecase"
 
-            return runService(PermissionUsecase.create(body), {
-                set,
-                path,
-                success: {
-                    message: SuccessMessage.PERMISSION_CREATED,
-                    status: ResponseSuccessStatus.CREATED,
-                    data: (result) => result,
-                },
-            })
-        },
-        {
-            body: "createPermissionModel",
-        },
-    )
+        return runService(PermissionUsecase.create(body), {
+            set,
+            path,
+            success: {
+                message: SuccessMessage.PERMISSION_CREATED,
+                status: ResponseSuccessStatus.CREATED,
+                data: (result) => result,
+            },
+        })
+    })

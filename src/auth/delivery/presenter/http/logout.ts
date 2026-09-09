@@ -1,4 +1,4 @@
-import bearer from "@elysiajs/bearer"
+import bearer from "@elysia/bearer"
 import { Elysia } from "elysia"
 
 import { SuccessMessage } from "@/common/enum/response-message"
@@ -8,7 +8,14 @@ import { runService } from "@/src/general/run_service"
 
 export const logout = new Elysia()
     .use(bearer())
-    .post("/logout", async ({ bearer: token, set }) =>
+    .as("plugin")
+    .post("/logout", {}, async ({
+        bearer: token,
+        set,
+    }: {
+        bearer?: string
+        set: { status?: number | string }
+    }) =>
         runService(AuthUsecase.logout(token), {
             set,
             path: "auth.logout.usecase",

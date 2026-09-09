@@ -11,7 +11,9 @@ import { UserPermissionUsecase } from "@/src/user-permissions/domain/usecase"
 export const getListUserPermissions = new Elysia()
     .use(getListUserPermissionModel)
     .use(requirePermission(ManageUserPermission.READ_USER_PERMISSION))
-    .get("/user-permission", async ({ query, set }) =>
+    .get("/user-permission", {
+        query: "getListUserPermissionModel",
+    }, async ({ query, set }) =>
         runService(UserPermissionUsecase.getList(query), {
             set,
             path: "user-permissions.read-all.usecase",
@@ -21,6 +23,4 @@ export const getListUserPermissions = new Elysia()
                 data: (result) => result.data,
                 attributes: (result) => result.attributes,
             },
-        }), {
-        query: "getListUserPermissionModel",
-    })
+        }))

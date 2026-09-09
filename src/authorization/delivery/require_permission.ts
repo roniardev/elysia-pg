@@ -1,6 +1,6 @@
-import bearer from "@elysiajs/bearer"
+import bearer from "@elysia/bearer"
 import { Effect } from "effect"
-import type { Elysia } from "elysia"
+import { Elysia } from "elysia"
 
 import { runApplicationEffect } from "@/app/runtime"
 import type {
@@ -19,6 +19,27 @@ export type AuthContext = {
     userId: UserId
 }
 
+type AuthedStore = {
+    auth: AuthContext
+}
+
+export const readAuthStore = (store: object): AuthContext => {
+    // Elysia 2 beta does not leak `.state()` through `.use()` callback types.
+    const authedStore = store as AuthedStore
+    return authedStore.auth
+}
+
+type PermissionGuardContext = {
+    bearer?: string
+    jwtAccess: {
+        verify: (
+            token?: string,
+        ) => Promise<{ id: UserId, exp?: number } | false>
+    }
+    set: { status?: number | string }
+    store: AuthedStore
+}
+
 export const requirePermission =
     (
         permission: PermissionName,
@@ -26,13 +47,18 @@ export const requirePermission =
             scope?: boolean
         },
     ) =>
-        (app: Elysia) =>
+        <App extends Elysia>(app: App) =>
             app
                 .use(jwtAccessSetup)
                 .use(bearer())
                 .state("auth", {} as AuthContext)
                 .guard({
-                    beforeHandle: async ({ bearer, jwtAccess, set, store }) => {
+                    beforeHandle: async ({
+                        bearer,
+                        jwtAccess,
+                        set,
+                        store,
+                    }: PermissionGuardContext) => {
                         const validToken = await jwtAccess.verify(bearer)
 
                         if (!validToken || !bearer) {

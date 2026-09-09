@@ -1,4 +1,5 @@
 import { t } from "elysia"
+import { type Static } from "typebox"
 
 export const generalResponse = t.Object({
     status: t.Boolean(),
@@ -10,4 +11,4 @@ export const generalResponse = t.Object({
     limit: t.Optional(t.Number()),
 })
 
-export type GeneralResponse = typeof generalResponse.static
+export type GeneralResponse = Static<typeof generalResponse>

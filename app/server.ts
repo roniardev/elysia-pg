@@ -1,10 +1,10 @@
-import { cors } from "@elysiajs/cors"
-import { opentelemetry } from "@elysiajs/opentelemetry"
-import { serverTiming } from "@elysiajs/server-timing"
-import { swagger } from "@elysiajs/swagger"
+import { cors } from "@elysia/cors"
+import { opentelemetry } from "@elysia/opentelemetry"
+import { serverTiming } from "@elysia/server-timing"
+import { openapi } from "@elysia/openapi"
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto"
 import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-node"
-import { Elysia } from "elysia"
+import { Elysia, ValidationError } from "elysia"
 import { compression } from "elysia-compress"
 import { config } from "@/app/config"
 import type { GeneralResponse } from "@/common/model/general-response"
@@ -50,19 +50,19 @@ export const app = new Elysia({
         }),
     )
     .use(compression())
-    .onRequest(({ request, set }) => {
+    .request(({ request, set }) => {
         const context = createRequestLogContext(request)
         requestContexts.set(request, context)
         set.headers["x-request-id"] = context.requestId
     })
-    .use(swagger())
+    .use(openapi())
     .use(
         cors({
             origin: config.CORS_ORIGIN.split(","),
         }),
     )
     .use(serverTiming())
-    .onError(({ error, code, set, request }) => {
+    .error(({ error, set, request }) => {
         const context = requestContexts.get(request)
         if (context) {
             requestContexts.set(request, {
@@ -71,44 +71,42 @@ export const app = new Elysia({
             })
         }
 
-        switch (code) {
-            case "VALIDATION": {
-                const resError = error.all as unknown as Array<
-                    Record<string, string | number>
-                >
-                const name = error.all[0] as unknown as Record<string, string>
-                const err = resError.filter(
-                    (err) =>
-                        (Number(err?.type) || 0) >= 40 &&
-                        (Number(err?.type) || 0) < 50 &&
-                        err?.type,
-                )
+        if (error instanceof ValidationError) {
+            const resError = error.all as unknown as Array<
+                Record<string, string | number>
+            >
+            const name = error.all[0] as unknown as Record<string, string>
+            const err = resError.filter(
+                (item) =>
+                    (Number(item?.type) || 0) >= 40 &&
+                    (Number(item?.type) || 0) < 50 &&
+                    item?.type,
+            )
 
-                set.status = 400
-                return {
-                    status: false,
-                    message: name.summary,
-                    err: err,
-                }
+            set.status = 400
+            return {
+                status: false,
+                message: name.summary,
+                err: err,
             }
+        }
 
-            case "INTERNAL_SERVER_ERROR": {
-                return {
-                    status: false,
-                    message: "Internal Server Error",
-                }
+        if (error instanceof Error && error.message === "Internal Server Error") {
+            return {
+                status: false,
+                message: "Internal Server Error",
             }
         }
     })
-    .onAfterResponse(({ request, response, set }) => {
+    .afterResponse(({ request, responseValue, set }) => {
         const context = requestContexts.get(request)
         if (!context) {
             return
         }
 
         let statusCode = Number(set.status)
-        if (!statusCode && response instanceof Response) {
-            statusCode = response.status
+        if (!statusCode && responseValue instanceof Response) {
+            statusCode = responseValue.status
         }
         if (!statusCode) {
             statusCode = 200
@@ -125,8 +123,8 @@ export const app = new Elysia({
         })
         requestContexts.delete(request)
     })
-    .onAfterHandle(({ response }) =>
-        encryptResponse(response as GeneralResponse),
+    .afterHandle(({ responseValue }) =>
+        encryptResponse(responseValue as GeneralResponse),
     )
     .use(auth)
     .use(posts)

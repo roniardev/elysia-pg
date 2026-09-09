@@ -6,7 +6,7 @@ live under `docs/architecture/`.
 
 ## Tech Stack
 
-Bun 1.3.x, TypeScript 5.8, Elysia 1.4, Effect 3.22, Drizzle + PostgreSQL 18,
+Bun 1.3.x, TypeScript 5.8, Elysia 2.0.0-beta.14, Effect 3.22, Drizzle + PostgreSQL 18,
 ioredis, Verrou locks. Path alias `@/*` → repo root.
 
 ## Code Style

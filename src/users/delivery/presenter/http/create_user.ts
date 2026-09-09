@@ -11,24 +11,20 @@ import { UserUsecase } from "@/src/users/domain/usecase"
 export const createUser = new Elysia()
     .use(createUserModel)
     .use(requirePermission(UserPermission.CREATE_USER))
-    .post(
-        "/user",
-        async ({ body, set }) => {
-            const path = "users.create.usecase"
+    .post("/user", {
+        body: "createUserModel",
+    }, async ({ body, set }) => {
+        const path = "users.create.usecase"
 
-            return runService(
-                UserUsecase.create(body),
-                {
-                    set,
-                    path,
-                    success: {
-                        message: SuccessMessage.USER_CREATED,
-                        status: ResponseSuccessStatus.CREATED,
-                    },
+        return runService(
+            UserUsecase.create(body),
+            {
+                set,
+                path,
+                success: {
+                    message: SuccessMessage.USER_CREATED,
+                    status: ResponseSuccessStatus.CREATED,
                 },
-            )
-        },
-        {
-            body: "createUserModel",
-        },
-    )
+            },
+        )
+    })

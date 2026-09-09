@@ -11,24 +11,20 @@ import { UserUsecase } from "@/src/users/domain/usecase"
 export const deleteUser = new Elysia()
     .use(deleteUserModel)
     .use(requirePermission(UserPermission.DELETE_USER))
-    .delete(
-        "/user/:id",
-        async ({ params, set }) => {
-            const path = "users.delete.usecase"
+    .delete("/user/:id", {
+        params: "deleteUserModel",
+    }, async ({ params, set }) => {
+        const path = "users.delete.usecase"
 
-            return runService(
-                UserUsecase.delete(params.id),
-                {
-                    set,
-                    path,
-                    success: {
-                        message: SuccessMessage.USER_DELETED,
-                        status: ResponseSuccessStatus.OK,
-                    },
+        return runService(
+            UserUsecase.delete(params.id),
+            {
+                set,
+                path,
+                success: {
+                    message: SuccessMessage.USER_DELETED,
+                    status: ResponseSuccessStatus.OK,
                 },
-            )
-        },
-        {
-            params: "deleteUserModel",
-        },
-    )
+            },
+        )
+    })

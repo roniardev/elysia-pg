@@ -139,7 +139,7 @@ make full-setup     # Complete development setup with database
 
 ## 🏗️ Technology Stack
 
-- **Web Framework**: [ElysiaJS](https://elysiajs.com/) - Fast, type-safe web framework
+- **Web Framework**: [ElysiaJS](https://elysiajs.com/) 2.0.0-beta.14
 - **Database**: [PostgreSQL](https://www.postgresql.org/) with [Drizzle ORM](https://orm.drizzle.team/)
 - **Runtime**: [Bun](https://bun.sh/) 1.3.x - Fast JavaScript runtime and package manager
 - **Linter**: [ESLint](https://eslint.org/) 9 (flat config) with TypeScript, stylistic, and essential plugins
