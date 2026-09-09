@@ -30,10 +30,11 @@
         "drizzle-dbml-generator": "^0.10.0",
         "drizzle-orm": "^0.45.2",
         "effect": "^3.22.1",
-        "elysia": "^1.4.29",
+        "elysia": "^1.4.30",
         "elysia-compress": "^1.2.1",
         "elysia-rate-limit": "^4.6.2",
         "env-var": "^7.5.0",
+        "file-type": "21.3.4",
         "ioredis": "^6.0.0",
         "jose": "^6.2.9",
         "postgres": "^3.4.9",
@@ -55,6 +56,19 @@
         "eslint-plugin-low-complexity": "^1.4.0",
         "globals": "^15.0.0",
         "typescript": "^5.8.3"
+    },
+    "overrides": {
+        "@grpc/grpc-js": "1.14.4",
+        "@opentelemetry/core": "2.11.0",
+        "@opentelemetry/exporter-prometheus": "0.222.0",
+        "@opentelemetry/instrumentation": "0.222.0",
+        "@opentelemetry/propagator-jaeger": "2.11.0",
+        "@opentelemetry/sdk-node": "0.222.0",
+        "@protobufjs/utf8": "1.1.2",
+        "file-type": "21.3.4",
+        "fflate": "0.8.3",
+        "js-yaml": "4.3.2",
+        "protobufjs": "7.6.6"
     },
     "version": "0.1.6"
 }
